@@ -1,0 +1,9 @@
+pynput
+opencv-python
+pywin32
+pillow
+numpy
+paddlepaddle-gpu
+paddleocr
+setuptools
+pyyaml
