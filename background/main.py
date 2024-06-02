@@ -1,45 +1,25 @@
 from utils import screenshot, ocr, search_text
 import time
-from datetime import datetime
 from pynput.keyboard import Listener, Key
 from threading import Thread
+from utils import logger_msg
 from operation import (
     interactive,
     release_skills,
     click_position,
     mouse_scroll,
-    transfer_beacon,
+    transfer_boss,
     control,
 )
-from config import config
+from config import config, role, Status
+from datetime import datetime
 
 running = False
-inBattle = False
-noBossTime = time.time()
-bossTime = time.time()
-lastMsg = ""
-
-
-def logger_msg(msg: str):
-    global lastMsg
-    now = time.time()
-    content = (
-        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
-        f"战斗时长：{int(now - bossTime):<4}秒 "
-        f"非战斗时长：{int(now - noBossTime):<4}秒  "
-        f"{msg}"
-    )
-    start = "\n" if lastMsg != msg else "\r"
-    content = start + content
-    print(content, end="")
-    lastMsg = msg
-
 
 logger_msg("初始化完成")
 
 
 def boss_task():
-    global noBossTime, bossTime
     img = screenshot()
     ocrResults = ocr(img)
     if search_text(ocrResults, "吸收"):
@@ -48,12 +28,15 @@ def boss_task():
         interactive()
         time.sleep(1)
         return
-    now = time.time()
+    now = datetime.now()
     for item in ocrResults:
         if "击败" in item.get("text"):
             logger_msg("战斗中")
             release_skills()
-            noBossTime = now
+            if role.status == Status.idle:
+                role.fightTime = now
+            role.status = Status.fight
+            role.lastFightTime = now
         if "取消" in item.get("text"):
             logger_msg("取消")
             click_position(item.get("position"))
@@ -62,17 +45,18 @@ def boss_task():
             logger_msg("终端")
             control.esc()
             time.sleep(1)
-    if (now - noBossTime) > 5:
-        logger_msg("非战斗状态")
-        bossTime = now
-    if now - noBossTime > config.MaxNoBossTime:
-        logger_msg("长时间处于非战斗状态 传送")
-        noBossTime = now
-        transfer_beacon()
-    if now - bossTime > config.MaxBossTime:
+    if (now - role.lastFightTime).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
+        role.status = Status.idle
+        logger_msg("长时间没有检测到战斗状态")
+        role.idleTime = now  # 重置空闲时间
+        role.lastFightTime = now  # 重置最近检测到战斗时间
+        transfer_boss()
+    if (now - role.fightTime).seconds > config.MaxFightTime:  # 长时间处于战斗状态
         logger_msg("长时间处于战斗状态 传送")
-        bossTime = now
-        transfer_beacon()
+        role.idleTime = now
+        role.fightTime = now  # 重置战斗时间
+        role.status = Status.idle
+        transfer_boss()
 
 
 def run(func: callable = boss_task):

@@ -16,43 +16,43 @@ from datetime import datetime
 import win32gui
 import os
 from paddle.device import is_compiled_with_cuda
-import yaml
+from config import role
 
-print(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} 初始化中")
+lastMsg = ""
+
+
+def logger_msg(msg: str):
+    global lastMsg
+    content = (
+        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
+        f"当前角色状态：{role.status} "
+        f"{msg}"
+    )
+    start = "\n" if lastMsg != msg else "\r"
+    content = start + content
+    print(content, end="")
+    lastMsg = msg
+
+
+logger_msg("初始化中")
 
 # 获取项目根目录 根目录为当前文件的上一级目录
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-cand_alphabet_list = [
-    "吸收",
-    "进入",
-    "推荐等级",
-    "开启挑战",
-    "击败",
-    "确认",
-    "取消",
-    "离开",
-    "领取",
-    "借位信标",
-    "回收",
-    "快速旅行",
-    "领取奖励",
-    "终端",
-]
-cand_alphabet = "".join(cand_alphabet_list)
-
 if is_compiled_with_cuda():
     ocrIns = PaddleOCR(lang="ch", use_gpu=True, show_log=False)
+    logger_msg("使用GPU加速OCR识别")
 else:
     ocrIns = PaddleOCR(lang="ch", use_gpu=False, show_log=False)
+    logger_msg("使用CPU进行OCR识别")
 hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
 if hwnd == 0:
-    print("未找到游戏窗口")
+    logger_msg("未找到游戏窗口")
     sys.exit(1)
 left, top, right, bot = win32gui.GetClientRect(hwnd)
 w = right - left
 h = bot - top
-print(f"窗口大小：{w}x{h}")
+logger_msg(f"窗口大小：{w}x{h}")
 # 设置窗口位置为0,0
 width_ratio = w / 1920
 height_ratio = h / 1080
@@ -110,17 +110,14 @@ def ocr(img: np.ndarray) -> List[Dict[str, Any]]:
         return []
     res = []
     for result in results:
-        text = [char for char in result[1][0] if char in cand_alphabet]
-        text = "".join(text)
-        if len(text) == 0:
-            continue
+        text = result[1][0]
         position = result[0]
         res.append({"text": text, "position": position})
     return res
 
 
 def matchTemplate(
-    img: np.ndarray, template: np.ndarray, threshold: float = 0.8
+        img: np.ndarray, template: np.ndarray, threshold: float = 0.8
 ) -> None | Dict[str, Any]:
     """
     使用 opencv matchTemplate 方法 模板匹配 返回匹配结果
@@ -152,8 +149,38 @@ def matchTemplate(
     }
 
 
-def search_text(results: List[Dict[str, Any]], target: str):
+def search_text(results: List[Dict[str, Any]], target: str) -> Dict[str, Any] | None:
     for result in results:
         if target in result.get("text"):
             return result
+    return None
+
+
+def wait_text(targets: str | list[str], timeout: int = 3) -> Dict[str, Any] | None:
+    start = datetime.now()
+    if isinstance(targets, str):
+        targets = [targets]
+    while True:
+        img = screenshot()
+        if img is None:
+            continue
+        if (datetime.now() - start).seconds > timeout:
+            return None
+        result = ocr(img)
+        for target in targets:
+            if text_info := search_text(result, target):
+                return text_info
+    return None
+
+
+def find_text(targets: str | list[str]) -> Dict[str, Any] | None:
+    if isinstance(targets, str):
+        targets = [targets]
+    img = screenshot()
+    if img is None:
+        return None
+    result = ocr(img)
+    for target in targets:
+        if text_info := search_text(result, target):
+            return text_info
     return None

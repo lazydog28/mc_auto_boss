@@ -6,10 +6,12 @@
 @author SuperLazyDog
 """
 import time
-
+from pynput.mouse import Controller
 import win32gui
 import win32con
 import win32api
+
+mouse = Controller()
 
 
 class Control:
@@ -30,6 +32,8 @@ class Control:
         time.sleep(0.1)
 
     def mouse_middle(self, x: int = 0, y: int = 0):
+        x = x if isinstance(x, int) else int(x)
+        y = y if isinstance(y, int) else int(y)
         self.activate()
         long_position = win32api.MAKELONG(x, y)  # 生成坐标
         win32gui.PostMessage(
@@ -56,6 +60,9 @@ class Control:
         )
 
     def scroll(self, count: int, x: int = 0, y: int = 0):
+        count = count if isinstance(count, int) else int(count)
+        x = x if isinstance(x, int) else int(x)
+        y = y if isinstance(y, int) else int(y)
         lParam = win32api.MAKELONG(x, y)
         wParam = win32api.MAKELONG(0, win32con.WHEEL_DELTA * count)
         win32gui.SendMessage(self.hwnd, win32con.WM_MOUSEWHEEL, wParam, lParam)

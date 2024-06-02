@@ -1,0 +1,6 @@
+MaxFightTime: 120
+MaxIdleTime: 10
+TargetBoss:
+    - "鸣钟之龟"
+    - "燎照之骑"
+    - "聚械机偶"

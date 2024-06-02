@@ -16,10 +16,15 @@ from utils import (
     width_ratio,
     height_ratio,
     root_path,
+    wait_text,
+    find_text,
+    logger_msg
 )
 from PIL import Image
-from control import Control
+from control import Control, mouse
 import os
+from config import config, role
+import win32con
 
 select_role_index = 1
 control = Control(hwnd)
@@ -88,7 +93,7 @@ def forward():
     control.key_release("w")
 
 
-def transfer_beacon():
+def transfer_beacon() -> bool:
     """
     传送信标
     :return:
@@ -102,10 +107,9 @@ def transfer_beacon():
     template = Image.open(os.path.join(root_path, r"template\借位信标.png"))
     template = np.array(template)
     coordinate = matchTemplate(img, template)
-    print("coordinate", coordinate)
     if not coordinate:
         control.esc()
-        return None
+        return False
     control.click(coordinate.get("x"), coordinate.get("y"))
     time.sleep(1)
     img = screenshot()
@@ -113,10 +117,11 @@ def transfer_beacon():
     text_info = search_text(result, "借位信标")
     if not text_info:
         control.esc()
-        return None
+        return False
     click_position(text_info.get("position"))
     time.sleep(1)
     control.click(1745 * width_ratio, 1000 * height_ratio)
+    return True
 
 
 def mouse_scroll():
@@ -131,3 +136,52 @@ def select_levels():
     time.sleep(1)
     control.click(1500 * width_ratio, 1000 * height_ratio)
     time.sleep(1)
+
+
+def transfer_boss() -> bool:
+    current_mouse_position = mouse.position  # 保存当前鼠标位置
+    control.activate()
+    control.tap(win32con.VK_F2)
+    if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"]):
+        control.esc()
+        return False
+    mouse.position = current_mouse_position  # 恢复鼠标位置
+    time.sleep(1)
+    control.click(75 * width_ratio, 720 * height_ratio)
+    if not wait_text("探测"):
+        control.esc()
+        return False
+    bossName = config.TargetBoss[role.bossIndex % len(config.TargetBoss)]
+    logger_msg(f"当前目标boss：{bossName}")
+    role.bossIndex += 1
+    findBoss = None
+    for i in range(20):
+        findBoss = find_text(bossName)
+        if findBoss:
+            break
+        control.scroll(-20, 500 * width_ratio, 500 * height_ratio)
+        time.sleep(0.3)
+    if not findBoss:
+        control.esc()
+        return False
+    click_position(findBoss.get("position"))
+    click_position(findBoss.get("position"))
+    time.sleep(1)
+    control.click(1700 * width_ratio, 980 * height_ratio)
+    if not wait_text("追踪"):
+        control.esc()
+        return False
+    control.click(960 * width_ratio, 540 * height_ratio)
+    beacon = wait_text("借位信标")
+    if not beacon:
+        control.esc()
+        return False
+    click_position(beacon.get("position"))
+    if transfer := wait_text("快速旅行"):
+        click_position(transfer.get("position"))
+        logger_msg("等待传送完成")
+        wait_text("特征码", 99999)
+        wait_text("击败", 10)
+        return True
+    control.esc()
+    return False
