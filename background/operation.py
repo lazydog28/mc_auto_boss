@@ -154,7 +154,15 @@ def transfer_boss() -> bool:
         control.esc()
         return False
     time.sleep(1)
-    control.click(75 * width_ratio, 720 * height_ratio)
+    img = screenshot()
+    template = Image.open(os.path.join(root_path, r"template/残象探寻.png"))
+    template = np.array(template)
+    coordinate = matchTemplate(img, template, threshold=0.5)
+    if not coordinate:
+        logger_msg("识别残像探寻失败")
+        control.esc()
+        return False
+    control.click(coordinate.get("x"), coordinate.get("y")) # 进入残像探寻
     if not wait_text("探测"):
         logger_msg("未进入残像探寻")
         control.esc()
