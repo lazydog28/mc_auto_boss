@@ -33,9 +33,10 @@
    > gpu加速安装依赖参考链接：[paddle-gpu 快速开始](https://www.paddlepaddle.org.cn/install/quick)
 3. ### 修改配置文件
     ```shell
-    cp config.example.yaml config.yaml # 复制配置文件
+    cp config.example.yaml config.yaml # 复制配置文件，
     ```
-   修改`config.yaml`中的配置项
+   修改`config.yaml`中的配置项，主要时 TargetBoss 改为你要刷的BOSS名称，如`飞廉之猩`，`鸣钟之龟`等，BOSS位置必须放置好借位信标
+
 4. ### 运行项目
    请在运行之前保证游戏已经打开，并且处于BOSS附近
     ```shell
