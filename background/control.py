@@ -6,12 +6,10 @@
 @author SuperLazyDog
 """
 import time
-from pynput.mouse import Controller
 import win32gui
 import win32con
 import win32api
 
-mouse = Controller()
 
 
 class Control:

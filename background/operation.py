@@ -21,7 +21,7 @@ from utils import (
     logger_msg
 )
 from PIL import Image
-from control import Control, mouse
+from control import Control
 import os
 from config import config, role
 import win32con
@@ -130,22 +130,28 @@ def mouse_scroll():
 
 
 def select_levels():
-    control.mouse_press(320 * width_ratio, 185 * height_ratio)
-    time.sleep(1)
-    control.mouse_release(320 * width_ratio, 185 * height_ratio)
-    time.sleep(1)
-    control.click(1500 * width_ratio, 1000 * height_ratio)
+    interactive()
+    result = wait_text("推荐等级40")
+    if not result:
+        control.esc()
+        return
+    for i in range(3):
+        click_position(result.get("position"))
+        time.sleep(1)
+    result = find_text("单人挑战")
+    if not result:
+        control.esc()
+        return
+    click_position(result.get("position"))
     time.sleep(1)
 
 
 def transfer_boss() -> bool:
-    current_mouse_position = mouse.position  # 保存当前鼠标位置
     control.activate()
     control.tap(win32con.VK_F2)
     if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"]):
         control.esc()
         return False
-    mouse.position = current_mouse_position  # 恢复鼠标位置
     time.sleep(1)
     control.click(75 * width_ratio, 720 * height_ratio)
     if not wait_text("探测"):

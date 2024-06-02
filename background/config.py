@@ -44,6 +44,7 @@ class Role(BaseModel):
     fightTime: datetime = Field(datetime.now(), title="战斗开始时间")
     lastFightTime: datetime = Field(datetime.now(), title="最近检测到战斗时间")
     idleTime: datetime = Field(datetime.now(), title="空闲时间")
+    startTime: datetime = Field(datetime.now(), title="开始时间")
 
 
 role = Role()
