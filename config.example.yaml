@@ -1,6 +1,6 @@
-MaxFightTime: 120
-MaxIdleTime: 10
-TargetBoss:
+MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目标
+MaxIdleTime: 10 # 战斗完成后的空闲时间，不能小于5
+TargetBoss: # 目标BOSS 必须保证目标BOSS的位置是有借位信标的
     - "鸣钟之龟"
     - "燎照之骑"
     - "聚械机偶"
