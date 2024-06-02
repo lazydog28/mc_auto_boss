@@ -7,3 +7,4 @@ paddlepaddle
 paddleocr
 setuptools
 pyyaml
+pydantic
