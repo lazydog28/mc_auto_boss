@@ -132,6 +132,7 @@ def run(func: callable, e: Event):
     """
     logger_msg("任务进程开始运行")
     if e.is_set():
+        logger_msg("任务进程已经在运行，不需要再次启动")
         return
     e.set()
     while e.is_set():

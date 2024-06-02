@@ -166,3 +166,5 @@ yolo
 screenshot
 config.yaml
 test.*.py
+favicon.ico
+dist
