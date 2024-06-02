@@ -7,14 +7,13 @@
 """
 from pynput.mouse import Controller
 import math
-from utils import logger_msg
 from datetime import datetime
-from threading import Thread, Event
-
-mouse_reset_event = Event()  # 用于停止鼠标重置线程
+from multiprocessing import Event
+from utils import logger_msg
 
 
 def mouse_reset(e: Event):
+    logger_msg("鼠标重置进程启动成功")
     mouse = Controller()
     last_position = mouse.position
     last_time = datetime.now()
@@ -26,14 +25,10 @@ def mouse_reset(e: Event):
         last_time = datetime.now()
         current_position = mouse.position
         distance = math.sqrt(
-            (current_position[0] - last_position[0]) ** 2 + (current_position[1] - last_position[1]) ** 2)
+            (current_position[0] - last_position[0]) ** 2
+            + (current_position[1] - last_position[1]) ** 2
+        )
         if distance > 200:
-            logger_msg("重置鼠标位置")
             mouse.position = last_position
         else:
             last_position = current_position
-
-
-mouse_reset_thread = Thread(target=mouse_reset, args=(mouse_reset_event,))
-mouse_reset_thread.start()
-logger_msg("鼠标重置线程启动")

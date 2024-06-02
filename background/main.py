@@ -1,7 +1,7 @@
 from utils import screenshot, ocr, search_text
 import time
 from pynput.keyboard import Listener, Key
-from threading import Thread
+from multiprocessing import Process, Event, current_process
 from utils import logger_msg, width_ratio, height_ratio
 from operation import (
     interactive,
@@ -12,15 +12,14 @@ from operation import (
     control,
     forward,
     leaving_battle,
-    select_levels
+    select_levels,
 )
 from config import config, role, Status
 from datetime import datetime
-from mouse_reset import mouse_reset_event
+from mouse_reset import mouse_reset
 
-running = False
-
-logger_msg("初始化完成")
+name = current_process().name
+logger_msg(f"{name} 初始化完成")
 
 
 def boss_task():
@@ -49,7 +48,9 @@ def boss_task():
             logger_msg("终端")
             control.esc()
             time.sleep(1)
-    if (now - role.lastFightTime).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
+    if (
+            now - role.lastFightTime
+    ).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
         role.status = Status.idle
         logger_msg("长时间没有检测到战斗状态")
         role.idleTime = now  # 重置空闲时间
@@ -124,19 +125,18 @@ def battle_task():
         forward()
 
 
-def run(func: callable = boss_task):
+def run(func: callable, e: Event):
     """
     运行
     :return:
     """
-    logger_msg("线程开始运行")
-    global running
-    if running:
+    logger_msg("任务进程开始运行")
+    if e.is_set():
         return
-    running = True
-    while running:
+    e.set()
+    while e.is_set():
         func()
-    logger_msg("线程停止运行")
+    logger_msg("进程停止运行")
 
 
 def on_press(key):
@@ -147,27 +147,31 @@ def on_press(key):
     :param key:
     :return:
     """
-    global running
     if key == Key.f5:
         logger_msg("启动BOSS脚本")
-        thread = Thread(target=run, args=(boss_task,))
+        thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
     if key == Key.f6:
         logger_msg("启动无妄者脚本")
-        thread = Thread(target=run, args=(battle_task,))
+        thread = Process(target=run, args=(battle_task, taskEvent), name="task")
         thread.start()
     if key == Key.f7:
         logger_msg("暂停脚本")
-        running = False
+        taskEvent.clear()
     if key == Key.f12:
         logger_msg("退出脚本")
-        running = False
-        mouse_reset_event.set()
+        taskEvent.clear()
+        mouseResetEvent.set()
         return False
     return None
 
 
 if __name__ == "__main__":
+    taskEvent = Event()  # 用于停止任务线程
+    mouseResetEvent = Event()  # 用于停止鼠标重置线程
+    mouse_reset_thread = Process(target=mouse_reset, args=(mouseResetEvent,), name="mouse_reset")
+    mouse_reset_thread.start()
+    logger_msg("鼠标重置进程启动")
     logger_msg("开始运行")
     with Listener(on_press=on_press) as listener:
         listener.join()

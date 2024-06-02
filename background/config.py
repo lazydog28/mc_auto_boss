@@ -46,5 +46,4 @@ class Role(BaseModel):
     idleTime: datetime = Field(datetime.now(), title="空闲时间")
     startTime: datetime = Field(datetime.now(), title="开始时间")
 
-
 role = Role()

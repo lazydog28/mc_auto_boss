@@ -150,11 +150,13 @@ def transfer_boss() -> bool:
     control.activate()
     control.tap(win32con.VK_F2)
     if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"]):
+        logger_msg("未进入索拉指南")
         control.esc()
         return False
     time.sleep(1)
     control.click(75 * width_ratio, 720 * height_ratio)
     if not wait_text("探测"):
+        logger_msg("未进入残像探寻")
         control.esc()
         return False
     bossName = config.TargetBoss[role.bossIndex % len(config.TargetBoss)]
@@ -169,6 +171,7 @@ def transfer_boss() -> bool:
         time.sleep(0.3)
     if not findBoss:
         control.esc()
+        logger_msg("未找到目标boss")
         return False
     click_position(findBoss.get("position"))
     click_position(findBoss.get("position"))

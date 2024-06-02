@@ -17,8 +17,7 @@ import win32gui
 import os
 from paddle.device import is_compiled_with_cuda
 from config import role
-
-lastMsg = ""
+from multiprocessing import current_process
 
 
 def logger_msg(msg: str):
@@ -32,34 +31,6 @@ def logger_msg(msg: str):
     content = start + content
     print(content, end="")
     lastMsg = msg
-
-
-logger_msg("初始化中")
-
-# 获取项目根目录 根目录为当前文件的上一级目录
-root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-if is_compiled_with_cuda():
-    ocrIns = PaddleOCR(lang="ch", use_gpu=True, show_log=False)
-    logger_msg("使用GPU加速OCR识别")
-else:
-    ocrIns = PaddleOCR(lang="ch", use_gpu=False, show_log=False)
-    logger_msg("使用CPU进行OCR识别")
-hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
-if hwnd == 0:
-    logger_msg("未找到游戏窗口")
-    sys.exit(1)
-left, top, right, bot = win32gui.GetClientRect(hwnd)
-w = right - left
-h = bot - top
-logger_msg(f"窗口大小：{w}x{h}")
-# 设置窗口位置为0,0
-width_ratio = w / 1920
-height_ratio = h / 1080
-rect = win32gui.GetWindowRect(hwnd)  # 获取窗口区域
-win32gui.MoveWindow(
-    hwnd, 0, 0, rect[2] - rect[0], rect[3] - rect[1], True
-)  # 设置窗口位置为0,0
 
 
 def screenshot() -> np.ndarray | None:
@@ -184,3 +155,30 @@ def find_text(targets: str | list[str]) -> Dict[str, Any] | None:
         if text_info := search_text(result, target):
             return text_info
     return None
+
+lastMsg = ""
+hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
+if hwnd == 0:
+    logger_msg("未找到游戏窗口")
+    sys.exit(1)
+left, top, right, bot = win32gui.GetClientRect(hwnd)
+w = right - left
+h = bot - top
+logger_msg(f"窗口大小：{w}x{h}")
+# 设置窗口位置为0,0
+width_ratio = w / 1920
+height_ratio = h / 1080
+root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if current_process().name == "task":
+    logger_msg("初始化中")
+    # 获取项目根目录 根目录为当前文件的上一级目录
+    if is_compiled_with_cuda():
+        ocrIns = PaddleOCR(lang="ch", use_gpu=True, show_log=False)
+        logger_msg("使用GPU加速OCR识别")
+    else:
+        ocrIns = PaddleOCR(lang="ch", use_gpu=False, show_log=False)
+        logger_msg("使用CPU进行OCR识别")
+    rect = win32gui.GetWindowRect(hwnd)  # 获取窗口区域
+    win32gui.MoveWindow(
+        hwnd, 0, 0, rect[2] - rect[0], rect[3] - rect[1], True
+    )  # 设置窗口位置为0,0

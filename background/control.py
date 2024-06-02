@@ -57,7 +57,7 @@ class Control:
             self.hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position
         )
 
-    def scroll(self, count: int, x: int = 0, y: int = 0):
+    def scroll(self, count: int, x: int|float = 0, y: int|float = 0):
         count = count if isinstance(count, int) else int(count)
         x = x if isinstance(x, int) else int(x)
         y = y if isinstance(y, int) else int(y)
