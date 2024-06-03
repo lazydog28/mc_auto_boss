@@ -25,6 +25,7 @@ from control import Control
 import os
 from config import config, role
 import win32con
+from datetime import datetime
 
 select_role_index = 1
 control = Control(hwnd)
@@ -162,7 +163,7 @@ def transfer_boss() -> bool:
         logger_msg("识别残像探寻失败")
         control.esc()
         return False
-    control.click(coordinate.get("x"), coordinate.get("y")) # 进入残像探寻
+    control.click(coordinate.get("x"), coordinate.get("y"))  # 进入残像探寻
     if not wait_text("探测"):
         logger_msg("未进入残像探寻")
         control.esc()
@@ -198,7 +199,9 @@ def transfer_boss() -> bool:
         click_position(transfer.get("position"))
         logger_msg("等待传送完成")
         wait_text("特征码", 99999)
-        wait_text("击败", 10)
+        role.idleTime = datetime.now()  # 重置空闲时间
+        role.lastFightTime = datetime.now()  # 重置最近检测到战斗时间
+        role.fightTime = datetime.now() # 重置战斗时间
         return True
     control.esc()
     return False

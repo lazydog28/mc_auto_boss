@@ -51,18 +51,16 @@ def boss_task():
         if "声弦" in result.get("text"):
             logger_msg("声弦交互")
             interactive()
-            time.sleep(1)
+            return  # 交互后直接返回 不再执行后续操作
     if (
         now - role.lastFightTime
     ).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
         role.status = Status.idle
         logger_msg("长时间没有检测到战斗状态")
-        role.idleTime = now  # 重置空闲时间
         role.lastFightTime = now  # 重置最近检测到战斗时间
         transfer_boss()
     if (now - role.fightTime).seconds > config.MaxFightTime:  # 长时间处于战斗状态
         logger_msg("长时间处于战斗状态 传送")
-        role.idleTime = now
         role.fightTime = now  # 重置战斗时间
         role.status = Status.idle
         transfer_boss()
