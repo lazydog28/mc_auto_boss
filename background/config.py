@@ -16,6 +16,15 @@ class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
     MaxIdleTime: int = Field(10, title="最大空闲时间", ge=5)
     TargetBoss: list[str] = Field([], title="目标关键字")
+    SelectRoleInterval: int = Field(2, title="选择角色间隔时间", ge=2)
+    FightTactics: list[str] = Field(
+        [
+            "e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1",
+            "e,q,r,a~0.5,0.1,a,0.1,a,0.1,a,0.1,a,0.1",
+            "e~0.5,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1",
+        ],
+        title="战斗策略, 逗号分隔, e,q,r为技能, a为普攻, 数字为间隔时间,a~0.5为普工按下0.5秒",
+    )
 
 
 # 判断是否存在配置文件
@@ -45,5 +54,6 @@ class Role(BaseModel):
     lastFightTime: datetime = Field(datetime.now(), title="最近检测到战斗时间")
     idleTime: datetime = Field(datetime.now(), title="空闲时间")
     startTime: datetime = Field(datetime.now(), title="开始时间")
+
 
 role = Role()

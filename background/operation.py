@@ -18,7 +18,7 @@ from utils import (
     root_path,
     wait_text,
     find_text,
-    logger_msg
+    logger_msg,
 )
 from PIL import Image
 from control import Control
@@ -60,7 +60,7 @@ def click_position(position: list[list[int]]):
 
 def select_role():
     global last_select_role_time, select_role_index
-    if time.time() - last_select_role_time < 2:
+    if time.time() - last_select_role_time < config.SelectRoleInterval:
         return
     last_select_role_time = time.time()
     select_role_index += 1
@@ -72,12 +72,37 @@ def select_role():
 def release_skills():
     select_role()
     control.mouse_middle()
-    control.tap("e")
-    control.tap("q")
-    control.tap("r")
-    for i in range(5):
-        control.click()
-        time.sleep(0.1)
+    if len(config.FightTactics) < select_role_index:
+        config.FightTactics.append("e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1")
+    tactics = config.FightTactics[select_role_index - 1].split(",")
+    for tactic in tactics:  # 遍历对应角色的战斗策略
+        try:
+            try:
+                wait_time = float(tactic)  # 如果是数字，等待时间
+                time.sleep(wait_time)
+                continue
+            except:
+                pass
+            if len(tactic) == 1:  # 如果只有一个字符，点击
+                if tactic == "a":
+                    control.click()
+                else:
+                    control.tap(tactic)
+            if len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
+                tactic = tactic + "0.5"
+            if len(tactic) >= 3 and tactic[1] == "~":
+                click_time = float(tactic.split("~")[1])
+                if tactic[0] == "a":
+                    control.mouse_press()
+                    time.sleep(click_time)
+                    control.mouse_release()
+                else:
+                    control.key_press(tactic[0])
+                    time.sleep(click_time)
+                    control.key_release(tactic[0])
+        except Exception as e:
+            logger_msg(f"释放技能失败: {e}")
+            continue
 
 
 def leaving_battle():
@@ -201,7 +226,7 @@ def transfer_boss() -> bool:
         wait_text("特征码", 99999)
         role.idleTime = datetime.now()  # 重置空闲时间
         role.lastFightTime = datetime.now()  # 重置最近检测到战斗时间
-        role.fightTime = datetime.now() # 重置战斗时间
+        role.fightTime = datetime.now()  # 重置战斗时间
         return True
     control.esc()
     return False
