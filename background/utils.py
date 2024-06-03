@@ -20,6 +20,7 @@ from config import role
 from multiprocessing import current_process
 import re
 
+
 def logger_msg(msg: str):
     global lastMsg
     content = (
@@ -48,7 +49,7 @@ def screenshot() -> np.ndarray | None:
     mfcDC = win32ui.CreateDCFromHandle(hwndDC)  # 创建MFC DC从hwndDC
     saveDC = mfcDC.CreateCompatibleDC()  # 创建与mfcDC兼容的DC
     saveBitMap = win32ui.CreateBitmap()  # 创建一个位图对象
-    saveBitMap.CreateCompatibleBitmap(mfcDC, w, h)  # 创建与mfcDC兼容的位图
+    saveBitMap.CreateCompatibleBitmap(mfcDC, real_w, real_h)  # 创建与mfcDC兼容的位图
     saveDC.SelectObject(saveBitMap)  # 选择saveDC的位图对象，准备绘图
 
     # 尝试使用PrintWindow函数截取窗口图像
@@ -89,7 +90,7 @@ def ocr(img: np.ndarray) -> List[Dict[str, Any]]:
 
 
 def matchTemplate(
-    img: np.ndarray, template: np.ndarray, threshold: float = 0.8
+        img: np.ndarray, template: np.ndarray, threshold: float = 0.8
 ) -> None | Dict[str, Any]:
     """
     使用 opencv matchTemplate 方法 模板匹配 返回匹配结果
@@ -158,6 +159,16 @@ def find_text(targets: str | list[str]) -> Dict[str, Any] | None:
     return None
 
 
+def get_scale_factor():
+    try:
+        windll.shcore.SetProcessDpiAwareness(1)  # 设置进程的 DPI 感知
+        scale_factor = windll.shcore.GetScaleFactorForDevice(0)  # 获取主显示器的缩放因子
+        return scale_factor / 100  # 返回百分比形式的缩放因子
+    except Exception as e:
+        print("Error:", e)
+        return None
+
+
 lastMsg = ""
 hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
 if hwnd == 0:
@@ -166,10 +177,16 @@ if hwnd == 0:
 left, top, right, bot = win32gui.GetClientRect(hwnd)
 w = right - left
 h = bot - top
-logger_msg(f"窗口大小：{w}x{h}")
+scale_factor = get_scale_factor()
+if scale_factor is None:
+    logger_msg("获取屏幕缩放失败")
+    sys.exit(1)
+real_w = int(w * scale_factor)
+real_h = int(h * scale_factor)
+logger_msg(f"窗口大小：{w}x{h} 当前屏幕缩放：{scale_factor} 游戏分辨率：{real_w}x{real_h}")
 # 设置窗口位置为0,0
-width_ratio = w / 1920
-height_ratio = h / 1080
+width_ratio = w / 1920 * scale_factor
+height_ratio = h / 1080 * scale_factor
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # 判断 root_path 中是否包含中文或特殊字符
 special_chars_pattern = r'[\u4e00-\u9fa5\!\@\#\$\%\^\&\*\(\)]'

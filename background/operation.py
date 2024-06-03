@@ -190,7 +190,7 @@ def transfer_boss() -> bool:
         return False
     control.click(coordinate.get("x"), coordinate.get("y"))  # 进入残像探寻
     if not wait_text("探测"):
-        logger_msg("未进入残像探寻")
+        logger_msg("未进入残象探寻")
         control.esc()
         return False
     bossName = config.TargetBoss[role.bossIndex % len(config.TargetBoss)]
