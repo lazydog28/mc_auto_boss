@@ -48,8 +48,12 @@ def boss_task():
             logger_msg("终端")
             control.esc()
             time.sleep(1)
+        if "声弦" in result.get("text"):
+            logger_msg("声弦交互")
+            interactive()
+            time.sleep(1)
     if (
-            now - role.lastFightTime
+        now - role.lastFightTime
     ).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
         role.status = Status.idle
         logger_msg("长时间没有检测到战斗状态")
@@ -80,7 +84,7 @@ def battle_task():
     now = datetime.now()
     matchOne = False
     for result in ocrResults:
-        if "进入" in result.get("text") and not search_text(ocrResults,"确认"):
+        if "进入" in result.get("text") and not search_text(ocrResults, "确认"):
             logger_msg("进入")
             matchOne = True
             select_levels()
@@ -170,7 +174,9 @@ def on_press(key):
 if __name__ == "__main__":
     taskEvent = Event()  # 用于停止任务线程
     mouseResetEvent = Event()  # 用于停止鼠标重置线程
-    mouse_reset_thread = Process(target=mouse_reset, args=(mouseResetEvent,), name="mouse_reset")
+    mouse_reset_thread = Process(
+        target=mouse_reset, args=(mouseResetEvent,), name="mouse_reset"
+    )
     mouse_reset_thread.start()
     logger_msg("鼠标重置进程启动")
     logger_msg("开始运行")
