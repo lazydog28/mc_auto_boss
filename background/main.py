@@ -1,3 +1,4 @@
+import check
 from utils import screenshot, ocr, search_text
 import time
 from pynput.keyboard import Listener, Key
