@@ -194,7 +194,7 @@ if current_process().name == "task":
             rec_model_dir=rec_model_dir,
         )
         logger_msg("使用CPU进行OCR识别")
-    # rect = win32gui.GetWindowRect(hwnd)  # 获取窗口区域
-    # win32gui.MoveWindow(
-    #     hwnd, 0, 0, rect[2] - rect[0], rect[3] - rect[1], True
-    # )  # 设置窗口位置为0,0
+    rect = win32gui.GetWindowRect(hwnd)  # 获取窗口区域
+    win32gui.MoveWindow(
+        hwnd, 0, 0, rect[2] - rect[0], rect[3] - rect[1], True
+    )  # 设置窗口位置为0,0
