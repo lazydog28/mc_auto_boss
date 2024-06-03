@@ -52,8 +52,14 @@ def boss_task():
             logger_msg("声弦交互")
             interactive()
             return  # 交互后直接返回 不再执行后续操作
+        if "选择复苏" in result.get("text"):
+            logger_msg("取消死亡复活")
+            control.esc()
+        if "复苏" == result.get("text"):
+            logger_msg("确认")
+            click_position(result.get("position"))
     if (
-        now - role.lastFightTime
+            now - role.lastFightTime
     ).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
         role.status = Status.idle
         logger_msg("长时间没有检测到战斗状态")
