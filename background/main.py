@@ -74,12 +74,14 @@ def boss_task():
         logger_msg("长时间没有检测到战斗状态")
         role.lastFightTime = now  # 重置最近检测到战斗时间
         transfer_boss()
+        return
 
     if (now - role.fightTime).seconds > config.MaxFightTime:  # 长时间处于战斗状态
         logger_msg("长时间处于战斗状态 传送")
         role.fightTime = now  # 重置战斗时间
         role.status = Status.idle
         transfer_boss()
+        return
 
 
 def battle_task():

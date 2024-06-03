@@ -223,10 +223,13 @@ def transfer_boss() -> bool:
     if transfer := wait_text("快速旅行"):
         click_position(transfer.get("position"))
         logger_msg("等待传送完成")
+        time.sleep(3)
         wait_text("特征码", 99999)
-        role.idleTime = datetime.now()  # 重置空闲时间
-        role.lastFightTime = datetime.now()  # 重置最近检测到战斗时间
-        role.fightTime = datetime.now()  # 重置战斗时间
+        logger_msg("传送完成")
+        now = datetime.now()
+        role.idleTime = now  # 重置空闲时间
+        role.lastFightTime = now  # 重置最近检测到战斗时间
+        role.fightTime = now  # 重置战斗时间
         return True
     control.esc()
     return False
