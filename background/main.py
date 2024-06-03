@@ -168,7 +168,7 @@ def on_press(key):
         logger_msg("暂停脚本")
         taskEvent.clear()
     if key == Key.f12:
-        logger_msg("退出脚本")
+        logger_msg("请等待程序退出后再关闭窗口...")
         taskEvent.clear()
         mouseResetEvent.set()
         return False

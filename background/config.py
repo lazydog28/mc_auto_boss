@@ -15,7 +15,7 @@ from datetime import datetime
 class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
     MaxIdleTime: int = Field(10, title="最大空闲时间", ge=5)
-    TargetBoss: list[str] = Field([], title="目标关键字", max_length=3)
+    TargetBoss: list[str] = Field([], title="目标关键字")
 
 
 # 判断是否存在配置文件
