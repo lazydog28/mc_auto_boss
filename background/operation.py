@@ -224,7 +224,10 @@ def transfer_boss() -> bool:
         click_position(transfer.get("position"))
         logger_msg("等待传送完成")
         time.sleep(3)
-        wait_text("特征码", 99999)
+        if not wait_text("特征码", 120):
+            logger_msg("传送超时")
+            control.esc()
+            return False
         logger_msg("传送完成")
         now = datetime.now()
         role.idleTime = now  # 重置空闲时间
