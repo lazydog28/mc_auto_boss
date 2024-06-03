@@ -54,7 +54,8 @@ def screenshot() -> np.ndarray | None:
     # 尝试使用PrintWindow函数截取窗口图像
     result = windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 3)
     if result != 1:
-        return None  # 如果截取失败，则返回None
+        logger_msg("截取屏幕失败")
+        return screenshot()  # 如果截取失败，则重试
 
     # 从位图中获取图像数据
     bmp_info = saveBitMap.GetInfo()  # 获取位图信息
