@@ -18,7 +18,7 @@ import os
 from paddle.device import is_compiled_with_cuda
 from config import role
 from multiprocessing import current_process
-
+import re
 
 def logger_msg(msg: str):
     global lastMsg
@@ -171,6 +171,11 @@ logger_msg(f"窗口大小：{w}x{h}")
 width_ratio = w / 1920
 height_ratio = h / 1080
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# 判断 root_path 中是否包含中文或特殊字符
+special_chars_pattern = r'[\u4e00-\u9fa5\!\@\#\$\%\^\&\*\(\)]'
+if bool(re.search(special_chars_pattern, root_path)):
+    logger_msg("请将项目路径移动到纯英文路径下")
+    sys.exit(1)
 if current_process().name == "task":
     logger_msg("初始化中")
     # 获取项目根目录 根目录为当前文件的上一级目录
