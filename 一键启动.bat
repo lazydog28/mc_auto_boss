@@ -1,6 +1,15 @@
 @echo off
 chcp 65001
 
+
+@REM 判断当前是否以管理员权限运行，如果不是则提示并退出
+net session >nul 2>nul
+if %errorlevel% neq 0 (
+    echo 请以管理员权限运行此脚本。
+    pause
+    exit /b 1
+)
+
 @REM 检测当前目录路径是否存在中文，如果存在则提示并退出
 set "currentDir=%CD%"
 set "hasChinese=false"
