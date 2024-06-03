@@ -168,3 +168,4 @@ config.yaml
 test.*.py
 favicon.ico
 dist
+py310
