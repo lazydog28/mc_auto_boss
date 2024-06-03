@@ -156,6 +156,7 @@ def find_text(targets: str | list[str]) -> Dict[str, Any] | None:
             return text_info
     return None
 
+
 lastMsg = ""
 hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
 if hwnd == 0:
@@ -176,7 +177,10 @@ if current_process().name == "task":
         ocrIns = PaddleOCR(lang="ch", use_gpu=True, show_log=False)
         logger_msg("使用GPU加速OCR识别")
     else:
-        ocrIns = PaddleOCR(lang="ch", use_gpu=False, show_log=False)
+        ocrIns = PaddleOCR(lang="ch", use_gpu=False, show_log=False,
+                           det_model_dir=os.path.join(root_path, "models/det/ch/ch_PP-OCRv4_det_infer"),
+                           rec_model_dir=os.path.join(root_path, "models/rec/ch/ch_PP-OCRv4_rec_infer"),
+                           )
         logger_msg("使用CPU进行OCR识别")
     # rect = win32gui.GetWindowRect(hwnd)  # 获取窗口区域
     # win32gui.MoveWindow(
