@@ -88,7 +88,7 @@ def ocr(img: np.ndarray) -> List[Dict[str, Any]]:
 
 
 def matchTemplate(
-        img: np.ndarray, template: np.ndarray, threshold: float = 0.8
+    img: np.ndarray, template: np.ndarray, threshold: float = 0.8
 ) -> None | Dict[str, Any]:
     """
     使用 opencv matchTemplate 方法 模板匹配 返回匹配结果
@@ -173,14 +173,25 @@ root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if current_process().name == "task":
     logger_msg("初始化中")
     # 获取项目根目录 根目录为当前文件的上一级目录
+    det_model_dir = os.path.join(root_path, "models/det/ch/ch_PP-OCRv4_det_infer")
+    rec_model_dir = os.path.join(root_path, "models/rec/ch/ch_PP-OCRv4_rec_infer")
     if is_compiled_with_cuda():
-        ocrIns = PaddleOCR(lang="ch", use_gpu=True, show_log=False)
+        ocrIns = PaddleOCR(
+            lang="ch",
+            use_gpu=True,
+            show_log=False,
+            det_model_dir=det_model_dir,
+            rec_model_dir=rec_model_dir,
+        )
         logger_msg("使用GPU加速OCR识别")
     else:
-        ocrIns = PaddleOCR(lang="ch", use_gpu=False, show_log=False,
-                           det_model_dir=os.path.join(root_path, "models/det/ch/ch_PP-OCRv4_det_infer"),
-                           rec_model_dir=os.path.join(root_path, "models/rec/ch/ch_PP-OCRv4_rec_infer"),
-                           )
+        ocrIns = PaddleOCR(
+            lang="ch",
+            use_gpu=False,
+            show_log=False,
+            det_model_dir=det_model_dir,
+            rec_model_dir=rec_model_dir,
+        )
         logger_msg("使用CPU进行OCR识别")
     # rect = win32gui.GetWindowRect(hwnd)  # 获取窗口区域
     # win32gui.MoveWindow(
