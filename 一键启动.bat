@@ -1,5 +1,4 @@
 @echo off
-chcp 65001
 rem 进入当前文件夹
 cd /d %~dp0
 
