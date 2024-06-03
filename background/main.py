@@ -59,12 +59,18 @@ def boss_task():
             logger_msg("确认")
             click_position(result.get("position"))
     if (
-            now - role.lastFightTime
+        now - role.lastFightTime
+    ).seconds > config.MaxIdleTime / 2:  # 检查是否没有检测到战斗状态且时间超过最大空闲时间的一半,执行前进操作,看能不能撞到吸收
+        forward()
+
+    if (
+        now - role.lastFightTime
     ).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
         role.status = Status.idle
         logger_msg("长时间没有检测到战斗状态")
         role.lastFightTime = now  # 重置最近检测到战斗时间
         transfer_boss()
+
     if (now - role.fightTime).seconds > config.MaxFightTime:  # 长时间处于战斗状态
         logger_msg("长时间处于战斗状态 传送")
         role.fightTime = now  # 重置战斗时间
