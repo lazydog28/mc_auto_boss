@@ -80,7 +80,7 @@ def battle_task():
     now = datetime.now()
     matchOne = False
     for result in ocrResults:
-        if "进入" in result.get("text"):
+        if "进入" in result.get("text") and not search_text(ocrResults,"确认"):
             logger_msg("进入")
             matchOne = True
             select_levels()
