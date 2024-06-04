@@ -122,9 +122,13 @@ def matchTemplate(
     }
 
 
+rare_chars = "鸷"
+
+
 def search_text(results: List[Dict[str, Any]], target: str) -> Dict[str, Any] | None:
+    target = re.sub(rf"[{rare_chars}]", ".", target)  # 判断 target 是否包含生僻字，如果包含则使用正则将生僻字替换为任意字符
     for result in results:
-        if target in result.get("text"):
+        if re.search(target, result.get("text")): # 使用正则匹配
             return result
     return None
 
