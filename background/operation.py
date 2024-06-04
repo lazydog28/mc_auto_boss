@@ -175,7 +175,7 @@ def select_levels():
 def transfer_boss() -> bool:
     control.activate()
     control.tap(win32con.VK_F2)
-    if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"]):
+    if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"],timeout=5):
         logger_msg("未进入索拉指南")
         control.esc()
         return False
@@ -201,8 +201,8 @@ def transfer_boss() -> bool:
         findBoss = find_text(bossName)
         if findBoss:
             break
-        control.scroll(-20, 500 * width_ratio, 500 * height_ratio)
-        time.sleep(0.3)
+        control.scroll(-10, 500 * width_ratio, 500 * height_ratio)
+        time.sleep(0.5)
     if not findBoss:
         control.esc()
         logger_msg("未找到目标boss")

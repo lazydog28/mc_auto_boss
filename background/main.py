@@ -140,6 +140,11 @@ def battle_task():
             leaving_battle()
             role.status = Status.idle
             break
+        if "月卡奖励" in result.get("text"):
+            logger_msg("月卡奖励")
+            matchOne = True
+            click_position(result.get("position"))
+            break
     if not matchOne and Status.idle:
         logger_msg("前进")
         forward()
@@ -151,6 +156,7 @@ def run(func: callable, e: Event):
     :return:
     """
     logger_msg("任务进程开始运行")
+    logger_msg("请将鼠标移出游戏窗口，避免干扰脚本运行")
     if e.is_set():
         logger_msg("任务进程已经在运行，不需要再次启动")
         return
