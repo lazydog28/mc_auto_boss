@@ -68,6 +68,7 @@ class Control:
         if isinstance(key, str):
             key = ord(key.upper())
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, key, 0)
+        time.sleep(0.1) # 按键时间 不确定是否需要
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, key, 0)
 
     def esc(self):
@@ -99,3 +100,9 @@ class Control:
     def space(self):
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, win32con.VK_SPACE, 0)
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, win32con.VK_SPACE, 0)
+
+    def move_to(self, x: int | float, y: int | float):
+        x = x if isinstance(x, int) else int(x)
+        y = y if isinstance(y, int) else int(y)
+        lParam = win32api.MAKELONG(x, y)
+        win32gui.PostMessage(self.hwnd, win32con.WM_MOUSEMOVE, 0, lParam)

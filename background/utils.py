@@ -187,7 +187,6 @@ if scale_factor is None:
     sys.exit(1)
 real_w = int(w * scale_factor)
 real_h = int(h * scale_factor)
-logger_msg(f"窗口大小：{w}x{h} 当前屏幕缩放：{scale_factor} 游戏分辨率：{real_w}x{real_h}")
 # 设置窗口位置为0,0
 width_ratio = w / 1920 * scale_factor
 height_ratio = h / 1080 * scale_factor
@@ -199,6 +198,8 @@ if bool(re.search(special_chars_pattern, root_path)):
     sys.exit(1)
 if current_process().name == "task":
     logger_msg("初始化中")
+    logger_msg(f"窗口大小：{w}x{h} 当前屏幕缩放：{scale_factor} 游戏分辨率：{real_w}x{real_h}")
+    logger_msg(f"项目路径：{root_path}")
     # 获取项目根目录 根目录为当前文件的上一级目录
     det_model_dir = os.path.join(root_path, "models/det/ch/ch_PP-OCRv4_det_infer")
     rec_model_dir = os.path.join(root_path, "models/rec/ch/ch_PP-OCRv4_rec_infer")
