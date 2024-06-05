@@ -7,3 +7,4 @@ setuptools
 pyyaml
 pydantic
 ppocr-onnx
+onnxruntime

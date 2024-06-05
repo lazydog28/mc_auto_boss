@@ -362,8 +362,9 @@ def absorption_action():
             logger("发现声骸 向前移动")
             control.tap("w")
         if find_text("吸收"):
+            logger("吸收")
             interactive()
             time.sleep(1)
-            info.absorptionSuccess = True
             info.absorptionCount += 1
+            break
     info.needAbsorption = False

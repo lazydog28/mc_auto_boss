@@ -20,9 +20,9 @@ def absorption_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     info.absorptionCount += 1
-    control.tap("f")
+    interactive()
     time.sleep(1)
-    info.absorptionSuccess = True
+    info.needAbsorption = False
     return True
 
 
@@ -131,7 +131,6 @@ def fight_action(positions: dict[str, Position]) -> bool:
         info.fightCount += 1
         info.needAbsorption = True
         info.fightTime = now
-        info.absorptionSuccess = False
     info.status = Status.fight
     info.lastFightTime = now
     return True

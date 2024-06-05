@@ -267,10 +267,10 @@ class Task(BaseModel):
             match_page = page(img, ocrResults)
             if match_page:
                 info.currentPageName = page.name
-                logger(f"页面数量：{len(self.pages)}  当前页面：{page.name}")
+                logger(f"当前页面：{page.name}")
                 page.action(page.matchPositions)
         for conditionalAction in self.conditionalActions:
             match_conditional_action = conditionalAction()
             if match_conditional_action:
-                logger(f"条件操作数量：{len(self.conditionalActions)}  当前条件操作：{conditionalAction.name}")
+                logger(f"当前条件操作：{conditionalAction.name}")
                 conditionalAction.action()

@@ -50,8 +50,8 @@ def logger(msg: str):
     global lastMsg
     content = (
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
-        # f"战斗次数：{info.fightCount} "
-        # f"吸收次数：{info.absorptionCount} "
+        f"战斗次数：{info.fightCount} "
+        f"吸收次数：{info.absorptionCount} "
         f"{msg}"
     )
     start = "\n" if lastMsg != msg else "\r"

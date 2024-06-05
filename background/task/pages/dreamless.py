@@ -5,6 +5,8 @@
 @time: 2024/6/5 上午10:23
 @author SuperLazyDog
 """
+import time
+
 # 无妄者脚本
 from . import *
 from datetime import timedelta
@@ -58,7 +60,7 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
         return False
     for i in range(3):
         click_position(result.position)
-        time.sleep(1)
+        time.sleep(0.5)
     result = find_text("单人挑战")
     if not result:
         control.esc()
@@ -154,6 +156,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     time.sleep(3)
     wait_home()
     logger("无妄者副本结束")
+    time.sleep(2)
     info.inDreamless = False
     info.status = Status.idle
     now = datetime.now()

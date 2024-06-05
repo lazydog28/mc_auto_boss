@@ -3,8 +3,8 @@ opencv-python
 pywin32
 pillow
 numpy
-paddlepaddle-gpu
-paddleocr
+ppocr-onnx
 setuptools
 pyyaml
 pydantic
+onnxruntime-gpu
