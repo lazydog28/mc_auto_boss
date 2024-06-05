@@ -46,7 +46,7 @@ def voice_string_interaction_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
-    control.tap("f")
+    interactive()
     return True
 
 

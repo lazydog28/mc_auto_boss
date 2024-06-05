@@ -16,7 +16,6 @@ import win32ui
 from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
 from ocr import ocr
 from schema import match_template, OcrResult
-from PIL import Image
 from control import control
 import os
 from config import config
@@ -101,31 +100,7 @@ def forward():
     control.key_release("w")
 
 
-def select_levels():
-    interactive()
-    result = wait_text("推荐等级40")
-    if not result:
-        control.esc()
-        return
-    for i in range(3):
-        click_position(result.position)
-        time.sleep(1)
-    result = find_text("单人挑战")
-    if not result:
-        control.esc()
-        return
-    click_position(result.position)
-    time.sleep(1)
-
-
-def transfer_boss() -> bool:
-    control.activate()
-    control.tap(win32con.VK_F2)
-    if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"], timeout=5):
-        logger("未进入索拉指南")
-        control.esc()
-        return False
-    time.sleep(1)
+def transfer_to_boss(bossName):
     img = screenshot()
     template = Image.open(os.path.join(root_path, r"template/残象探寻.png"))
     template = np.array(template)
@@ -139,9 +114,7 @@ def transfer_boss() -> bool:
         logger("未进入残象探寻")
         control.esc()
         return False
-    bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
     logger(f"当前目标boss：{bossName}")
-    info.bossIndex += 1
     findBoss = None
     y = 133
     while y < 907:
@@ -176,10 +149,7 @@ def transfer_boss() -> bool:
         click_position(transfer.position)
         logger("等待传送完成")
         time.sleep(3)
-        if not wait_text("特征码", 120):
-            logger("传送超时")
-            control.esc()
-            return False
+        wait_home()  # 等待回到主界面
         logger("传送完成")
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
@@ -188,6 +158,59 @@ def transfer_boss() -> bool:
         return True
     control.esc()
     return False
+
+
+def transfer_to_dreamless():
+    img = screenshot()
+    template = Image.open(os.path.join(root_path, r"template/周期挑战.png"))
+    template = np.array(template)
+    coordinate = match_template(img, template, threshold=0.5)
+    if not coordinate:
+        logger("识别周期挑战失败")
+        control.esc()
+        return False
+    click_position(coordinate)  # 进入周期挑战
+    if not wait_text("前往"):
+        logger("未进入周期挑战")
+        control.esc()
+        return False
+    logger(f"当前目标boss：无妄者")
+    findBoss = find_text("战歌")
+    click_position(findBoss.position)
+    click_position(findBoss.position)
+    time.sleep(1)
+    control.click(1720 * width_ratio, 420 * height_ratio)
+    if transfer := wait_text("快速旅行"):
+        click_position(transfer.position)
+        logger("等待传送完成")
+        time.sleep(3)
+        wait_home()  # 等待回到主界面
+        now = datetime.now()
+        info.idleTime = now  # 重置空闲时间
+        info.lastFightTime = now  # 重置最近检测到战斗时间
+        info.fightTime = now  # 重置战斗时间
+        for i in range(5):
+            forward()
+        return True
+    logger("未找到快速旅行")
+    control.esc()
+    return False
+
+
+def transfer() -> bool:
+    control.activate()
+    control.tap(win32con.VK_F2)
+    if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"], timeout=5):
+        logger("未进入索拉指南")
+        control.esc()
+        return False
+    time.sleep(1)
+    bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
+    info.bossIndex += 1
+    if bossName == "无妄者":
+        return transfer_to_dreamless()
+    else:
+        return transfer_to_boss(bossName)
 
 
 def screenshot() -> np.ndarray | None:
@@ -271,11 +294,33 @@ def wait_text(targets: str | list[str], timeout: int = 3) -> OcrResult | None:
         if (datetime.now() - start).seconds > timeout:
             return None
         result = ocr(img)
-        Image.fromarray(img).save(rf"D:\project\python\mc\screenshot\temp\{int(time.time())}.png")
-        with open(rf"D:\project\python\mc\screenshot\temp\{int(time.time())}.txt", "w", encoding="utf-8") as f:
-            for r in result:
-                f.write(r.text + "\n")
         for target in targets:
             if text_info := search_text(result, target):
                 return text_info
     return None
+
+
+def wait_home(timeout=120):
+    """
+    等待回到主界面
+    :param timeout:  超时时间
+    :return:
+    """
+    start = datetime.now()
+    while True:
+        img = screenshot()
+        if img is None:
+            continue
+        if (datetime.now() - start).seconds > timeout:
+            return None
+        results = ocr(img)
+        if text_info := search_text(results, "特征码"):  # 特征码
+            return text_info
+        template = Image.open(os.path.join(root_path, r"template/背包.png"))  # 背包
+        template = np.array(template)
+        if match_template(img, template, threshold=0.9):
+            return
+        template = Image.open(os.path.join(root_path, r"template/终端按钮.png"))  # 终端按钮
+        template = np.array(template)
+        if match_template(img, template, threshold=0.9):
+            return

@@ -5,6 +5,8 @@
 @time: 2024/6/5 上午9:34
 @author SuperLazyDog
 """
+import time
+
 from . import *
 
 pages = []
@@ -17,7 +19,9 @@ def absorption_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
+    info.absorptionCount += 1
     control.tap("f")
+    time.sleep(1)
     return True
 
 
@@ -95,6 +99,7 @@ def terminal_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     control.esc()
+    time.sleep(1)
     return True
 
 
@@ -119,9 +124,10 @@ def fight_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
-    release_skills()  # 释放技能 todo
+    release_skills()
     now = datetime.now()
     if info.status != Status.fight:
+        info.fightCount += 1
         info.fightTime = now
     info.status = Status.fight
     info.lastFightTime = now

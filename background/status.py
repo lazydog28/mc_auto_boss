@@ -20,11 +20,19 @@ class StatusInfo(BaseModel):
     bossIndex: int = Field(0, title="boss索引")
     status: Status = Field(Status.idle, title="状态")
     fightTime: datetime = Field(datetime.now(), title="战斗开始时间")
+    fightCount: int = Field(0, title="战斗次数")
+    absorptionCount: int = Field(0, title="吸收次数")
     lastFightTime: datetime = Field(datetime.now(), title="最近检测到战斗时间")
     idleTime: datetime = Field(datetime.now(), title="空闲时间")
     startTime: datetime = Field(datetime.now(), title="开始时间")
     lastSelectRoleTime: datetime = Field(datetime.now(), title="最近选择角色时间")
     currentPageName: str = Field("", title="当前页面名称")
+    inDreamless: bool = Field(False, title="是否在无妄者副本内")
+
+    def resetTime(self):
+        self.fightTime = datetime.now()
+        self.idleTime = datetime.now()
+        self.lastFightTime = datetime.now()
 
 
 info = StatusInfo()
@@ -36,7 +44,8 @@ def logger(msg: str):
     global lastMsg
     content = (
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
-        f"当前角色状态：{info.status} "
+        f"战斗次数：{info.fightCount} "
+        f"吸收次数：{info.absorptionCount} "
         f"{msg}"
     )
     start = "\n" if lastMsg != msg else "\r"

@@ -22,44 +22,49 @@ def judgment_forward_action():
 
 
 judgment_forward_conditional_action = ConditionalAction(
-    name="前进",
-    condition=judgment_forward, action=judgment_forward_action
+    name="前进", condition=judgment_forward, action=judgment_forward_action
 )
 conditional_actions.append(judgment_forward_conditional_action)
 
 
 # 超过最大空闲时间
 def judgment_idle() -> bool:
-    return (datetime.now() - info.lastFightTime).seconds > config.MaxIdleTime
+    return (
+        datetime.now() - info.lastFightTime
+    ).seconds > config.MaxIdleTime and not info.inDreamless
 
 
 def judgment_idle_action() -> bool:
     info.status = Status.idle
     info.lastFightTime = datetime.now()
-    return transfer_boss()
+    return transfer()
 
 
 judgment_idle_conditional_action = ConditionalAction(
     name="超过最大空闲时间,前往boss",
-    condition=judgment_idle, action=judgment_idle_action
+    condition=judgment_idle,
+    action=judgment_idle_action,
 )
 conditional_actions.append(judgment_idle_conditional_action)
 
 
 # 超过最大战斗时间
 def judgment_fight() -> bool:
-    return (datetime.now() - info.fightTime).seconds > config.MaxFightTime
+    return (
+        datetime.now() - info.fightTime
+    ).seconds > config.MaxFightTime and not info.inDreamless
 
 
 def judgment_fight_action() -> bool:
     info.status = Status.idle
     info.fightTime = datetime.now()
-    return transfer_boss()
+    return transfer()
 
 
 judgment_fight_conditional_action = ConditionalAction(
     name="超过最大战斗时间,前往boss",
-    condition=judgment_fight, action=judgment_fight_action
+    condition=judgment_fight,
+    action=judgment_fight_action,
 )
 
 conditional_actions.append(judgment_fight_conditional_action)

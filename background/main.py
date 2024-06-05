@@ -4,11 +4,11 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import init
 from mouse_reset import mouse_reset
-from multiprocessing import Event, Process, current_process
+from multiprocessing import Event, Process
 from status import logger
 from pynput.keyboard import Key, Listener
 from schema import Task
-from task import boss_task
+from task import task as boss_task
 from ocr import ocr
 from utils import screenshot
 
@@ -45,10 +45,6 @@ def on_press(key):
         logger("启动BOSS脚本")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
-    # if key == Key.f6:
-    #     logger("启动无妄者脚本")
-    #     thread = Thread(target=run, args=(battle_task, taskEvent), name="task")
-    #     thread.start()
     if key == Key.f7:
         logger("暂停脚本")
         taskEvent.clear()
