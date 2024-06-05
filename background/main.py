@@ -1,169 +1,36 @@
 import os
 import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import check
-from utils import screenshot, ocr, search_text
-import time
-from pynput.keyboard import Listener, Key
-from multiprocessing import Process, Event, current_process
-from utils import logger_msg, width_ratio, height_ratio
-from operation import (
-    interactive,
-    release_skills,
-    click_position,
-    mouse_scroll,
-    transfer_boss,
-    control,
-    forward,
-    leaving_battle,
-    select_levels,
-)
-from config import config, role, Status
-from datetime import datetime
+import init
 from mouse_reset import mouse_reset
+from multiprocessing import Event, Process, current_process
+from status import logger
+from pynput.keyboard import Key, Listener
+from schema import Task
+from task import boss_task
+from ocr import ocr
+from utils import screenshot
 
-name = current_process().name
-logger_msg(f"{name} 初始化完成")
-
-
-def boss_task():
-    img = screenshot()
-    ocrResults = ocr(img)
-    if search_text(ocrResults, "吸收"):
-        logger_msg("吸收")
-        mouse_scroll()
-        interactive()
-        time.sleep(1)
-        return
-    now = datetime.now()
-    for result in ocrResults:
-        if "击败" in result.get("text"):
-            logger_msg("战斗中")
-            release_skills()
-            if role.status == Status.idle:
-                role.fightTime = now
-            role.status = Status.fight
-            role.lastFightTime = now
-        if "取消" in result.get("text"):
-            logger_msg("取消")
-            click_position(result.get("position"))
-            break
-        if "终端" in result.get("text"):
-            logger_msg("终端")
-            control.esc()
-            time.sleep(1)
-        if "声弦" in result.get("text"):
-            logger_msg("声弦交互")
-            interactive()
-            return  # 交互后直接返回 不再执行后续操作
-        if "选择复苏" in result.get("text"):
-            logger_msg("取消死亡复活")
-            control.esc()
-        if "复苏" == result.get("text"):
-            logger_msg("确认")
-            click_position(result.get("position"))
-    if (
-        now - role.lastFightTime
-    ).seconds > config.MaxIdleTime / 2:  # 检查是否没有检测到战斗状态且时间超过最大空闲时间的一半,执行前进操作,看能不能撞到吸收
-        forward()
-
-    if (
-        now - role.lastFightTime
-    ).seconds > config.MaxIdleTime:  # 检查是否长时间没有检测到战斗状态
-        role.status = Status.idle
-        logger_msg("长时间没有检测到战斗状态")
-        role.lastFightTime = now  # 重置最近检测到战斗时间
-        transfer_boss()
-        return
-
-    if (now - role.fightTime).seconds > config.MaxFightTime:  # 长时间处于战斗状态
-        logger_msg("长时间处于战斗状态 传送")
-        role.fightTime = now  # 重置战斗时间
-        role.status = Status.idle
-        transfer_boss()
-        return
+logger(f"初始化完成")
 
 
-def battle_task():
-    """
-    任务
-    :return:
-    """
-    img = screenshot()
-    ocrResults = ocr(img)
-    if search_text(ocrResults, "吸收"):
-        logger_msg("吸收")
-        mouse_scroll()
-        interactive()
-        time.sleep(1)
-        return
-    now = datetime.now()
-    matchOne = False
-    for result in ocrResults:
-        if "进入" in result.get("text") and not search_text(ocrResults, "确认"):
-            logger_msg("进入")
-            matchOne = True
-            select_levels()
-            break
-        if "推荐等级" in result.get("text"):
-            logger_msg("选择等级")
-            matchOne = True
-            select_levels()
-            break
-        if "开启挑战" in result.get("text"):
-            logger_msg("开启挑战")
-            matchOne = True
-            click_position(result.get("position"))
-            time.sleep(1)
-            role.status = Status.fight
-            role.fightTime = now
-            break
-        if "击败" in result.get("text"):
-            logger_msg("战斗中")
-            matchOne = True
-            release_skills()
-            role.status = Status.fight
-            role.lastFightTime = now
-            break
-        if "确认" in result.get("text"):
-            logger_msg("确认")
-            matchOne = True
-            control.click(1250 * width_ratio, 650 * height_ratio)
-            time.sleep(1)
-            break
-        if "离开" in result.get("text"):
-            logger_msg("离开")
-            if search_text(ocrResults, "领取"):
-                for i in range(20):
-                    forward()
-            matchOne = True
-            leaving_battle()
-            role.status = Status.idle
-            break
-        if "月卡奖励" in result.get("text"):
-            logger_msg("月卡奖励")
-            matchOne = True
-            click_position(result.get("position"))
-            break
-    if not matchOne and Status.idle:
-        logger_msg("前进")
-        forward()
-
-
-def run(func: callable, e: Event):
+def run(task: Task, e: Event):
     """
     运行
     :return:
     """
-    logger_msg("任务进程开始运行")
-    logger_msg("请将鼠标移出游戏窗口，避免干扰脚本运行")
+    logger("任务进程开始运行")
+    logger("请将鼠标移出游戏窗口，避免干扰脚本运行")
     if e.is_set():
-        logger_msg("任务进程已经在运行，不需要再次启动")
+        logger("任务进程已经在运行，不需要再次启动")
         return
     e.set()
     while e.is_set():
-        func()
-    logger_msg("进程停止运行")
+        img = screenshot()
+        result = ocr(img)
+        task(img, result)
+    logger("进程停止运行")
 
 
 def on_press(key):
@@ -175,18 +42,18 @@ def on_press(key):
     :return:
     """
     if key == Key.f5:
-        logger_msg("启动BOSS脚本")
+        logger("启动BOSS脚本")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
-    if key == Key.f6:
-        logger_msg("启动无妄者脚本")
-        thread = Process(target=run, args=(battle_task, taskEvent), name="task")
-        thread.start()
+    # if key == Key.f6:
+    #     logger("启动无妄者脚本")
+    #     thread = Thread(target=run, args=(battle_task, taskEvent), name="task")
+    #     thread.start()
     if key == Key.f7:
-        logger_msg("暂停脚本")
+        logger("暂停脚本")
         taskEvent.clear()
     if key == Key.f12:
-        logger_msg("请等待程序退出后再关闭窗口...")
+        logger("请等待程序退出后再关闭窗口...")
         taskEvent.clear()
         mouseResetEvent.set()
         return False
@@ -200,8 +67,8 @@ if __name__ == "__main__":
         target=mouse_reset, args=(mouseResetEvent,), name="mouse_reset"
     )
     mouse_reset_thread.start()
-    logger_msg("鼠标重置进程启动")
-    logger_msg("开始运行")
+    logger("鼠标重置进程启动")
+    logger("开始运行")
     with Listener(on_press=on_press) as listener:
         listener.join()
     print("结束运行")

@@ -6,16 +6,14 @@
 @author SuperLazyDog
 """
 import time
-
 from pynput.mouse import Controller
 import math
-from datetime import datetime
-from multiprocessing import Event
-from utils import logger_msg
+from threading import Event
+from status import logger
 
 
 def mouse_reset(e: Event):
-    logger_msg("鼠标重置进程启动成功")
+    logger("鼠标重置进程启动成功")
     mouse = Controller()
     last_position = mouse.position
     while True:

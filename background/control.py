@@ -9,7 +9,7 @@ import time
 import win32gui
 import win32con
 import win32api
-
+from constant import hwnd
 
 class Control:
     def __init__(self, hwnd: int):
@@ -68,7 +68,7 @@ class Control:
         if isinstance(key, str):
             key = ord(key.upper())
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, key, 0)
-        time.sleep(0.1) # 按键时间 不确定是否需要
+        time.sleep(0.1)  # 按键时间 不确定是否需要
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, key, 0)
 
     def esc(self):
@@ -106,3 +106,6 @@ class Control:
         y = y if isinstance(y, int) else int(y)
         lParam = win32api.MAKELONG(x, y)
         win32gui.PostMessage(self.hwnd, win32con.WM_MOUSEMOVE, 0, lParam)
+
+
+control = Control(hwnd)

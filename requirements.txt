@@ -3,8 +3,7 @@ opencv-python
 pywin32
 pillow
 numpy
-paddlepaddle
-paddleocr
 setuptools
 pyyaml
 pydantic
+ppocr-onnx

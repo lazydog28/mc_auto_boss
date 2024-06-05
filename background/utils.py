@@ -1,37 +1,193 @@
 # -*- coding: utf-8 -*-
 """
 @software: PyCharm
-@file: utils.py
-@time: 2024/5/26 下午8:59
+@file: operation.py
+@time: 2024/5/26 下午9:17
 @author SuperLazyDog
 """
-from ctypes import windll
-from typing import List, Dict, Any
-import win32ui
-import numpy as np
-import sys
-import cv2
-from paddleocr import PaddleOCR
-from datetime import datetime
-import win32gui
-import os
-from paddle.device import is_compiled_with_cuda
-from config import role
-from multiprocessing import current_process
 import re
+import time
+from ctypes import windll
+from typing import List
+
+import numpy as np
+import win32gui
+import win32ui
+from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
+from ocr import ocr
+from schema import match_template, OcrResult
+from PIL import Image
+from control import control
+import os
+from config import config
+from status import info, logger
+from schema import Position
+import win32con
+from datetime import datetime
 
 
-def logger_msg(msg: str):
-    global lastMsg
-    content = (
-        f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
-        f"当前角色状态：{role.status} "
-        f"{msg}"
-    )
-    start = "\n" if lastMsg != msg else "\r"
-    content = start + content
-    print(content, end="")
-    lastMsg = msg
+def interactive():
+    control.tap("f")
+
+
+def click_position(position: Position):
+    """
+    点击位置
+    """
+    # 分析position的中点
+    x = (position.x1 + position.x2) // 2
+    y = (position.y1 + position.y2) // 2
+    control.click(x, y)
+
+
+def select_role():
+    now = datetime.now()
+    if (now - info.lastSelectRoleTime).seconds < config.SelectRoleInterval:
+        return
+    info.lastSelectRoleTime = now
+    info.roleIndex += 1
+    if info.roleIndex > 3:
+        info.roleIndex = 1
+    control.tap(str(info.roleIndex))
+
+
+def release_skills():
+    select_role()
+    control.mouse_middle()
+    if len(config.FightTactics) < info.roleIndex:
+        config.FightTactics.append("e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1")
+    tactics = config.FightTactics[info.roleIndex - 1].split(",")
+    for tactic in tactics:  # 遍历对应角色的战斗策略
+        try:
+            try:
+                wait_time = float(tactic)  # 如果是数字，等待时间
+                time.sleep(wait_time)
+                continue
+            except:
+                pass
+            if len(tactic) == 1:  # 如果只有一个字符，点击
+                if tactic == "a":
+                    control.click()
+                else:
+                    control.tap(tactic)
+            if len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
+                tactic = tactic + "0.5"
+            if len(tactic) >= 3 and tactic[1] == "~":
+                click_time = float(tactic.split("~")[1])
+                if tactic[0] == "a":
+                    control.mouse_press()
+                    time.sleep(click_time)
+                    control.mouse_release()
+                else:
+                    control.key_press(tactic[0])
+                    time.sleep(click_time)
+                    control.key_release(tactic[0])
+        except Exception as e:
+            logger(f"释放技能失败: {e}")
+            continue
+
+
+def leaving_battle():
+    for i in range(3):
+        interactive()
+        time.sleep(1)
+    control.esc()
+    time.sleep(1)
+
+
+def forward():
+    control.key_press("w")
+    time.sleep(0.1)
+    control.key_release("w")
+
+
+def select_levels():
+    interactive()
+    result = wait_text("推荐等级40")
+    if not result:
+        control.esc()
+        return
+    for i in range(3):
+        click_position(result.position)
+        time.sleep(1)
+    result = find_text("单人挑战")
+    if not result:
+        control.esc()
+        return
+    click_position(result.position)
+    time.sleep(1)
+
+
+def transfer_boss() -> bool:
+    control.activate()
+    control.tap(win32con.VK_F2)
+    if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"], timeout=5):
+        logger("未进入索拉指南")
+        control.esc()
+        return False
+    time.sleep(1)
+    img = screenshot()
+    template = Image.open(os.path.join(root_path, r"template/残象探寻.png"))
+    template = np.array(template)
+    coordinate = match_template(img, template, threshold=0.5)
+    if not coordinate:
+        logger("识别残像探寻失败")
+        control.esc()
+        return False
+    click_position(coordinate)  # 进入残像探寻
+    if not wait_text("探测"):
+        logger("未进入残象探寻")
+        control.esc()
+        return False
+    bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
+    logger(f"当前目标boss：{bossName}")
+    info.bossIndex += 1
+    findBoss = None
+    y = 133
+    while y < 907:
+        y = y + 30
+        if y > 907:
+            y = 907
+        findBoss = find_text(bossName)
+        if findBoss:
+            break
+        control.click(855 * width_ratio, y * height_ratio)
+        time.sleep(0.3)
+    if not findBoss:
+        control.esc()
+        logger("未找到目标boss")
+        return False
+    click_position(findBoss.position)
+    click_position(findBoss.position)
+    time.sleep(1)
+    control.click(1700 * width_ratio, 980 * height_ratio)
+    if not wait_text("追踪"):
+        logger("未找到追踪")
+        control.esc()
+        return False
+    control.click(960 * width_ratio, 540 * height_ratio)
+    beacon = wait_text("借位信标")
+    if not beacon:
+        logger("未找到借位信标")
+        control.esc()
+        return False
+    click_position(beacon.position)
+    if transfer := wait_text("快速旅行"):
+        click_position(transfer.position)
+        logger("等待传送完成")
+        time.sleep(3)
+        if not wait_text("特征码", 120):
+            logger("传送超时")
+            control.esc()
+            return False
+        logger("传送完成")
+        now = datetime.now()
+        info.idleTime = now  # 重置空闲时间
+        info.lastFightTime = now  # 重置最近检测到战斗时间
+        info.fightTime = now  # 重置战斗时间
+        return True
+    control.esc()
+    return False
 
 
 def screenshot() -> np.ndarray | None:
@@ -55,7 +211,7 @@ def screenshot() -> np.ndarray | None:
     # 尝试使用PrintWindow函数截取窗口图像
     result = windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 3)
     if result != 1:
-        logger_msg("截取屏幕失败")
+        logger("截取屏幕失败")
         return screenshot()  # 如果截取失败，则重试
 
     # 从位图中获取图像数据
@@ -63,7 +219,8 @@ def screenshot() -> np.ndarray | None:
     bmp_str = saveBitMap.GetBitmapBits(True)  # 获取位图数据
     im = np.frombuffer(bmp_str, dtype="uint8")  # 将位图数据转换为numpy数组
     im.shape = (bmp_info["bmHeight"], bmp_info["bmWidth"], 4)  # 设置数组形状
-    im = im[:, :, [2, 1, 0, 3]]  # 调整颜色通道顺序为RGB
+    # 调整通道顺序 并 去除alpha通道
+    im = im[:, :, [2, 1, 0, 3]][:, :, :3]
 
     # 清理资源
     win32gui.DeleteObject(saveBitMap.GetHandle())
@@ -74,83 +231,20 @@ def screenshot() -> np.ndarray | None:
     return im  # 返回截取到的图像
 
 
-def ocr(img: np.ndarray) -> List[Dict[str, Any]]:
-    results = ocrIns.ocr(img, cls=False)
-    if len(results) == 0:
-        return []
-    results = results[0]
-    if results is None:
-        return []
-    res = []
-    for result in results:
-        text = result[1][0]
-        position = result[0]
-        res.append({"text": text, "position": position})
-    return res
-
-
-def matchTemplate(
-        img: np.ndarray, template: np.ndarray, threshold: float = 0.8
-) -> None | Dict[str, Any]:
-    """
-    使用 opencv matchTemplate 方法 模板匹配 返回匹配结果
-    :param img:  大图片
-    :param template: 小图片
-    :param threshold:  阈值
-    :return:
-    """
-    # 判断是否为灰度图，如果不是转换为灰度图
-    if len(img.shape) == 3:
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if len(template.shape) == 3:
-        template = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
-
-    # 将  template 进行缩放
-    template = cv2.resize(template, (0, 0), fx=width_ratio, fy=height_ratio)
-
-    res = cv2.matchTemplate(img, template, cv2.TM_CCOEFF_NORMED)
-    confidence = np.max(res)
-    if confidence < threshold:
-        return None
-    maxLoc = np.where(res == confidence)
-    return {
-        "x": maxLoc[1][0] + template.shape[1] // 2,
-        "y": maxLoc[0][0] + template.shape[0] // 2,
-        "w": template.shape[1],
-        "h": template.shape[0],
-        "confidence": confidence,
-    }
-
-
 rare_chars = "鸷"
 
 
-def search_text(results: List[Dict[str, Any]], target: str) -> Dict[str, Any] | None:
-    target = re.sub(rf"[{rare_chars}]", ".", target)  # 判断 target 是否包含生僻字，如果包含则使用正则将生僻字替换为任意字符
+def search_text(results: List[OcrResult], target: str) -> OcrResult | None:
+    target = re.sub(
+        rf"[{rare_chars}]", ".", target
+    )  # 判断 target 是否包含生僻字，如果包含则使用正则将生僻字替换为任意字符
     for result in results:
-        if re.search(target, result.get("text")): # 使用正则匹配
+        if re.search(target, result.text):  # 使用正则匹配
             return result
     return None
 
 
-def wait_text(targets: str | list[str], timeout: int = 3) -> Dict[str, Any] | None:
-    start = datetime.now()
-    if isinstance(targets, str):
-        targets = [targets]
-    while True:
-        img = screenshot()
-        if img is None:
-            continue
-        if (datetime.now() - start).seconds > timeout:
-            return None
-        result = ocr(img)
-        for target in targets:
-            if text_info := search_text(result, target):
-                return text_info
-    return None
-
-
-def find_text(targets: str | list[str]) -> Dict[str, Any] | None:
+def find_text(targets: str | list[str]) -> OcrResult | None:
     if isinstance(targets, str):
         targets = [targets]
     img = screenshot()
@@ -163,65 +257,25 @@ def find_text(targets: str | list[str]) -> Dict[str, Any] | None:
     return None
 
 
-def get_scale_factor():
-    try:
-        windll.shcore.SetProcessDpiAwareness(1)  # 设置进程的 DPI 感知
-        scale_factor = windll.shcore.GetScaleFactorForDevice(0)  # 获取主显示器的缩放因子
-        return scale_factor / 100  # 返回百分比形式的缩放因子
-    except Exception as e:
-        print("Error:", e)
-        return None
+from PIL import Image
 
 
-lastMsg = ""
-hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
-if hwnd == 0:
-    logger_msg("未找到游戏窗口")
-    sys.exit(1)
-left, top, right, bot = win32gui.GetClientRect(hwnd)
-w = right - left
-h = bot - top
-scale_factor = get_scale_factor()
-if scale_factor is None:
-    logger_msg("获取屏幕缩放失败")
-    sys.exit(1)
-real_w = int(w * scale_factor)
-real_h = int(h * scale_factor)
-# 设置窗口位置为0,0
-width_ratio = w / 1920 * scale_factor
-height_ratio = h / 1080 * scale_factor
-root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# 判断 root_path 中是否包含中文或特殊字符
-special_chars_pattern = r'[\u4e00-\u9fa5\!\@\#\$\%\^\&\*\(\)]'
-if bool(re.search(special_chars_pattern, root_path)):
-    logger_msg("请将项目路径移动到纯英文路径下")
-    sys.exit(1)
-if current_process().name == "task":
-    logger_msg("初始化中")
-    logger_msg(f"窗口大小：{w}x{h} 当前屏幕缩放：{scale_factor} 游戏分辨率：{real_w}x{real_h}")
-    logger_msg(f"项目路径：{root_path}")
-    # 获取项目根目录 根目录为当前文件的上一级目录
-    det_model_dir = os.path.join(root_path, "models/det/ch/ch_PP-OCRv4_det_infer")
-    rec_model_dir = os.path.join(root_path, "models/rec/ch/ch_PP-OCRv4_rec_infer")
-    if is_compiled_with_cuda():
-        ocrIns = PaddleOCR(
-            lang="ch",
-            use_gpu=True,
-            show_log=False,
-            det_model_dir=det_model_dir,
-            rec_model_dir=rec_model_dir,
-        )
-        logger_msg("使用GPU加速OCR识别")
-    else:
-        ocrIns = PaddleOCR(
-            lang="ch",
-            use_gpu=False,
-            show_log=False,
-            det_model_dir=det_model_dir,
-            rec_model_dir=rec_model_dir,
-        )
-        logger_msg("使用CPU进行OCR识别")
-    rect = win32gui.GetWindowRect(hwnd)  # 获取窗口区域
-    win32gui.MoveWindow(
-        hwnd, 0, 0, rect[2] - rect[0], rect[3] - rect[1], True
-    )  # 设置窗口位置为0,0
+def wait_text(targets: str | list[str], timeout: int = 3) -> OcrResult | None:
+    start = datetime.now()
+    if isinstance(targets, str):
+        targets = [targets]
+    while True:
+        img = screenshot()
+        if img is None:
+            continue
+        if (datetime.now() - start).seconds > timeout:
+            return None
+        result = ocr(img)
+        Image.fromarray(img).save(rf"D:\project\python\mc\screenshot\temp\{int(time.time())}.png")
+        with open(rf"D:\project\python\mc\screenshot\temp\{int(time.time())}.txt", "w", encoding="utf-8") as f:
+            for r in result:
+                f.write(r.text + "\n")
+        for target in targets:
+            if text_info := search_text(result, target):
+                return text_info
+    return None

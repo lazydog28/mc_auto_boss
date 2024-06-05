@@ -8,9 +8,7 @@
 from pydantic import BaseModel, Field
 import yaml
 import os
-from enum import Enum
-from datetime import datetime
-
+from constant import wait_exit
 
 class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
@@ -38,22 +36,4 @@ else:
 
 if len(config.TargetBoss) == 0:
     print("请在config.yaml中填写目标BOSS全名")
-    exit(1)
-
-
-class Status(Enum):
-    idle = "空闲"
-    fight = "战斗"
-
-
-class Role(BaseModel):
-    index: int = Field(0, title="角色索引")
-    bossIndex: int = Field(0, title="boss索引")
-    status: Status = Field(Status.idle, title="状态")
-    fightTime: datetime = Field(datetime.now(), title="战斗开始时间")
-    lastFightTime: datetime = Field(datetime.now(), title="最近检测到战斗时间")
-    idleTime: datetime = Field(datetime.now(), title="空闲时间")
-    startTime: datetime = Field(datetime.now(), title="开始时间")
-
-
-role = Role()
+    wait_exit()
