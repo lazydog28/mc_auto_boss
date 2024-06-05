@@ -7,6 +7,7 @@
 """
 # 无妄者脚本
 from . import *
+from datetime import timedelta
 
 pages = []
 
@@ -115,9 +116,8 @@ def leave_action(positions: dict[str, Position]) -> bool:
     if find_text("领取"):
         for i in range(10):
             forward()
-    for i in range(3):
-        interactive()
-        time.sleep(1)
+    if info.needAbsorption:
+        absorption_action()
     control.esc()
     time.sleep(1)
     return True
@@ -156,7 +156,8 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     logger("无妄者副本结束")
     info.inDreamless = False
     info.status = Status.idle
-    info.resetTime()
+    now = datetime.now()
+    info.lastFightTime = now + timedelta(seconds=config.MaxFightTime / 2)
     return True
 
 

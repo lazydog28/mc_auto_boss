@@ -24,6 +24,8 @@ from schema import Position
 import win32con
 from datetime import datetime
 
+from yolo import search_echoes
+
 
 def interactive():
     control.tap("f")
@@ -203,6 +205,7 @@ def transfer() -> bool:
     if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"], timeout=5):
         logger("未进入索拉指南")
         control.esc()
+        info.lastFightTime = datetime.now()
         return False
     time.sleep(1)
     bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
@@ -324,3 +327,43 @@ def wait_home(timeout=120):
         template = np.array(template)
         if match_template(img, template, threshold=0.9):
             return
+
+
+def absorption_action():
+    start_time = datetime.now()  # 开始时间
+    absorption_max_time = (
+        config.MaxIdleTime / 2 if config.MaxIdleTime / 2 > 10 else 10
+    )  # 最大吸收时间为最大空闲时间的一半或者10秒
+    while (
+            datetime.now() - start_time
+    ).seconds < absorption_max_time:  # 未超过最大吸收时间
+        x = None
+        for i in range(4):
+            img = screenshot()
+            x = search_echoes(img)
+            if x is not None:
+                break
+            logger("未发现声骸,转动视角")
+            control.tap("a")
+            time.sleep(1)
+            control.mouse_middle()
+            time.sleep(1)
+        if x is None:
+            continue
+        center_x = real_w // 2
+        floating = real_w // 20
+        if x < center_x - floating:
+            logger("发现声骸 向左移动")
+            control.tap("a")
+        elif x > center_x + floating:
+            logger("发现声骸 向右移动")
+            control.tap("d")
+        else:
+            logger("发现声骸 向前移动")
+            control.tap("w")
+        if find_text("吸收"):
+            interactive()
+            time.sleep(1)
+            info.absorptionSuccess = True
+            info.absorptionCount += 1
+    info.needAbsorption = False

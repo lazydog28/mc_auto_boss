@@ -6,8 +6,9 @@
 @author SuperLazyDog
 """
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
+from config import config
 
 
 class Status(Enum):
@@ -22,7 +23,12 @@ class StatusInfo(BaseModel):
     fightTime: datetime = Field(datetime.now(), title="战斗开始时间")
     fightCount: int = Field(0, title="战斗次数")
     absorptionCount: int = Field(0, title="吸收次数")
-    lastFightTime: datetime = Field(datetime.now(), title="最近检测到战斗时间")
+    absorptionSuccess: bool = Field(False, title="吸收成功")
+    needAbsorption: bool = Field(False, title="需要吸收")
+    lastFightTime: datetime = Field(
+        datetime.now() + timedelta(seconds=config.MaxIdleTime / 2),
+        title="最近检测到战斗时间",
+    )
     idleTime: datetime = Field(datetime.now(), title="空闲时间")
     startTime: datetime = Field(datetime.now(), title="开始时间")
     lastSelectRoleTime: datetime = Field(datetime.now(), title="最近选择角色时间")
@@ -44,8 +50,8 @@ def logger(msg: str):
     global lastMsg
     content = (
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
-        f"战斗次数：{info.fightCount} "
-        f"吸收次数：{info.absorptionCount} "
+        # f"战斗次数：{info.fightCount} "
+        # f"吸收次数：{info.absorptionCount} "
         f"{msg}"
     )
     start = "\n" if lastMsg != msg else "\r"

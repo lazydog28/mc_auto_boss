@@ -5,6 +5,7 @@
 @time: 2024/6/5 下午1:46
 @author SuperLazyDog
 """
+
 from status import Status
 from schema import ConditionalAction
 from . import *
@@ -12,17 +13,18 @@ from . import *
 conditional_actions = []
 
 
-# 战斗完成 前进吸收
-def judgment_forward() -> bool:
-    return (datetime.now() - info.lastFightTime).seconds > config.MaxIdleTime / 2
-
-
-def judgment_forward_action():
-    return forward()
+# 战斗完成 吸收
+def judgment_absorption() -> bool:
+    return (
+        config.MaxIdleTime / 2
+        < (datetime.now() - info.lastFightTime).seconds
+        < config.MaxIdleTime  # 空闲时间未超过最大空闲时间 且 空闲时间超过最大空闲时间的一半
+        and info.needAbsorption  # 未吸收
+    )
 
 
 judgment_forward_conditional_action = ConditionalAction(
-    name="前进", condition=judgment_forward, action=judgment_forward_action
+    name="前进", condition=judgment_absorption, action=absorption_action
 )
 conditional_actions.append(judgment_forward_conditional_action)
 
@@ -36,7 +38,6 @@ def judgment_idle() -> bool:
 
 def judgment_idle_action() -> bool:
     info.status = Status.idle
-    info.lastFightTime = datetime.now()
     return transfer()
 
 
