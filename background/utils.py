@@ -393,6 +393,6 @@ def absorption_action():
         if find_text("吸收"):
             logger("吸收")
             interactive()
-            time.sleep(1)
+            time.sleep(2)
             info.absorptionCount += 1
             break

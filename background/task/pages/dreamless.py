@@ -127,6 +127,7 @@ def leave_action(positions: dict[str, Position]) -> bool:
         interactive()
         info.needAbsorption = False
         info.absorptionCount += 1
+        time.sleep(2)
     control.esc()
     time.sleep(1)
     return True
@@ -194,6 +195,7 @@ def crystal_wave_action(positions: dict[str, Position]) -> bool:
     """
     position = positions["确认"]
     click_position(position)
+    time.sleep(2)
     return True
 
 
