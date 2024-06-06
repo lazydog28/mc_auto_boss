@@ -1,6 +1,5 @@
 # 鸣潮后台自动刷BOSS声骸 
 
-## 开发分支 不稳定测试
 
 
 > 水群：853749942
@@ -36,7 +35,6 @@
    >
    > 如果需要使用GPU加速，请自行安装 requirements-gpu.txt
    >
-   > gpu加速安装依赖参考链接：[paddle-gpu 快速开始](https://www.paddlepaddle.org.cn/install/quick)
 3. ### 修改配置文件
     ```shell
     cp config.example.yaml config.yaml # 复制配置文件，
@@ -45,7 +43,7 @@
 
 
 4. ### 运行项目
-   请在运行之前保证游戏已经打开，并且处于BOSS附近
+   请在运行之前保证游戏已经打开
     ```shell
     python background/main.py
     ```
@@ -73,4 +71,5 @@
 
 6. ### todo
    * ~~优化内存占用~~
-   * 掉落声骸目标识别进行拾取
+   * ~~记录战斗次数及吸取次数~~
+   * 掉落声骸目标识别进行拾取<无妄者已实现、其他BOSS未训练>
