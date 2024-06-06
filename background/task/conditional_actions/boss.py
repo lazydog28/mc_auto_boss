@@ -13,6 +13,13 @@ from . import *
 conditional_actions = []
 
 
+def judgment_absorption_action():
+    if config.SearchEchoes:
+        absorption_action()
+    else:
+        forward()
+
+
 # 战斗完成 吸收
 def judgment_absorption() -> bool:
     return (
@@ -23,10 +30,10 @@ def judgment_absorption() -> bool:
     )
 
 
-judgment_absorption_action = ConditionalAction(
-    name="搜索声骸", condition=judgment_absorption, action=absorption_action
+judgment_absorption_condition_action = ConditionalAction(
+    name="搜索声骸", condition=judgment_absorption, action=judgment_absorption_action
 )
-conditional_actions.append(judgment_absorption_action)
+conditional_actions.append(judgment_absorption_condition_action)
 
 
 # 超过最大空闲时间

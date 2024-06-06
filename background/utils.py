@@ -333,7 +333,7 @@ def absorption_action():
     start_time = datetime.now()  # 开始时间
     absorption_max_time = (
         config.MaxIdleTime / 2 if config.MaxIdleTime / 2 > 10 else 10
-    )  # 最大吸收时间为最大空闲时间的一半或者10秒
+    )  # 最大吸收时间为最大空闲时间的一半或者10秒-取最大值
     while (
             datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
