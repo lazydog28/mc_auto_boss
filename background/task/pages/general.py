@@ -21,7 +21,10 @@ def absorption_action(positions: dict[str, Position]) -> bool:
     """
     info.absorptionCount += 1
     interactive()
-    time.sleep(1)
+    if info.inDreamless:
+        time.sleep(2)
+    else:
+        time.sleep(1)
     info.needAbsorption = False
     return True
 
