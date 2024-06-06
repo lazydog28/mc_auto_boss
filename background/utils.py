@@ -201,7 +201,8 @@ def transfer_to_dreamless():
 
 
 def transfer() -> bool:
-    if info.lastBossName == "无妄者":
+    bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
+    if info.lastBossName == "无妄者" and bossName == "无妄者":
         logger("前往无妄者 且 刚才已经前往过")
         for i in range(15):
             forward()
@@ -220,7 +221,6 @@ def transfer() -> bool:
         info.lastFightTime = datetime.now()
         return False
     time.sleep(1)
-    bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
     info.bossIndex += 1
     if bossName == "无妄者":
         return transfer_to_dreamless()
@@ -369,7 +369,7 @@ def absorption_action():
     )  # 最大吸收时间为最大空闲时间的一半或者10秒-取最大值
     last_x = None
     while (
-        datetime.now() - start_time
+            datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
         logger("前往声骸")
         img = screenshot()
