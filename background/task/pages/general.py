@@ -157,8 +157,48 @@ def click_receive_monthly_card_rewards(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
-    position = positions.get("领取今日月卡奖励", None)
+    position = positions.get("月卡奖励", None)
     if position is None:
         return False
     click_position(position)
+    control.click(960 * width_ratio, 540 * height_ratio)
     return True
+
+
+receive_monthly_card_rewards_page = Page(
+    name="月卡奖励",
+    targetTexts=[
+        TextMatch(
+            name="月卡奖励",
+            text="月卡奖励",
+        ),
+    ],
+    action=click_receive_monthly_card_rewards,
+)
+
+pages.append(receive_monthly_card_rewards_page)
+
+
+# 补充结晶波片
+def supplement_crystal_wave(positions: dict[str, Position]) -> bool:
+    """
+    补充结晶波片
+    :param positions: 位置信息
+    :return:
+    """
+    control.esc()  # 退出
+    time.sleep(2)
+    return True
+
+
+supplement_crystal_wave_page = Page(
+    name="补充结晶波片",
+    targetTexts=[
+        TextMatch(
+            name="补充结晶波片",
+            text="补充结晶波片",
+        ),
+    ],
+    action=supplement_crystal_wave,
+)
+pages.append(supplement_crystal_wave_page)
