@@ -26,6 +26,7 @@ class Config(BaseModel):
     )
     DreamlessLevel: int = Field(40, title="无妄者推荐等级")
     SearchEchoes: bool = Field(False, title="是否搜索回音")
+    OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
 
 
 # 判断是否存在配置文件

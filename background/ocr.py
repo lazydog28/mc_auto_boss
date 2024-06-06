@@ -5,18 +5,27 @@
 @time: 2024/6/5 下午4:36
 @author SuperLazyDog
 """
+import time
 from ppocronnx import TextSystem
 from multiprocessing import current_process
 import numpy as np
 from schema import OcrResult, Position
+from config import config
 
 ocrIns: TextSystem = None
 
 if current_process().name == "task":
     ocrIns = TextSystem()
 
+last_time = time.time()
+
 
 def ocr(img: np.ndarray) -> list[OcrResult]:
+    global last_time
+    if config.OcrInterval > 0 and time.time() - last_time < config.OcrInterval:
+        if wait_time := config.OcrInterval - (time.time() - last_time) > 0:
+            time.sleep(wait_time)
+    last_time = time.time()
     results = ocrIns.detect_and_ocr(img)
     if len(results) == 0:
         return []

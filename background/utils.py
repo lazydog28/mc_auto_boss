@@ -334,6 +334,8 @@ def absorption_action():
     absorption_max_time = (
         config.MaxIdleTime / 2 if config.MaxIdleTime / 2 > 10 else 10
     )  # 最大吸收时间为最大空闲时间的一半或者10秒-取最大值
+
+    last_x = None
     while (
             datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
@@ -348,8 +350,11 @@ def absorption_action():
             time.sleep(1)
             control.mouse_middle()
             time.sleep(1)
-        if x is None:
+        if x is None and last_x is None:
             continue
+        if x is None:
+            x = last_x  # 如果未发现声骸，使用上一次的x坐标
+        last_x = x
         center_x = real_w // 2
         floating = real_w // 20
         if x < center_x - floating:
