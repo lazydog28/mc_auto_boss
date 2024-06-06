@@ -54,7 +54,7 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     interactive()
-    result = wait_text("推荐等级40")
+    result = wait_text("推荐等级" + str(config.DreamlessLevel))
     if not result:
         control.esc()
         return False

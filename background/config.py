@@ -10,6 +10,7 @@ import yaml
 import os
 from constant import wait_exit
 
+
 class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
     MaxIdleTime: int = Field(10, title="最大空闲时间", ge=5)
@@ -23,6 +24,7 @@ class Config(BaseModel):
         ],
         title="战斗策略, 逗号分隔, e,q,r为技能, a为普攻, 数字为间隔时间,a~0.5为普工按下0.5秒",
     )
+    DreamlessLevel: int = Field(40, title="无妄者推荐等级")
 
 
 # 判断是否存在配置文件
