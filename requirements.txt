@@ -7,3 +7,5 @@ setuptools
 pyyaml
 pydantic
 onnxruntime
+shapely
+pyclipper
