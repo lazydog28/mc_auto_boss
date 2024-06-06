@@ -3,6 +3,7 @@ MaxIdleTime: 10 # 战斗完成后的空闲时间，不能小于5
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
 DreamlessLevel: 40 # 无妄者等级
 SearchEchoes: false # 是否搜索声骸（当前建议不开启，模型尚未训练，无妄者已训练，这里填写false也正常搜索）
+OcrInterval: 0.5 # OCR识别间隔时间
 FightTactics: # 战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻, 数字为间隔时间,a~0.5为普攻按下0.5秒
     - "e,q,r,a~,0.1,a~,0.1,a,0.1,a,0.1,a,0.1"
     - "e,q,r,a~,0.1,a~,0.1,a,0.1,a,0.1,a,0.1"
