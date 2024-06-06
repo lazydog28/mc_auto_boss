@@ -31,7 +31,7 @@
     ```
    > 本项目OCR使用的是`ppocronnx`，即使用`paddleocr`的`onxx` 模型进行识别，如果需要使用其他OCR引擎，请自行修改代码
    >
-   > 如果需要使用GPU加速，请自行安装 requirements-gpu.txt
+   > 如果需要使用GPU加速，请切换至gpu分支
 >
 3. ### 修改配置文件
     ```shell
