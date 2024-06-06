@@ -23,6 +23,7 @@ def enter_action(positions: dict[str, Position]) -> bool:
     """
     interactive()
     info.inDreamless = True
+    info.lastBossName = "无妄者"
     return True
 
 
