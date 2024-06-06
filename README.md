@@ -1,4 +1,4 @@
-# 鸣潮后台自动刷BOSS声骸
+# 鸣潮后台自动刷BOSS声骸 GPU
 
 > 水群：853749942
 >
@@ -29,10 +29,12 @@
     ```shell
     pip install -r requirements.txt
     ```
-   > 本项目OCR使用的是`ppocronnx`，即使用`paddleocr`的`onxx` 模型进行识别，如果需要使用其他OCR引擎，请自行修改代码
+   > 当前为GPU分支，使用的模型为`paddleocr`提供的模型进行识别，如果需要使用其他OCR引擎，请自行修改代码
    >
-   > 如果需要使用GPU加速，请自行安装 requirements-gpu.txt
->
+   >  `paddlepaddle-gpu` 官方地址：[https://www.paddlepaddle.org.cn/install/quick](https://www.paddlepaddle.org.cn/install/quick)
+   > 
+   > 如果当前用户名为中文，请下载 `paddleocr` [模型文件](https://github.com/PaddlePaddle/PaddleOCR/blob/main/doc/doc_ch/models_list.md) 后自行修改`background/ocr.py`中实例化`PaddleOCR`的参数`det_model_dir`和`rec_model_dir`为绝对路径且不包含中文
+
 3. ### 修改配置文件
     ```shell
     cp config.example.yaml config.yaml # 复制配置文件，

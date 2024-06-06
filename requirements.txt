@@ -6,6 +6,6 @@ numpy
 setuptools
 pyyaml
 pydantic
-onnxruntime
-shapely
-pyclipper
+onnxruntime-gpu
+paddlepaddle-gpu
+paddleocr
