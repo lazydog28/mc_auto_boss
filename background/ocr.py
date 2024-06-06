@@ -11,10 +11,13 @@ from multiprocessing import current_process
 import numpy as np
 from schema import OcrResult, Position
 from config import config
+import logging
+
 
 ocrIns: PaddleOCR = None
 
 if current_process().name == "task":
+    logging.disable(logging.WARNING)  # 关闭WARNING日志的打印
     ocrIns = PaddleOCR(use_angle_cls=False, use_gpu=True, lang="ch",show_log=False)
 
 last_time = time.time()
