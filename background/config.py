@@ -42,3 +42,7 @@ else:
 if len(config.TargetBoss) == 0:
     print("请在config.yaml中填写目标BOSS全名")
     wait_exit()
+
+if config.SearchEchoes:
+    print("BOSS声骸识别功能暂不可用")
+    config.SearchEchoes = False

@@ -67,6 +67,7 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
         control.esc()
         return False
     click_position(result.position)
+    info.lastFightTime = datetime.now()
     time.sleep(1)
 
 
@@ -93,6 +94,7 @@ def start_challenge_action(positions: dict[str, Position]) -> bool:
     """
     position = positions["开启挑战"]
     click_position(position)
+    info.lastFightTime = datetime.now()
     return True
 
 

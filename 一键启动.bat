@@ -1,19 +1,21 @@
 @echo off
-rem ½øÈëµ±Ç°ÎÄ¼ş¼Ğ
+@REM ä¿®æ”¹ç¼–ç 
+chcp 65001
+rem è¿›å…¥å½“å‰æ–‡ä»¶å¤¹
 cd /d %~dp0
 
-@REM Êä³öµ±Ç°Ä¿Â¼
-echo µ±Ç°Ä¿Â¼£º%CD%
+@REM è¾“å‡ºå½“å‰ç›®å½•
+echo å½“å‰ç›®å½•ï¼š%CD%
 
-@REM ÅĞ¶Ïµ±Ç°ÊÇ·ñÒÔ¹ÜÀíÔ±È¨ÏŞÔËĞĞ£¬Èç¹û²»ÊÇÔòÌáÊ¾²¢ÍË³ö
+@REM åˆ¤æ–­å½“å‰æ˜¯å¦ä»¥ç®¡ç†å‘˜æƒé™è¿è¡Œï¼Œå¦‚æœä¸æ˜¯åˆ™æç¤ºå¹¶é€€å‡º
 net session >nul 2>nul
 if %errorlevel% neq 0 (
-    echo ÇëÒÔ¹ÜÀíÔ±È¨ÏŞÔËĞĞ´Ë½Å±¾¡£
+    echo è¯·ä»¥ç®¡ç†å‘˜æƒé™è¿è¡Œæ­¤è„šæœ¬ã€‚
     pause
     exit /b 1
 )
 
-@REM ¼ì²âµ±Ç°Ä¿Â¼Â·¾¶ÊÇ·ñ´æÔÚÖĞÎÄ£¬Èç¹û´æÔÚÔòÌáÊ¾²¢ÍË³ö
+@REM æ£€æµ‹å½“å‰ç›®å½•è·¯å¾„æ˜¯å¦å­˜åœ¨ä¸­æ–‡ï¼Œå¦‚æœå­˜åœ¨åˆ™æç¤ºå¹¶é€€å‡º
 set "currentDir=%CD%"
 set "hasChinese=false"
 
@@ -24,18 +26,18 @@ for %%a in (%currentDir%) do (
     )
 )
 if "%hasChinese%" == "true" (
-    echo µ±Ç°Ä¿Â¼Â·¾¶°üº¬ÖĞÎÄ×Ö·û¡£
+    echo å½“å‰ç›®å½•è·¯å¾„åŒ…å«ä¸­æ–‡å­—ç¬¦ã€‚
     pause
     exit /b 1
 )
 
-@REM ÅĞ¶Ï py310 ÎÄ¼ş¼ĞÊÇ·ñ´æÔÚ Èç¹û²»´æÔÚÔòÏÂÔØ https://cloudreve.caiyun.fun/f/x2ux/py310.zip ²¢½âÑ¹µ½ py310 ÎÄ¼ş¼Ğ
+@REM åˆ¤æ–­ py310 æ–‡ä»¶å¤¹æ˜¯å¦å­˜åœ¨ å¦‚æœä¸å­˜åœ¨åˆ™ä¸‹è½½ https://cloudreve.caiyun.fun/f/x2ux/py310.zip å¹¶è§£å‹åˆ° py310 æ–‡ä»¶å¤¹
 if not exist py310\ (
-    echo Î´ÕÒµ½ Python 3.10 »·¾³£¬ÕıÔÚÏÂÔØ²¢½âÑ¹...
+    echo æœªæ‰¾åˆ° Python 3.10 ç¯å¢ƒï¼Œæ­£åœ¨ä¸‹è½½å¹¶è§£å‹...
     curl -k -L https://cloudreve.caiyun.fun/f/x2ux/py310.zip -o py310.zip
-    @REM     ÅĞ¶Ï ÊÇ·ñ´æÔÚ py310 ÎÄ¼ş¼Ğ£¬Èç¹û²»´æÔÚÔò½âÑ¹
+    @REM     åˆ¤æ–­ æ˜¯å¦å­˜åœ¨ py310 æ–‡ä»¶å¤¹ï¼Œå¦‚æœä¸å­˜åœ¨åˆ™è§£å‹
     if not exist py310 (
-    rem ´´½¨ py310 ÎÄ¼ş¼Ğ
+    rem åˆ›å»º py310 æ–‡ä»¶å¤¹
         mkdir py310
     )
     tar  -xf py310.zip -C py310
@@ -44,22 +46,22 @@ if not exist py310\ (
     (echo import site) >> py310/python310._pth
     del py310.zip
 ) else (
-    echo Python 3.10 »·¾³ÒÑ´æÔÚ
+    echo Python 3.10 ç¯å¢ƒå·²å­˜åœ¨
 )
 
-@REM Ìí¼ÓÁÙÊ±»·¾³±äÁ¿ python310 Ä¿Â¼
+@REM æ·»åŠ ä¸´æ—¶ç¯å¢ƒå˜é‡ python310 ç›®å½•
 set PATH=%~dp0\py310;%PATH%
-@REM ÅĞ¶ÏÊÇ·ñÓĞpip, Èç¹ûÃ»ÓĞÔò ÔËĞĞ python Ö´ĞĞ get-pip.py
+@REM åˆ¤æ–­æ˜¯å¦æœ‰pip, å¦‚æœæ²¡æœ‰åˆ™ è¿è¡Œ python æ‰§è¡Œ get-pip.py
 if not exist py310\Scripts\pip.exe (
-    rem °²×°pip
+    rem å®‰è£…pip
     python get-pip.py
 )else (
-    rem pipÒÑ°²×°
+    rem pipå·²å®‰è£…
 )
-@REM Ìí¼ÓÁÙÊ±»·¾³±äÁ¿ python310/Scripts Ä¿Â¼
+@REM æ·»åŠ ä¸´æ—¶ç¯å¢ƒå˜é‡ python310/Scripts ç›®å½•
 set PATH=%~dp0\py310\Scripts;%PATH%
-REM ¼ì²éÒÀÀµÊÇ·ñÒÑ¾­°²×°
-@REM ±éÀú requirements.txt °²×°ÒÀÀµ
+REM æ£€æŸ¥ä¾èµ–æ˜¯å¦å·²ç»å®‰è£…
+@REM éå† requirements.txt å®‰è£…ä¾èµ–
 for /f "delims=" %%i in (requirements.txt) do (
     REM Check if the package is installed
     pip show %%i >nul 2>nul
@@ -71,7 +73,7 @@ for /f "delims=" %%i in (requirements.txt) do (
         echo %%i is already installed.
     )
 )
-@REM ÔËĞĞ³ÌĞò
+@REM è¿è¡Œç¨‹åº
 python background/main.py
 pause
 exit
