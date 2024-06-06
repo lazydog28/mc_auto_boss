@@ -1,4 +1,4 @@
-@echo on
+@echo off
 rem 进入当前文件夹
 cd /d %~dp0
 
