@@ -30,7 +30,7 @@ def ocr(img: np.ndarray) -> list[OcrResult]:
             time.sleep(wait_time)
     last_time = time.time()
     results = ocrIns.ocr(img)[0]
-    if len(results) == 0:
+    if not results:
         return []
     res = []
     for result in results:
