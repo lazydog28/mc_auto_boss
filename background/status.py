@@ -34,6 +34,7 @@ class StatusInfo(BaseModel):
     lastSelectRoleTime: datetime = Field(datetime.now(), title="最近选择角色时间")
     currentPageName: str = Field("", title="当前页面名称")
     inDreamless: bool = Field(False, title="是否在无妄者副本内")
+    lastBossName: str = Field("", title="最近BOSS名称")
 
     def resetTime(self):
         self.fightTime = datetime.now()

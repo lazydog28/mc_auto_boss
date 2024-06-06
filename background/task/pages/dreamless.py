@@ -118,8 +118,12 @@ def leave_action(positions: dict[str, Position]) -> bool:
     if find_text("领取"):
         for i in range(10):
             forward()
-    if info.needAbsorption:
+    if info.needAbsorption and config.SearchDreamlessEchoes:
         absorption_action()
+    elif find_text("吸收"):
+        interactive()
+        info.needAbsorption = False
+        info.absorptionCount += 1
     control.esc()
     time.sleep(1)
     return True

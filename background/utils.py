@@ -157,12 +157,16 @@ def transfer_to_boss(bossName):
         info.idleTime = now  # 重置空闲时间
         info.lastFightTime = now  # 重置最近检测到战斗时间
         info.fightTime = now  # 重置战斗时间
+        info.lastBossName = bossName
         return True
     control.esc()
     return False
 
 
 def transfer_to_dreamless():
+    if info.lastBossName == "无妄者":
+        for i in range(10):
+            forward()
     img = screenshot()
     template = Image.open(os.path.join(root_path, r"template/周期挑战.png"))
     template = np.array(template)
@@ -191,6 +195,7 @@ def transfer_to_dreamless():
         info.idleTime = now  # 重置空闲时间
         info.lastFightTime = now  # 重置最近检测到战斗时间
         info.fightTime = now  # 重置战斗时间
+        info.lastBossName = "无妄者"
         for i in range(5):
             forward()
         return True
