@@ -23,15 +23,19 @@ from ppocronnx.utility import get_model_data
 from .postprocess import ClsPostProcess
 
 logger = logging
-model_file = 'cls-model.onnx'
+model_file = "cls.onnx"
 
 
 class TextClassifier(object):
-    def __init__(self, label_list=('0', '180'), cls_batch_num=6, cls_thresh=0.9, ort_providers=None):
-        if "CUDAExecutionProvider" in ort.get_available_providers():
-            ort_providers = ['CUDAExecutionProvider']
-        else:
-            ort_providers = ['CPUExecutionProvider']
+    def __init__(
+        self,
+        label_list=("0", "180"),
+        cls_batch_num=6,
+        cls_thresh=0.9,
+        ort_providers=None,
+    ):
+        if ort_providers is None:
+            ort_providers = ["CPUExecutionProvider"]
         self.cls_image_shape = [3, 48, 192]
         self.cls_batch_num = cls_batch_num
         self.cls_thresh = cls_thresh
@@ -50,7 +54,7 @@ class TextClassifier(object):
         else:
             resized_w = int(math.ceil(imgH * ratio))
         resized_image = cv2.resize(img, (resized_w, imgH))
-        resized_image = resized_image.astype('float32')
+        resized_image = resized_image.astype("float32")
         if self.cls_image_shape[0] == 1:
             resized_image = resized_image / 255
             resized_image = resized_image[np.newaxis, :]
@@ -72,7 +76,7 @@ class TextClassifier(object):
         # Sorting can speed up the cls process
         indices = np.argsort(np.array(width_list))
 
-        cls_res = [['', 0.0]] * img_num
+        cls_res = [["", 0.0]] * img_num
         batch_num = self.cls_batch_num
         elapse = 0
         for beg_img_no in range(0, img_num, batch_num):
@@ -99,7 +103,8 @@ class TextClassifier(object):
             for rno in range(len(cls_result)):
                 label, score = cls_result[rno]
                 cls_res[indices[beg_img_no + rno]] = [label, score]
-                if '180' in label and score > self.cls_thresh:
+                if "180" in label and score > self.cls_thresh:
                     img_list[indices[beg_img_no + rno]] = cv2.rotate(
-                        img_list[indices[beg_img_no + rno]], 1)
+                        img_list[indices[beg_img_no + rno]], 1
+                    )
         return img_list, cls_res, elapse

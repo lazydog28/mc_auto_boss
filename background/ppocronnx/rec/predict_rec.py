@@ -24,22 +24,21 @@ from .rec_decoder import CTCLabelDecode
 
 logger = logging
 character_dict = get_character_dict()
-rec_model_file = 'ch_PP-OCRv2_rec_infer.onnx'
+rec_model_file = 'rec.onnx'
 
 
 class TextRecognizer(object):
     def __init__(self, rec_model_path=None, ort_providers=None):
-        if "CUDAExecutionProvider" in ort.get_available_providers():
-            ort_providers = ['CUDAExecutionProvider']
-        else:
+        if ort_providers is None:
             ort_providers = ['CPUExecutionProvider']
-        self.rec_image_shape = [3, 32, 320]
+        self.rec_image_shape = [3, 48, 320]
         self.character_type = 'ch'
         self.rec_batch_num = 6
         self.rec_algorithm = 'CRNN'
         self.postprocess_op = CTCLabelDecode(character_dict=character_dict,
                                              character_type='ch', use_space_char=True)
-        model_data = get_model_data(rec_model_file) if rec_model_path is None else get_model_data_from_path(rec_model_path)
+        model_data = get_model_data(rec_model_file) if rec_model_path is None else get_model_data_from_path(
+            rec_model_path)
         so = ort.SessionOptions()
         so.log_severity_level = 3
         sess = ort.InferenceSession(model_data, so, providers=ort_providers)

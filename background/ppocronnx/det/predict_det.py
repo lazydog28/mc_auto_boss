@@ -25,7 +25,7 @@ from .preprocess import preprocess_op
 from .postprocess import DBPostProcess
 
 logger = logging
-model_file = 'ch_PP-OCRv3_det_infer.onnx'
+model_file = 'det.onnx'
 
 
 def draw_text_det_res(dt_boxes, img):
@@ -49,9 +49,7 @@ def transform(data, ops=None):
 
 class TextDetector(object):
     def __init__(self, box_thresh=0.6, unclip_ratio=1.6, det_model_path=None, ort_providers=None):
-        if "CUDAExecutionProvider" in ort.get_available_providers():
-            ort_providers = ['CUDAExecutionProvider']
-        else:
+        if ort_providers is None:
             ort_providers = ['CPUExecutionProvider']
         self.det_algorithm = 'DB'
         self.box_thresh = box_thresh
