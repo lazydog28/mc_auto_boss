@@ -25,9 +25,11 @@ class Config(BaseModel):
         title="战斗策略, 逗号分隔, e,q,r为技能, a为普攻, 数字为间隔时间,a~0.5为普工按下0.5秒",
     )
     DreamlessLevel: int = Field(40, title="无妄者推荐等级")
+    DreamlessWaitTime: int = Field(5, title="无妄者等待时间", ge=0)
     SearchEchoes: bool = Field(False, title="是否搜索回音")
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
+
 
 
 # 判断是否存在配置文件

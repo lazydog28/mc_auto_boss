@@ -18,7 +18,7 @@ if "CUDAExecutionProvider" in rt.get_available_providers():
 else:
     provider = ["CPUExecutionProvider"]
 
-model = rt.InferenceSession(model_path)
+model = rt.InferenceSession(model_path, providers=provider)
 input_name = model.get_inputs()[0].name
 label_name = model.get_outputs()[0].name
 
