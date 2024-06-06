@@ -12,6 +12,12 @@ import numpy as np
 import cv2
 
 model_path = os.path.join(root_path, "models/yolo.onnx")
+# 判断能否使用GPU
+if "CUDAExecutionProvider" in rt.get_available_providers():
+    provider = ["CUDAExecutionProvider"]
+else:
+    provider = ["CPUExecutionProvider"]
+
 model = rt.InferenceSession(model_path)
 input_name = model.get_inputs()[0].name
 label_name = model.get_outputs()[0].name

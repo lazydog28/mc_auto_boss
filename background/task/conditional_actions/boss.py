@@ -23,10 +23,10 @@ def judgment_absorption() -> bool:
     )
 
 
-judgment_forward_conditional_action = ConditionalAction(
-    name="前进", condition=judgment_absorption, action=absorption_action
+judgment_absorption_action = ConditionalAction(
+    name="搜索声骸", condition=judgment_absorption, action=absorption_action
 )
-conditional_actions.append(judgment_forward_conditional_action)
+conditional_actions.append(judgment_absorption_action)
 
 
 # 超过最大空闲时间

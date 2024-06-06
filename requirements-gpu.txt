@@ -3,7 +3,6 @@ opencv-python
 pywin32
 pillow
 numpy
-ppocr-onnx
 setuptools
 pyyaml
 pydantic
