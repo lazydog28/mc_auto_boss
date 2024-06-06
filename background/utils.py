@@ -335,33 +335,45 @@ def wait_home(timeout=120):
         template = np.array(template)
         if match_template(img, template, threshold=0.9):
             return
-        template = Image.open(os.path.join(root_path, r"template/终端按钮.png"))  # 终端按钮
+        template = Image.open(
+            os.path.join(root_path, r"template/终端按钮.png")
+        )  # 终端按钮
         template = np.array(template)
         if match_template(img, template, threshold=0.9):
             return
 
 
+def turn_to_search() -> int | None:
+    x = None
+    for i in range(4):
+        img = screenshot()
+        x = search_echoes(img)
+        if x is not None:
+            break
+        logger("未发现声骸,转动视角")
+        control.tap("a")
+        time.sleep(1)
+        control.mouse_middle()
+        time.sleep(1)
+    return x
+
+
 def absorption_action():
+    info.needAbsorption = False
+    x = turn_to_search()
+    if x is None:
+        return
     start_time = datetime.now()  # 开始时间
     absorption_max_time = (
         config.MaxIdleTime / 2 if config.MaxIdleTime / 2 > 10 else 10
     )  # 最大吸收时间为最大空闲时间的一半或者10秒-取最大值
-
     last_x = None
     while (
-            datetime.now() - start_time
+        datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
-        x = None
-        for i in range(4):
-            img = screenshot()
-            x = search_echoes(img)
-            if x is not None:
-                break
-            logger("未发现声骸,转动视角")
-            control.tap("a")
-            time.sleep(1)
-            control.mouse_middle()
-            time.sleep(1)
+        logger("前往声骸")
+        img = screenshot()
+        x = search_echoes(img)
         if x is None and last_x is None:
             continue
         if x is None:
@@ -384,4 +396,3 @@ def absorption_action():
             time.sleep(1)
             info.absorptionCount += 1
             break
-    info.needAbsorption = False
