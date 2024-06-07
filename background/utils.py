@@ -179,6 +179,10 @@ def transfer_to_dreamless():
         return False
     logger(f"当前目标boss：无妄者")
     findBoss = find_text("战歌")
+    if not findBoss:
+        control.esc()
+        logger("未找到战歌重奏")
+        return False
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
