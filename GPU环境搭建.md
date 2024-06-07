@@ -14,11 +14,11 @@
 
 ![1717775484061.png](https://hermes981128.oss-cn-shanghai.aliyuncs.com/ImageBed/1717775484061.png)
 
-![image-20240607235202089](C:\Users\19937\AppData\Roaming\Typora\typora-user-images\image-20240607235202089.png)
+![image-20240607235202089.png](https://hermes981128.oss-cn-shanghai.aliyuncs.com/ImageBed/image-20240607235202089.png)
 
-![image-20240607235233540](C:\Users\19937\AppData\Roaming\Typora\typora-user-images\image-20240607235233540.png)
+![image-20240607235233540](https://hermes981128.oss-cn-shanghai.aliyuncs.com/ImageBed/image-20240607235233540.png)
 
-![image-20240607235314083](C:\Users\19937\AppData\Roaming\Typora\typora-user-images\image-20240607235314083.png)
+![image-20240607235314083](https://hermes981128.oss-cn-shanghai.aliyuncs.com/ImageBed/image-20240607235314083.png)
 
 ## 初始化`conda`命令
 
