@@ -19,12 +19,12 @@ def absorption_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
+    time.sleep(2)
+    if not find_text("吸收"):
+        return False
     info.absorptionCount += 1
     interactive()
-    if info.inDreamless:
-        time.sleep(2)
-    else:
-        time.sleep(1)
+    time.sleep(2)
     info.needAbsorption = False
     return True
 

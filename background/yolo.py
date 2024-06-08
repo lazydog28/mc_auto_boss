@@ -241,9 +241,14 @@ def search_echoes(img: np.ndarray, conf_thres=0.5, iou_thres=0.5) -> None | int:
     pred_conf = np.max(pred_class, axis=-1)  # get max conf
     pred = np.insert(pred, 4, pred_conf, axis=-1)  # insert conf to pred
     results = nms(pred, conf_thres, iou_thres)
-    # 输出 类别 置信度 坐标
+
+    result = None
+    confidence = 0
+    # 选择类别为 0 且置信度最高的
     for result in results:
         cls = int(result[5])
         if cls == 0:
-            return int(result[0] / x_scale)
-    return None
+            if result[4] > confidence:
+                confidence = result[4]
+                result = result
+    return int(result[0] / x_scale) if result is not None else None

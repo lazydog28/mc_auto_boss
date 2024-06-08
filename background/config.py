@@ -26,7 +26,7 @@ class Config(BaseModel):
     )
     DreamlessLevel: int = Field(40, title="无妄者推荐等级")
     DreamlessWaitTime: int = Field(5, title="无妄者等待时间", ge=0)
-    SearchEchoes: bool = Field(False, title="是否搜索回音")
+    SearchEchoes: bool = Field(False, title="是否搜索声骸")
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
 
@@ -44,7 +44,3 @@ else:
 if len(config.TargetBoss) == 0:
     print("请在config.yaml中填写目标BOSS全名")
     wait_exit()
-
-if config.SearchEchoes:
-    print("BOSS声骸识别功能暂不可用")
-    config.SearchEchoes = False

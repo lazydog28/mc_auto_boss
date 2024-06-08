@@ -219,7 +219,9 @@ def transfer() -> bool:
         return True
     control.activate()
     control.tap(win32con.VK_F2)
-    if not wait_text(["日志", "活跃度", "周期挑战", "强者之路", "残象"], timeout=5):
+    if not wait_text(
+        ["日志", "活跃", "挑战", "强者", "残象", "周期", "探寻", "漂泊"], timeout=5
+    ):
         logger("未进入索拉指南")
         control.esc()
         info.lastFightTime = datetime.now()
@@ -350,10 +352,15 @@ def wait_home(timeout=120):
 def turn_to_search() -> int | None:
     x = None
     for i in range(4):
+        if i == 0:
+            control.mouse_middle()  # 重置视角
+            time.sleep(1)
         img = screenshot()
         x = search_echoes(img)
         if x is not None:
             break
+        if i == 3:  # 如果尝试了4次都未发现声骸，直接返回
+            return
         logger("未发现声骸,转动视角")
         control.tap("a")
         time.sleep(1)
@@ -373,9 +380,8 @@ def absorption_action():
     )  # 最大吸收时间为最大空闲时间的一半或者10秒-取最大值
     last_x = None
     while (
-            datetime.now() - start_time
+        datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
-        logger("前往声骸")
         img = screenshot()
         x = search_echoes(img)
         if x is None and last_x is None:
