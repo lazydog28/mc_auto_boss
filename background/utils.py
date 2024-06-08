@@ -180,6 +180,7 @@ def transfer_to_dreamless():
         control.esc()
         return False
     logger(f"当前目标boss：无妄者")
+    time.sleep(2)
     findBoss = find_text("战歌")
     if not findBoss:
         control.esc()
@@ -194,12 +195,15 @@ def transfer_to_dreamless():
         logger("等待传送完成")
         time.sleep(3)
         wait_home()  # 等待回到主界面
+        logger("传送完成")
+        time.sleep(2)
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
         info.lastFightTime = now  # 重置最近检测到战斗时间
         info.fightTime = now  # 重置战斗时间
         for i in range(5):
             forward()
+            time.sleep(0.1)
         return True
     logger("未找到快速旅行")
     control.esc()
@@ -355,6 +359,7 @@ def turn_to_search() -> int | None:
     x = None
     for i in range(4):
         if i == 0:
+            control.activate()
             control.mouse_middle()  # 重置视角
             time.sleep(1)
         img = screenshot()

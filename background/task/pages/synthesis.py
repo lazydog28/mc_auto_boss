@@ -115,7 +115,7 @@ def get_echoes(positions: dict[str, Position]) -> bool:
     :return:
     """
     control.activate()
-    click_position(positions.get("获得"))
+    click_position(positions.get("获得声"))
     time.sleep(1)
     return True
 
