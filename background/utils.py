@@ -69,6 +69,8 @@ def release_skills():
             if len(tactic) == 1:  # 如果只有一个字符，点击
                 if tactic == "a":
                     control.click()
+                elif tactic == "s":
+                    control.space()
                 else:
                     control.tap(tactic)
             if len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
