@@ -110,12 +110,15 @@ def is_position_contained(container: Position, contained: Position) -> bool:
     :param contained:  小位置
     :return:  bool
     """
-    return (
-            container.x1 < contained.x1
-            and container.y1 < contained.y1
-            and container.x2 > contained.x2
-            and container.y2 > contained.y2
-    )
+    if container.x1 is not None and container.x1 * width_ratio > contained.x1:
+        return False
+    if container.y1 is not None and container.y1 * height_ratio > contained.y1:
+        return False
+    if container.x2 is not None and container.x2 * width_ratio < contained.x2:
+        return False
+    if container.y2 is not None and container.y2 * height_ratio < contained.y2:
+        return False
+    return True
 
 
 def text_match(textMatch: TextMatch, ocrResults: List[OcrResult]) -> Position | None:
@@ -127,8 +130,8 @@ def text_match(textMatch: TextMatch, ocrResults: List[OcrResult]) -> Position | 
     """
     for ocrResult in ocrResults:
         if textMatch.text.search(ocrResult.text):
-            if textMatch.position is not None and is_position_contained(
-                    ocrResult.position, textMatch.position
+            if textMatch.position is not None and not is_position_contained(
+                    textMatch.position, ocrResult.position,
             ):
                 continue
             return ocrResult.position
@@ -144,7 +147,7 @@ def image_match(imageMatch: ImageMatch, img: np.ndarray) -> Position | None:
     """
     imgPosition = match_template(img, imageMatch.image, imageMatch.confidence)
     if imgPosition is not None:
-        if imageMatch.position is not None and is_position_contained(
+        if imageMatch.position is not None and not is_position_contained(
                 imageMatch.position, imgPosition
         ):
             return None

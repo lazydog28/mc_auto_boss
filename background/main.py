@@ -8,7 +8,7 @@ from multiprocessing import Event, Process
 from status import logger
 from pynput.keyboard import Key, Listener
 from schema import Task
-from task import task as boss_task
+from task import boss_task, synthesis_task
 from ocr import ocr
 from utils import screenshot
 
@@ -44,6 +44,19 @@ def on_press(key):
     if key == Key.f5:
         logger("启动BOSS脚本")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
+        thread.start()
+    if key == Key.f6:
+        logger("启动融合脚本")
+        print("")
+        print("https://hermes981128.oss-cn-shanghai.aliyuncs.com/ImageBed/1717865624102.png")
+        try:
+            input(
+                "启动融合脚本之前请确保已筛选声骸品质，避免将五星声骸被合成！确定已筛选后按回车继续..."
+            )
+        except Exception:
+            pass
+        print("")
+        thread = Process(target=run, args=(synthesis_task, taskEvent), name="task")
         thread.start()
     if key == Key.f7:
         logger("暂停脚本")
