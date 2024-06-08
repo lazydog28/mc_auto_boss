@@ -394,9 +394,32 @@ def absorption_action():
         else:
             logger("发现声骸 向前移动")
             control.tap("w")
-        if find_text("吸收"):
-            logger("吸收")
-            interactive()
-            time.sleep(2)
-            info.absorptionCount += 1
+        if absorption_and_receive_rewards({}):
             break
+
+
+def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
+    """
+    吸收和领取奖励重合
+    :param positions: 位置信息
+    :return:
+    """
+    control.activate()
+    count = 0
+    while find_text("吸收"):
+        if count % 2:
+            logger("向下滚动后尝试吸收")
+            control.scroll(-1)
+            time.sleep(1)
+        count += 1
+        interactive()
+        time.sleep(2)
+        if find_text("确认"):
+            logger("点击到领取奖励，关闭页面")
+            control.esc()
+            time.sleep(2)
+    if count == 0:
+        return False
+    logger("吸收声骸")
+    info.absorptionCount += 1
+    return True

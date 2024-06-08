@@ -245,24 +245,6 @@ receive_rewards_page = Page(
 pages.append(receive_rewards_page)
 
 
-# 吸收和领取奖励重合
-def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
-    """
-    吸收和领取奖励重合
-    :param positions: 位置信息
-    :return:
-    """
-    while find_text("吸收"):
-        logger("向下滚动后尝试吸收")
-        control.scroll(-1)
-        control.activate()
-        time.sleep(2)
-        if find_text("确认"):
-            logger("点击到领取奖励，关闭页面")
-            control.esc()
-            time.sleep(2)
-    info.absorptionCount += 1
-    return True
 
 
 absorption_and_receive_rewards_page = Page(
