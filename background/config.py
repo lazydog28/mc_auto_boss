@@ -8,7 +8,7 @@
 from pydantic import BaseModel, Field
 import yaml
 import os
-from constant import wait_exit
+from constant import wait_exit, root_path
 
 
 class Config(BaseModel):
@@ -31,16 +31,15 @@ class Config(BaseModel):
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
 
 
-
 # 判断是否存在配置文件
 if os.path.exists("config.yaml"):
-    with open("config.yaml", "r", encoding="utf-8") as f:
+    with open(os.path.join(root_path, "config.yaml"), "r", encoding="utf-8") as f:
         config = Config(**yaml.safe_load(f))
 else:
     config = Config()
-    with open("config.yaml", "w", encoding="utf-8") as f:
+    with open(os.path.join(root_path, "config.yaml"), "w", encoding="utf-8") as f:
         yaml.safe_dump(config.dict(), f)
 
 if len(config.TargetBoss) == 0:
-    print("请在config.yaml中填写目标BOSS全名")
+    print("请在项目根目录下的config.yaml中填写目标BOSS全名")
     wait_exit()

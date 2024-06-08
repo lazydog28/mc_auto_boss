@@ -389,7 +389,8 @@ def absorption_action():
         if x is None and last_x is None:
             continue
         if x is None:
-            x = last_x  # 如果未发现声骸，使用上一次的x坐标
+            temp_x = turn_to_search()
+            x = temp_x if temp_x else last_x  # 如果未发现声骸，使用上一次的x坐标
         last_x = x
         center_x = real_w // 2
         floating = real_w // 20
