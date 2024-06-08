@@ -5,8 +5,6 @@
 @time: 2024/6/5 上午9:34
 @author SuperLazyDog
 """
-import time
-
 from . import *
 
 pages = []
@@ -244,9 +242,6 @@ receive_rewards_page = Page(
 )
 pages.append(receive_rewards_page)
 
-
-
-
 absorption_and_receive_rewards_page = Page(
     name="吸收和领取奖励重合",
     targetTexts=[
@@ -261,3 +256,31 @@ absorption_and_receive_rewards_page = Page(
     ],
     action=absorption_and_receive_rewards,
 )
+
+
+def blank_area(positions: dict[str, Position]) -> bool:
+    """
+    空白区域
+    :param positions: 位置信息
+    :return:
+    """
+    control.activate()
+    control.click(480 * width_ratio, 540 * height_ratio)
+    time.sleep(1)
+    control.esc()  # 退出
+    time.sleep(1)
+    return True
+
+
+blank_area_page = Page(
+    name="空白区域",
+    targetTexts=[
+        TextMatch(
+            name="空白区域",
+            text="空白区域",
+        ),
+    ],
+    action=blank_area,
+)
+
+pages.append(blank_area_page)
