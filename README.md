@@ -22,6 +22,8 @@
 
 ## 使用方法
 
+> GPU环境搭建：[GPU环境搭建 · lazydog28/mc_auto_boss Wiki (github.com)](https://github.com/lazydog28/mc_auto_boss/wiki/GPU环境搭建)
+
 1. ### 下载本项目
     ```shell
     git clone https://github.com/lazydog28/mc_auto_boss.git
