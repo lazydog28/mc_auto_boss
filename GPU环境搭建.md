@@ -116,7 +116,7 @@ conda install paddlepaddle-gpu==2.6.1 cudatoolkit=11.7 -c https://mirrors.tuna.t
 
 ```
 cd C:\mc_auto_boss-gpu #这里是进入项目目录
-pip install -r .\requirements.txt
+pip install -r .\requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ![image-20240608003453156](https://hermes981128.oss-cn-shanghai.aliyuncs.com/ImageBed/image-20240608003453156.png)
