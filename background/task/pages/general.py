@@ -136,13 +136,12 @@ def fight_action(positions: dict[str, Position]) -> bool:
         if info.inDreamless and config.DreamlessWaitTime > 0:
             logger(f"无妄者副本战斗延迟{config.DreamlessWaitTime}")
             time.sleep(config.DreamlessWaitTime)
+        info.fightCount += 1
+        info.needAbsorption = True
+        info.fightTime = datetime.now()
     release_skills()
-    now = datetime.now()
-    info.fightCount += 1
-    info.needAbsorption = True
-    info.fightTime = now
     info.status = Status.fight
-    info.lastFightTime = now
+    info.lastFightTime = datetime.now()
     return True
 
 
