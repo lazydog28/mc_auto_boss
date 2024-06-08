@@ -32,7 +32,7 @@ class Config(BaseModel):
 
 
 # 判断是否存在配置文件
-if os.path.exists("config.yaml"):
+if os.path.exists(os.path.join(root_path, "config.yaml")):
     with open(os.path.join(root_path, "config.yaml"), "r", encoding="utf-8") as f:
         config = Config(**yaml.safe_load(f))
 else:
