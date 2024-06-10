@@ -226,7 +226,7 @@ def transfer() -> bool:
     control.activate()
     control.tap(win32con.VK_F2)
     if not wait_text(
-        ["日志", "活跃", "挑战", "强者", "残象", "周期", "探寻", "漂泊"], timeout=5
+            ["日志", "活跃", "挑战", "强者", "残象", "周期", "探寻", "漂泊"], timeout=5
     ):
         logger("未进入索拉指南")
         control.esc()
@@ -273,11 +273,13 @@ def screenshot() -> np.ndarray | None:
     im = im[:, :, [2, 1, 0, 3]][:, :, :3]
 
     # 清理资源
-    win32gui.DeleteObject(saveBitMap.GetHandle())
-    saveDC.DeleteDC()
-    mfcDC.DeleteDC()
-    win32gui.ReleaseDC(hwnd, hwndDC)
-
+    try:
+        win32gui.DeleteObject(saveBitMap.GetHandle())
+        saveDC.DeleteDC()
+        mfcDC.DeleteDC()
+        win32gui.ReleaseDC(hwnd, hwndDC)
+    except Exception as e:
+        logger(f"清理截图资源失败: {e}")
     return im  # 返回截取到的图像
 
 
@@ -387,7 +389,7 @@ def absorption_action():
     )  # 最大吸收时间为最大空闲时间的一半或者10秒-取最大值
     last_x = None
     while (
-        datetime.now() - start_time
+            datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
         img = screenshot()
         x = search_echoes(img)
