@@ -26,6 +26,7 @@ if not is_admin():
     wait_exit()
 
 if current_process().name == "task":
+    logger("开源代码仓库地址：https://github.com/lazydog28/mc_auto_boss")
     logger("初始化中")
     logger(f"窗口大小：{w}x{h} 当前屏幕缩放：{scale_factor} 游戏分辨率：{real_w}x{real_h}")
     logger(f"项目路径：{root_path}")
