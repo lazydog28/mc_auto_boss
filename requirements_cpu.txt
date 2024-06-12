@@ -1,0 +1,11 @@
+pynput
+opencv-python
+pywin32
+pillow
+numpy
+setuptools
+pyyaml
+pydantic
+onnxruntime
+paddlepaddle
+paddleocr
