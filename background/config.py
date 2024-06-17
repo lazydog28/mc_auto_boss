@@ -29,6 +29,7 @@ class Config(BaseModel):
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
+    CharacterHeal: bool = Field(True, title="是否判断角色是否阵亡")
 
 
 # 判断是否存在配置文件
