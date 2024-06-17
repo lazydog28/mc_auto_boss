@@ -23,6 +23,8 @@ from status import info, logger
 from schema import Position
 import win32con
 from datetime import datetime
+import numpy as np
+from PIL import Image
 
 from yolo import search_echoes
 
@@ -50,7 +52,6 @@ def select_role():
     if info.roleIndex > 3:
         info.roleIndex = 1
     control.tap(str(info.roleIndex))
-
 
 def release_skills():
     select_role()
@@ -211,6 +212,13 @@ def transfer_to_dreamless():
 
 
 def transfer() -> bool:
+    check_heal()
+    if not info.needHeal:  # 检查是否需要治疗
+        logger("无需治疗")
+    else:
+        healBossName = "朔雷之鳞"  # 固定目标boss名称
+        logger("开始治疗")
+        time.sleep(1)
     bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
     if info.lastBossName == "无妄者" and bossName == "无妄者":
         logger("前往无妄者 且 刚才已经前往过")
@@ -233,10 +241,13 @@ def transfer() -> bool:
         info.lastFightTime = datetime.now()
         return False
     time.sleep(1)
-    info.bossIndex += 1
-    if bossName == "无妄者":
+    if info.needHeal:
+        transfer_to_heal(healBossName)
+    elif bossName == "无妄者":
+        info.bossIndex += 1
         return transfer_to_dreamless()
     else:
+        info.bossIndex += 1
         return transfer_to_boss(bossName)
 
 
@@ -317,15 +328,21 @@ def wait_text(targets: str | list[str], timeout: int = 3) -> OcrResult | None:
     if isinstance(targets, str):
         targets = [targets]
     while True:
+        now = datetime.now()
+        if (now - start).seconds > timeout:
+            return None
+        
         img = screenshot()
         if img is None:
+            time.sleep(0.1)  # 如果截图失败，等待短暂时间再试
             continue
-        if (datetime.now() - start).seconds > timeout:
-            return None
+
         result = ocr(img)
         for target in targets:
             if text_info := search_text(result, target):
                 return text_info
+
+        time.sleep(0.1)  # 每次截图和 OCR 处理之间增加一个短暂的暂停时间
     return None
 
 
@@ -337,11 +354,12 @@ def wait_home(timeout=120):
     """
     start = datetime.now()
     while True:
+        #修复部分情况下导致无法退出该循环的问题。
+        if (datetime.now() - start).seconds > timeout:
+            return None
         img = screenshot()
         if img is None:
             continue
-        if (datetime.now() - start).seconds > timeout:
-            return None
         results = ocr(img)
         if text_info := search_text(results, "特征码"):  # 特征码
             return text_info
@@ -380,6 +398,7 @@ def turn_to_search() -> int | None:
 
 def absorption_action():
     info.needAbsorption = False
+    info.checkHeal = True
     x = turn_to_search()
     if x is None:
         return
@@ -439,3 +458,127 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
     logger("吸收声骸")
     info.absorptionCount += 1
     return True
+
+def transfer_to_heal(healBossName):
+    """
+    如果需要治疗，传送到固定位置进行治疗。
+    """
+    img = screenshot()
+    template = Image.open(os.path.join(root_path, r"template/残象探寻.png"))
+    template = np.array(template)
+    coordinate = match_template(img, template, threshold=0.5)
+    if not coordinate:
+        logger("识别残像探寻失败")
+        control.esc()
+        return False
+    click_position(coordinate)  # 进入残像探寻
+    if not wait_text("探测"):
+        logger("未进入残象探寻")
+        control.esc()
+        return False
+    findBoss = None
+    y = 133
+    while y < 907:
+        y = y + 30
+        if y > 907:
+            y = 907
+        findBoss = find_text(healBossName)
+        if findBoss:
+            break
+        control.click(855 * width_ratio, y * height_ratio)
+        time.sleep(0.3)
+    if not findBoss:
+        control.esc()
+        logger("治疗_未找到神像附近点位BOSS(朔雷之鳞)")
+        return False
+    click_position(findBoss.position)
+    click_position(findBoss.position)
+    time.sleep(1)
+    control.click(1700 * width_ratio, 980 * height_ratio)
+    if not wait_text("追踪"):
+        logger("治疗_未找到追踪")
+        control.esc()
+        return False
+    control.click(1210 * width_ratio, 525 * height_ratio)
+    if transfer := wait_text("快速旅行"):
+        click_position(transfer.position)
+        logger("治疗_等待传送完成")
+        time.sleep(3)
+        wait_home()  # 等待回到主界面
+        logger("治疗_传送完成")
+        now = datetime.now()
+        info.idleTime = now  # 重置空闲时间
+        info.lastFightTime = now  # 重置最近检测到战斗时间
+        info.fightTime = now  # 重置战斗时间
+        info.needHeal = False
+        info.healCount += 1
+        return True
+    control.esc()
+    return False
+
+def check_heal():
+    if info.checkHeal:
+        logger(f"正在检查角色是否需要复苏。")
+        for i in range(3):
+            if info.needHeal:
+                break
+            now = datetime.now()
+            info.lastSelectRoleTime = now
+            info.roleIndex += 1
+            if info.roleIndex > 3:
+                info.roleIndex = 1
+            control.tap(str(info.roleIndex))
+            region = (325 * width_ratio, 190 * height_ratio, 690 * width_ratio, 330 * height_ratio)
+            region = tuple(map(int, region))
+            if not wait_text_heal("复苏", timeout=3, region=region):
+                logger(f"{info.roleIndex}号角色无需复苏")
+                info.needHeal = False
+                time.sleep(1)
+            else:
+                logger(f"{info.roleIndex}号角色需要复苏")
+                info.needHeal = True
+                control.esc()
+        info.checkHeal = False
+
+def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = None, max_attempts: int = 3):
+    start = datetime.now()
+    if isinstance(targets, str):
+        targets = [targets]
+
+    attempt_count = 0
+    while attempt_count < max_attempts:
+        now = datetime.now()
+        if (now - start).seconds > timeout:
+            return None
+        
+        img = screenshot()
+        if img is None:
+            time.sleep(0.1)  # 如果截图失败，等待短暂时间再试
+            continue
+
+        # 调试输出图像尺寸
+        #print(f"Original image size: {img.shape}")
+
+        # 将NumPy数组转换为Pillow图像对象
+        img_pil = Image.fromarray(img)
+
+        # 如果提供了具体的坐标区域，则裁剪图像
+        if region:
+            # 将坐标区域转换为整数
+            region = tuple(map(int, region))
+            # 调试输出裁剪区域
+            #print(f"Cropping region: {region}")
+            img_pil = img_pil.crop(region)
+
+        # 将裁剪后的 Pillow 图像对象转换回 NumPy 数组
+        img_cropped = np.array(img_pil)
+
+        result = ocr(img_cropped)
+        for target in targets:
+            if text_info := search_text(result, target):
+                return text_info
+
+        attempt_count += 1
+        time.sleep(0.1)  # 每次截图和 OCR 处理之间增加一个短暂的暂停时间
+
+    return None

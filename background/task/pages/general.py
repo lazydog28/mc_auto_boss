@@ -54,6 +54,8 @@ def select_recovery_items(positions: dict[str, Position]) -> bool:
     :param positions:
     :return:
     """
+    info.needHeal = True
+    logger("队伍中有角色需要复苏")
     control.esc()
     return True
 

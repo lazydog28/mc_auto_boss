@@ -35,6 +35,9 @@ class StatusInfo(BaseModel):
     currentPageName: str = Field("", title="当前页面名称")
     inDreamless: bool = Field(False, title="是否在无妄者副本内")
     lastBossName: str = Field("", title="最近BOSS名称")
+    healCount: int = Field(0, title="治疗次数")
+    needHeal: bool = Field(False, title="需要治疗")
+    checkHeal: bool = Field(True, title="检查角色存活情况")
 
     def resetTime(self):
         self.fightTime = datetime.now()
@@ -53,6 +56,7 @@ def logger(msg: str):
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
         f"战斗次数：{info.fightCount} "
         f"吸收次数：{info.absorptionCount} "
+        f"治疗次数：{info.healCount} "
         f"{msg}"
     )
     start = "\n" if lastMsg != msg else "\r"
