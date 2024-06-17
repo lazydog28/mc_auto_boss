@@ -273,6 +273,15 @@ def screenshot() -> np.ndarray | None:
     result = windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 3)
     if result != 1:
         logger("截取屏幕失败")
+        # 释放所有资源
+        try:
+            win32gui.DeleteObject(saveBitMap.GetHandle())
+            saveDC.DeleteDC()
+            mfcDC.DeleteDC()
+            win32gui.ReleaseDC(hwnd, hwndDC)
+            del hwndDC, mfcDC, saveDC, saveBitMap
+        except Exception as e:
+            logger(f"清理截图资源失败: {e}")
         return screenshot()  # 如果截取失败，则重试
 
     # 从位图中获取图像数据
