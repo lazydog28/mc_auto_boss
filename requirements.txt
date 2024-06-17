@@ -2,7 +2,7 @@ pynput
 opencv-python
 pywin32
 pillow
-numpy
+numpy==1.26.4
 setuptools
 pyyaml
 pydantic
