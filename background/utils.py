@@ -41,7 +41,8 @@ def click_position(position: Position):
     x = (position.x1 + position.x2) // 2
     y = (position.y1 + position.y2) // 2
     # control.click(x, y)
-    random_click(x, y)
+    random_click(x, y, ratio = False)   #找图所得坐标不需要缩放！
+    
 
 
 def select_role():
@@ -603,7 +604,7 @@ def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = N
 
     return None
 
-def random_click(x: int = None, y: int = None, range_x: int = 3, range_y: int = 3):
+def random_click(x: int = None, y: int = None, range_x: int = 3, range_y: int = 3, ratio: bool = True):
     """
     在以 (x, y) 为中心的区域内随机选择一个点并模拟点击。
     
@@ -617,10 +618,16 @@ def random_click(x: int = None, y: int = None, range_x: int = 3, range_y: int = 
     else:
         random_x = x + np.random.uniform(-range_x, range_x)
         random_y = y + np.random.uniform(-range_y, range_y)
-        
+
         # 将浮点数坐标转换为整数像素坐标
-        random_x = int(random_x) * width_ratio
-        random_y = int(random_y) * height_ratio
+        if ratio:
+            # 需要缩放
+            random_x = int(random_x) * width_ratio
+            random_y = int(random_y) * height_ratio
+        else:
+            # 不需要缩放
+            random_x = int(random_x)
+            random_y = int(random_y)
         
         # 点击
         time.sleep(np.random.uniform(0, 0.1))  # 随机等待后点击
