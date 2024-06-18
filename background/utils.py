@@ -40,7 +40,8 @@ def click_position(position: Position):
     # 分析position的中点
     x = (position.x1 + position.x2) // 2
     y = (position.y1 + position.y2) // 2
-    control.click(x, y)
+    # control.click(x, y)
+    random_click(x, y)
 
 
 def select_role():
@@ -67,6 +68,7 @@ def release_skills():
                 continue
             except:
                 pass
+            time.sleep(np.random.uniform(0, 0.05))  # 随机等待
             if len(tactic) == 1:  # 如果只有一个字符，点击
                 if tactic == "a":
                     control.click()
@@ -129,7 +131,8 @@ def transfer_to_boss(bossName):
         findBoss = find_text(bossName)
         if findBoss:
             break
-        control.click(855 * width_ratio, y * height_ratio)
+        # control.click(855 * width_ratio, y * height_ratio)
+        random_click(855, y, 1, 3)
         time.sleep(0.3)
     if not findBoss:
         control.esc()
@@ -138,12 +141,14 @@ def transfer_to_boss(bossName):
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
-    control.click(1700 * width_ratio, 980 * height_ratio)
+    # control.click(1700 * width_ratio, 980 * height_ratio)
+    random_click(1700, 980)
     if not wait_text("追踪"):
         logger("未找到追踪")
         control.esc()
         return False
-    control.click(960 * width_ratio, 540 * height_ratio)
+    # control.click(960 * width_ratio, 540 * height_ratio)
+    random_click(960, 540)
     beacon = wait_text("借位信标")
     if not beacon:
         logger("未找到借位信标")
@@ -190,7 +195,8 @@ def transfer_to_dreamless():
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
-    control.click(1720 * width_ratio, 420 * height_ratio)
+    random_click(1720, 420)
+    # control.click(1720 * width_ratio, 420 * height_ratio)
     if transfer := wait_text("快速旅行"):
         click_position(transfer.position)
         logger("等待传送完成")
@@ -496,7 +502,8 @@ def transfer_to_heal(healBossName):
         findBoss = find_text(healBossName)
         if findBoss:
             break
-        control.click(855 * width_ratio, y * height_ratio)
+        # control.click(855 * width_ratio, y * height_ratio)
+        random_click(855, y)
         time.sleep(0.3)
     if not findBoss:
         control.esc()
@@ -505,12 +512,14 @@ def transfer_to_heal(healBossName):
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
-    control.click(1700 * width_ratio, 980 * height_ratio)
+    # control.click(1700 * width_ratio, 980 * height_ratio)
+    random_click(1700, 980)
     if not wait_text("追踪"):
         logger("治疗_未找到追踪")
         control.esc()
         return False
-    control.click(1210 * width_ratio, 525 * height_ratio)
+    # control.click(1210 * width_ratio, 525 * height_ratio)
+    random_click(1210, 525)
     if transfer := wait_text("快速旅行"):
         click_position(transfer.position)
         logger("治疗_等待传送完成")
@@ -593,3 +602,27 @@ def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = N
         time.sleep(0.1)  # 每次截图和 OCR 处理之间增加一个短暂的暂停时间
 
     return None
+
+def random_click(x: int = None, y: int = None, range_x: int = 3, range_y: int = 3):
+    """
+    在以 (x, y) 为中心的区域内随机选择一个点并模拟点击。
+    
+    :param x: 中心点的 x 坐标
+    :param y: 中心点的 y 坐标
+    :param range_x: 水平方向随机偏移的范围
+    :param range_y: 垂直方向随机偏移的范围
+    """
+    if x is None or y is None:
+        logger("没有传入坐标，无法点击")
+    else:
+        random_x = x + np.random.uniform(-range_x, range_x)
+        random_y = y + np.random.uniform(-range_y, range_y)
+        
+        # 将浮点数坐标转换为整数像素坐标
+        random_x = int(random_x) * width_ratio
+        random_y = int(random_y) * height_ratio
+        
+        # 点击
+        time.sleep(np.random.uniform(0, 0.1))  # 随机等待后点击
+        control.click(random_x, random_y)
+        # logger(f"点击了坐标{random_x},{random_y}")
