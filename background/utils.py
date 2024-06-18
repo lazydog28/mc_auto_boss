@@ -212,13 +212,14 @@ def transfer_to_dreamless():
 
 
 def transfer() -> bool:
-    check_heal()
-    if not info.needHeal:  # 检查是否需要治疗
-        logger("无需治疗")
-    else:
-        healBossName = "朔雷之鳞"  # 固定目标boss名称
-        logger("开始治疗")
-        time.sleep(1)
+    if config.CharacterHeal:
+        check_heal()
+        if not info.needHeal:  # 检查是否需要治疗
+            logger("无需治疗")
+        else:
+            healBossName = "朔雷之鳞"  # 固定目标boss名称
+            logger("开始治疗")
+            time.sleep(1)
     bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
     if info.lastBossName == "无妄者" and bossName == "无妄者":
         logger("前往无妄者 且 刚才已经前往过")
@@ -407,7 +408,8 @@ def turn_to_search() -> int | None:
 
 def absorption_action():
     info.needAbsorption = False
-    info.checkHeal = True
+    if config.CharacterHeal:
+        info.checkHeal = True
     x = turn_to_search()
     if x is None:
         return

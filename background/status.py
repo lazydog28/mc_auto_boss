@@ -56,9 +56,11 @@ def logger(msg: str):
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
         f"战斗次数：{info.fightCount} "
         f"吸收次数：{info.absorptionCount} "
-        f"治疗次数：{info.healCount} "
-        f"{msg}"
     )
+    if config.CharacterHeal:
+        content += f"治疗次数：{info.healCount} "
+    content += f"{msg}"
+
     start = "\n" if lastMsg != msg else "\r"
     content = start + content
     print(content, end="")
