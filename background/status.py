@@ -65,3 +65,6 @@ def logger(msg: str):
     content = start + content
     print(content, end="")
     lastMsg = msg
+
+    with open(config.log_file_path, 'a', encoding='utf-8') as log_file:
+        log_file.write(content)

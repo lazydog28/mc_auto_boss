@@ -6,11 +6,17 @@ DreamlessWaitTime: 3 # 进入无妄者后等待时间 不要超过战斗完成�
 SearchEchoes: true # 是否搜索声骸
 SearchDreamlessEchoes: true # 是否搜索无妄者声骸
 CharacterHeal: true #是否判断角色是否阵亡 若阵亡则返回神像复活
+WaitUltAnimation: false # 是否等待大招时间  （实验功能，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配，欢迎测试）
 OcrInterval: 0 # OCR识别间隔时间
+log_file_path: "c:\\mc_log.txt" # 日志保存路径，需为"c:\\mc_log.txt"格式，使用"\\"而不是"\"
 FightTactics: # 战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻, 数字为间隔时间,a~0.5为普攻按下0.5秒
     - "e,0.2,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1"
     - "e,0.2,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1"
     - "e,0.2,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a~"
+FightTacticsUlt: # 大招释放成功时的技能释放顺序
+    - "a(1.6),e,a(1.6),e,a(1.6)",
+    - "a(1.6),e,a(1.6),e,a(1.6)",
+    - "a(1.2),e"
 TargetBoss: # 目标BOSS 必须保证目标BOSS的位置是有借位信标的，可以少字但是不能有错别字
     - "鸣钟之龟"
     - "燎照之骑"

@@ -7,25 +7,22 @@
 """
 import re
 import time
-from ctypes import windll
-from typing import List
-
-import numpy as np
 import win32gui
 import win32ui
+import os
+import win32con
+import numpy as np
+from PIL import ImageGrab, Image
+from ctypes import windll
+from typing import List, Tuple
 from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
 from ocr import ocr
 from schema import match_template, OcrResult
 from control import control
-import os
 from config import config
 from status import info, logger
 from schema import Position
-import win32con
 from datetime import datetime
-import numpy as np
-from PIL import Image
-
 from yolo import search_echoes
 
 
@@ -41,8 +38,7 @@ def click_position(position: Position):
     x = (position.x1 + position.x2) // 2
     y = (position.y1 + position.y2) // 2
     # control.click(x, y)
-    random_click(x, y, ratio = False)   #找图所得坐标不需要缩放！
-    
+    random_click(x, y, ratio=False)  # 找图所得坐标不需要缩放！
 
 
 def select_role():
@@ -55,11 +51,13 @@ def select_role():
         info.roleIndex = 1
     control.tap(str(info.roleIndex))
 
+
 def release_skills():
     select_role()
     control.mouse_middle()
     if len(config.FightTactics) < info.roleIndex:
-        config.FightTactics.append("e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1")
+        # config.FightTactics.append("e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1")
+        config.FightTactics.append("e,q,r,a(2)")
     tactics = config.FightTactics[info.roleIndex - 1].split(",")
     for tactic in tactics:  # 遍历对应角色的战斗策略
         try:
@@ -69,17 +67,33 @@ def release_skills():
                 continue
             except:
                 pass
-            time.sleep(np.random.uniform(0, 0.05))  # 随机等待
-            if len(tactic) == 1:  # 如果只有一个字符，点击
+            time.sleep(np.random.uniform(0, 0.02))  # 随机等待
+            if len(tactic) == 1:  # 如果只有一个字符，且为普通攻击，进行连续0.3s的点击
                 if tactic == "a":
-                    control.click()
+                    continuous_tap_time = 0.3
+                    tap_start_time = time.time()
+                    while time.time() - tap_start_time < continuous_tap_time:
+                        # control.click()
+                        control.fight_click()
                 elif tactic == "s":
-                    control.space()
+                    # control.space()
+                    control.fight_space()
+                elif tactic == "r":  # 大招时判断是否释放
+                    control.fight_tap(tactic)
+                    time.sleep(0.2)
+                    if config.WaitUltAnimation:  # 等待大招时间，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配
+                        is_similar_point1 = contrast_color(44, 227, (255, 255, 255), 0.95)
+                        is_similar_point2 = contrast_color(1740, 45, (255, 255, 255), 0.95)
+                        if not (is_similar_point1 and is_similar_point2):
+                            logger("检测到大招释放，等待大招动画")
+                            time.sleep(1.6)
+                            release_skills_after_ult()
+                            break
                 else:
-                    control.tap(tactic)
-            if len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
+                    control.fight_tap(tactic)
+            elif len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
                 tactic = tactic + "0.5"
-            if len(tactic) >= 3 and tactic[1] == "~":
+            elif len(tactic) >= 3 and tactic[1] == "~":
                 click_time = float(tactic.split("~")[1])
                 if tactic[0] == "a":
                     control.mouse_press()
@@ -89,6 +103,86 @@ def release_skills():
                     control.key_press(tactic[0])
                     time.sleep(click_time)
                     control.key_release(tactic[0])
+            elif '(' in tactic and ')' in tactic:  # 以设置的连续按键时间进行连续按键，识别格式：key(float)
+                continuous_tap_time = float(tactic[tactic.find('(') + 1:tactic.find(')')])
+                try:
+                    continuous_tap_time = float(continuous_tap_time)
+                except ValueError:
+                    pass
+                tap_start_time = time.time()
+                while time.time() - tap_start_time < continuous_tap_time:
+                    if tactic[0] == "a":
+                        control.fight_click()
+                    elif tactic == "s":
+                        control.fight_space()
+                    else:
+                        control.fight_tap(tactic)
+        except Exception as e:
+            logger(f"释放技能失败: {e}")
+            continue
+
+
+def release_skills_after_ult():
+    if len(config.FightTacticsUlt) < info.roleIndex:
+        config.FightTacticsUlt.append("a(1.6),e,a(1.6),e,a(1.6),e")
+    tacticsUlt = config.FightTacticsUlt[info.roleIndex - 1].split(",")
+    logger(f"开始进行大招状态下的连段")
+    for tacticUlt in tacticsUlt:  # 遍历对应角色的战斗策略
+        try:
+            try:
+                wait_time = float(tacticUlt)  # 如果是数字，等待时间
+                time.sleep(wait_time)
+                continue
+            except:
+                pass
+            time.sleep(np.random.uniform(0, 0.02))  # 随机等待
+            if len(tacticUlt) == 1:  # 如果只有一个字符，且为普通攻击，进行连续0.3s的点击
+                if tacticUlt == "a":
+                    continuous_tap_time = 0.3
+                    tap_start_time = time.time()
+                    while time.time() - tap_start_time < continuous_tap_time:
+                        # control.click()
+                        control.fight_click()
+                elif tacticUlt == "s":
+                    # control.space()
+                    control.fight_space()
+                elif tacticUlt == "r":  # 大招时判断是否释放
+                    control.fight_tap(tacticUlt)
+                    time.sleep(0.2)
+                    if config.WaitUltAnimation:  # 等待大招时间，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配
+                        is_similar_point1 = contrast_color(44, 227, (255, 255, 255), 0.95)
+                        is_similar_point2 = contrast_color(1740, 45, (255, 255, 255), 0.95)
+                        if not (is_similar_point1 and is_similar_point2):
+                            logger("检测到大招释放，等待大招动画")
+                            time.sleep(1.6)  # 此处或许不需要太长的等待时间，因为此处应该是二段大招(如果未来有)。
+                else:
+                    control.fight_tap(tacticUlt)
+            elif len(tacticUlt) == 2 and tacticUlt[1] == "~":  # 如果没有指定时间，默认0.5秒
+                tacticUlt = tacticUlt + "0.5"
+            elif len(tacticUlt) >= 3 and tacticUlt[1] == "~":
+                click_time = float(tacticUlt.split("~")[1])
+                if tacticUlt[0] == "a":
+                    control.mouse_press()
+                    time.sleep(click_time)
+                    control.mouse_release()
+                else:
+                    control.key_press(tacticUlt[0])
+                    time.sleep(click_time)
+                    control.key_release(tacticUlt[0])
+            elif '(' in tacticUlt and ')' in tacticUlt:  # 以设置的连续按键时间进行连续按键，识别格式：key(float)
+                continuous_tap_time = float(tacticUlt[tacticUlt.find('(') + 1:tacticUlt.find(')')])
+                try:
+                    continuous_tap_time = float(continuous_tap_time)
+                except ValueError:
+                    pass
+                tap_start_time = time.time()
+                while time.time() - tap_start_time < continuous_tap_time:
+                    if tacticUlt[0] == "a":
+                        control.fight_click()
+                    elif tacticUlt == "s":
+                        control.fight_space()
+                    else:
+                        control.fight_tap(tacticUlt)
         except Exception as e:
             logger(f"释放技能失败: {e}")
             continue
@@ -224,7 +318,7 @@ def transfer() -> bool:
         if not info.needHeal:  # 检查是否需要治疗
             logger("无需治疗")
         else:
-            healBossName = "朔雷之鳞"  # 固定目标boss名称
+            # healBossName = "朔雷之鳞"  # 固定目标boss名称
             logger("开始治疗")
             time.sleep(1)
     bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
@@ -250,7 +344,7 @@ def transfer() -> bool:
         return False
     time.sleep(1)
     if info.needHeal:
-        transfer_to_heal(healBossName)
+        transfer_to_heal()
     elif bossName == "无妄者":
         info.bossIndex += 1
         return transfer_to_dreamless()
@@ -337,9 +431,6 @@ def find_text(targets: str | list[str]) -> OcrResult | None:
     return None
 
 
-from PIL import Image
-
-
 def wait_text(targets: str | list[str], timeout: int = 3) -> OcrResult | None:
     start = datetime.now()
     if isinstance(targets, str):
@@ -348,7 +439,7 @@ def wait_text(targets: str | list[str], timeout: int = 3) -> OcrResult | None:
         now = datetime.now()
         if (now - start).seconds > timeout:
             return None
-        
+
         img = screenshot()
         if img is None:
             time.sleep(0.1)  # 如果截图失败，等待短暂时间再试
@@ -371,7 +462,7 @@ def wait_home(timeout=120):
     """
     start = datetime.now()
     while True:
-        #修复部分情况下导致无法退出该循环的问题。
+        # 修复部分情况下导致无法退出该循环的问题。
         if (datetime.now() - start).seconds > timeout:
             return None
         img = screenshot()
@@ -477,7 +568,8 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
     info.absorptionCount += 1
     return True
 
-def transfer_to_heal(healBossName):
+
+def transfer_to_heal(healBossName: str = "朔雷之鳞"):
     """
     如果需要治疗，传送到固定位置进行治疗。
     """
@@ -537,6 +629,7 @@ def transfer_to_heal(healBossName):
     control.esc()
     return False
 
+
 def check_heal():
     if info.checkHeal:
         logger(f"正在检查角色是否需要复苏。")
@@ -561,6 +654,7 @@ def check_heal():
                 control.esc()
         info.checkHeal = False
 
+
 def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = None, max_attempts: int = 3):
     start = datetime.now()
     if isinstance(targets, str):
@@ -571,14 +665,14 @@ def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = N
         now = datetime.now()
         if (now - start).seconds > timeout:
             return None
-        
+
         img = screenshot()
         if img is None:
             time.sleep(0.1)  # 如果截图失败，等待短暂时间再试
             continue
 
         # 调试输出图像尺寸
-        #print(f"Original image size: {img.shape}")
+        # print(f"Original image size: {img.shape}")
 
         # 将NumPy数组转换为Pillow图像对象
         img_pil = Image.fromarray(img)
@@ -588,7 +682,7 @@ def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = N
             # 将坐标区域转换为整数
             region = tuple(map(int, region))
             # 调试输出裁剪区域
-            #print(f"Cropping region: {region}")
+            # print(f"Cropping region: {region}")
             img_pil = img_pil.crop(region)
 
         # 将裁剪后的 Pillow 图像对象转换回 NumPy 数组
@@ -604,14 +698,68 @@ def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = N
 
     return None
 
-def random_click(x: int = None, y: int = None, range_x: int = 3, range_y: int = 3, ratio: bool = True):
+
+# 计算颜色之间的欧氏距离
+def color_distance(color1, color2):
+    return np.linalg.norm(np.array(color1) - np.array(color2))
+
+
+# 截图进行单点的颜色判断
+def contrast_color(
+    x: int,
+    y: int,
+    target_color: Tuple[int, int, int],
+    threshold: float = 0.95
+) -> bool:
+    """
+    在 (x, y) 提取颜色，并与传入颜色元组进行欧氏距离对比获取相似度，并判断 。
+
+    :param x: x 坐标
+    :param y: y 坐标
+    :param target_color: 目标颜色元组 (R, G, B)
+    :param threshold: 相似度阈值
+    :return: 如果相似度高于阈值，则返回True，否则返回False
+    """
+    if x is None or y is None:
+        logger("传入坐标错误")
+        return False
+
+    # 获取截图
+    img = screenshot()
+
+    # 将numpy数组转换为PIL.Image对象
+    img = Image.fromarray(img)
+
+    # 计算实际坐标
+    coord = (int(x * width_ratio), int(y * height_ratio))
+
+    # 获取指定坐标的颜色
+    color = img.getpixel(coord)
+
+    # 对比颜色与参考颜色，并计算相似度
+    distance = color_distance(color, target_color)
+    similarity = 1 - (distance / np.linalg.norm(np.array(target_color)))
+
+    return similarity >= threshold
+
+
+def random_click(
+        x: int = None,
+        y: int = None,
+        range_x: int = 3,
+        range_y: int = 3,
+        ratio: bool = True,
+        need_print: bool = False
+):
     """
     在以 (x, y) 为中心的区域内随机选择一个点并模拟点击。
-    
+
     :param x: 中心点的 x 坐标
     :param y: 中心点的 y 坐标
     :param range_x: 水平方向随机偏移的范围
     :param range_y: 垂直方向随机偏移的范围
+    :param ratio: 是否将坐标进行缩放
+    :param need_print: 是否输出log，debug用
     """
     if x is None or y is None:
         logger("没有传入坐标，无法点击")
@@ -628,8 +776,11 @@ def random_click(x: int = None, y: int = None, range_x: int = 3, range_y: int = 
             # 不需要缩放
             random_x = int(random_x)
             random_y = int(random_y)
-        
+
         # 点击
         time.sleep(np.random.uniform(0, 0.1))  # 随机等待后点击
         control.click(random_x, random_y)
+
+        if need_print:
+            logger(f"点击了坐标{random_x},{random_y}")
         # logger(f"点击了坐标{random_x},{random_y}")

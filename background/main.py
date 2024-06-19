@@ -1,8 +1,8 @@
 import os
 import sys
+import version
+import ctypes
 
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-import init
 from mouse_reset import mouse_reset
 from multiprocessing import Event, Process
 from status import logger
@@ -12,7 +12,18 @@ from task import boss_task, synthesis_task
 from ocr import ocr
 from utils import screenshot
 
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 logger(f"初始化完成")
+logger(f"version: {version.__version__}")
+
+
+def set_console_title(title: str):
+    ctypes.windll.kernel32.SetConsoleTitleW(title)
+
+
+set_console_title(f"鸣潮自动工具     ver {version.__version__}")
 
 
 def run(task: Task, e: Event):

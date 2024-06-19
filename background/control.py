@@ -9,6 +9,7 @@ import time
 import win32gui
 import win32con
 import win32api
+import numpy as np
 from constant import hwnd
 
 class Control:
@@ -27,6 +28,18 @@ class Control:
             self.hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position
         )  # 鼠标左键抬起
         time.sleep(0.1)
+
+    def fight_click(self, x: int | float = 0, y: int | float = 0):
+        x = x if isinstance(x, int) else int(x)
+        y = y if isinstance(y, int) else int(y)
+        long_position = win32api.MAKELONG(x, y)
+        win32gui.PostMessage(
+            self.hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, long_position
+        )  # 鼠标左键按下
+        time.sleep(np.random.uniform(0, 0.01))
+        win32gui.PostMessage(
+            self.hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position
+        )  # 鼠标左键抬起
 
     def mouse_middle(self, x: int = 0, y: int = 0):
         x = x if isinstance(x, int) else int(x)
@@ -71,6 +84,13 @@ class Control:
         time.sleep(0.1)  # 按键时间 不确定是否需要
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, key, 0)
 
+    def fight_tap(self, key: str | int):
+        if isinstance(key, str):
+            key = ord(key.upper())
+        win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, key, 0)
+        time.sleep(np.random.uniform(0, 0.01))  # 按键时间 不确定是否需要
+        win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, key, 0)
+
     def esc(self):
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, win32con.VK_ESCAPE, 0)
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, win32con.VK_ESCAPE, 0)
@@ -100,6 +120,11 @@ class Control:
     def space(self):
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, win32con.VK_SPACE, 0)
         time.sleep(0.1)
+        win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, win32con.VK_SPACE, 0)
+
+    def fight_space(self):
+        win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, win32con.VK_SPACE, 0)
+        time.sleep(np.random.uniform(0, 0.01))
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, win32con.VK_SPACE, 0)
 
     def move_to(self, x: int | float, y: int | float):
