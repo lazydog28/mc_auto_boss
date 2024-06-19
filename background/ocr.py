@@ -6,6 +6,7 @@
 @author SuperLazyDog
 """
 import time
+import paddle
 from paddleocr import PaddleOCR
 from multiprocessing import current_process
 import numpy as np
@@ -16,9 +17,14 @@ import logging
 
 ocrIns: PaddleOCR = None
 
+if paddle.is_compiled_with_cuda() and paddle.get_device().startswith('gpu'):  # 判断是否调用GPU
+    use_gpu = True
+else:
+    use_gpu = False
+
 if current_process().name == "task":
     logging.disable(logging.WARNING)  # 关闭WARNING日志的打印
-    ocrIns = PaddleOCR(use_angle_cls=False, use_gpu=True, lang="ch",show_log=False)
+    ocrIns = PaddleOCR(use_angle_cls=False, use_gpu=use_gpu, lang="ch",show_log=False)
 
 last_time = time.time()
 
