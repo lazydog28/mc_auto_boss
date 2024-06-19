@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 @software: PyCharm
-@file: check.py
+@file: init.py
 @time: 2024/6/3 下午3:57
 @author SuperLazyDog
 """

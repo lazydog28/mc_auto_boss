@@ -1,8 +1,8 @@
+import init
 import os
 import sys
 import version
 import ctypes
-
 from mouse_reset import mouse_reset
 from multiprocessing import Event, Process
 from status import logger
@@ -14,6 +14,7 @@ from utils import screenshot
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 
 logger(f"初始化完成")
 
