@@ -12,6 +12,7 @@ import win32ui
 import os
 import win32con
 import numpy as np
+import itertools
 from PIL import ImageGrab, Image
 from ctypes import windll
 from typing import List, Tuple
@@ -791,18 +792,29 @@ def random_click(
 
 def boss_wait(bossName):
     """
-    根据boss名称判单是否需要等待boss起身
+    根据boss名称判断是否需要等待boss起身
 
     :param bossName: boss名称
     """
+    bossName = bossName.lower()  # 将bossName转换为小写
 
-    match bossName:
-        case "鸣钟之龟" | "鸣" | "鸣钟" | "鸣钟之" | "龟" | "之龟":
-            logger("龟龟需要等待16秒开始战斗！")
-            time.sleep(16)
-        case "聚械机偶" | "聚" | "聚械" | "聚械机" | "机偶" | "偶":
-            logger("机器人需要等待7秒开始战斗！")
-            time.sleep(7)
-        case _:
-            logger("当前BOSS可直接开始战斗！")
+    keywords_turtle = ["鸣", "钟", "之", "龟"]
+    keywords_robot = ["聚", "械", "机", "偶"]
+
+    def contains_any_combinations(name, keywords):
+        for r in range(1, len(keywords) + 1):
+            for comb in itertools.combinations(keywords, r):
+                if all(word in name for word in comb):
+                    return True
+        return False
+
+    if contains_any_combinations(bossName, keywords_turtle):
+        logger("龟龟需要等待16秒开始战斗！")
+        time.sleep(16)
+    elif contains_any_combinations(bossName, keywords_robot):
+        logger("机器人需要等待7秒开始战斗！")
+        time.sleep(7)
+    else:
+        logger("当前BOSS可直接开始战斗！")
+
     info.waitBoss = False
