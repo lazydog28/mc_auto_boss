@@ -1,6 +1,6 @@
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 release_date = "2024-06-19"
-description = "更新了."
+description = "更新"
 
 # ver1.0.2
 # update:2024-06-19
