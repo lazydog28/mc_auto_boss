@@ -262,6 +262,7 @@ def transfer_to_boss(bossName):
         info.lastFightTime = now  # 重置最近检测到战斗时间
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = bossName
+        info.waitBoss = True
         return True
     control.esc()
     return False
@@ -803,3 +804,4 @@ def boss_wait(bossName):
             time.sleep(7)
         case _:
             logger("当前BOSS可直接开始战斗！")
+    info.waitBoss = False
