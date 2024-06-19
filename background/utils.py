@@ -87,6 +87,8 @@ def release_skills():
                         if not (is_similar_point1 and is_similar_point2):
                             logger("检测到大招释放，等待大招动画")
                             time.sleep(1.5)
+                else:
+                    control.fight_tap(tactic)
             elif len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
                 tactic = tactic + "0.5"
             elif len(tactic) >= 3 and tactic[1] == "~":
