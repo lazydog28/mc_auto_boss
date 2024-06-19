@@ -41,7 +41,7 @@ class Config(BaseModel):
     WaitUltAnimation: bool = Field(False, title="是否等待大招时间")
 
     # 获取项目根目录
-    project_root: str = os.path.dirname(os.path.abspath(__file__))
+    project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     log_file_path: Optional[str] = Field(None, title="日志文件路径")
 
     def __init__(self, **data):

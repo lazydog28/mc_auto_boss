@@ -54,7 +54,8 @@ def select_role():
 
 def release_skills():
     select_role()
-    boss_wait(info.lastBossName)
+    if info.waitBoss:
+        boss_wait(info.lastBossName)
     control.mouse_middle()
     if len(config.FightTactics) < info.roleIndex:
         # config.FightTactics.append("e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1")
