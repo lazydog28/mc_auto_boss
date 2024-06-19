@@ -39,7 +39,10 @@ class Config(BaseModel):
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
     CharacterHeal: bool = Field(True, title="是否判断角色是否阵亡")
     WaitUltAnimation: bool = Field(False, title="是否等待大招时间")
-    log_file_path: str = Field(r"C:\mc_log.txt",title="日志文件路径")
+
+    # 获取项目根目录
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    log_file_path: str = Field(os.path.join(project_root, "mc_log.txt"), title="日志文件路径")
 
 
 # 判断是否存在配置文件

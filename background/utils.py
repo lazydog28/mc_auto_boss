@@ -54,6 +54,7 @@ def select_role():
 
 def release_skills():
     select_role()
+    boss_wait(info.lastBossName)
     control.mouse_middle()
     if len(config.FightTactics) < info.roleIndex:
         # config.FightTactics.append("e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1")
@@ -784,3 +785,21 @@ def random_click(
         if need_print:
             logger(f"点击了坐标{random_x},{random_y}")
         # logger(f"点击了坐标{random_x},{random_y}")
+
+
+def boss_wait(bossName):
+    """
+    根据boss名称判单是否需要等待boss起身
+
+    :param bossName: boss名称
+    """
+
+    match bossName:
+        case "鸣钟之龟" | "鸣" | "鸣钟" | "鸣钟之" | "龟" | "之龟":
+            logger("龟龟需要等待16秒开始战斗！")
+            time.sleep(16)
+        case "聚械机偶" | "聚" | "聚械" | "聚械机" | "机偶" | "偶":
+            logger("机器人需要等待7秒开始战斗！")
+            time.sleep(7)
+        case _:
+            logger("当前BOSS可直接开始战斗！")
