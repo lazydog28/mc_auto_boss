@@ -6,8 +6,9 @@ DreamlessWaitTime: 3 # 进入无妄者后等待时间 不要超过战斗完成�
 SearchEchoes: true # 是否搜索声骸
 SearchDreamlessEchoes: true # 是否搜索无妄者声骸
 CharacterHeal: true #是否判断角色是否阵亡 若阵亡则返回神像复活
+WaitUltAnimation: false # 是否等待大招时间  （实验功能，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配，欢迎测试）
 OcrInterval: 0 # OCR识别间隔时间
-FightTactics: # 战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻, 数字为间隔时间,a~0.5为普攻按下0.5秒
+FightTactics: # 战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻(默认连点0.3秒), 数字为间隔时间,a~0.5为普攻按下0.5秒,a(0.5)为连续普攻0.5秒
     - "e,0.2,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1"
     - "e,0.2,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1"
     - "e,0.2,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a~"

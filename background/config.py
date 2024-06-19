@@ -22,7 +22,7 @@ class Config(BaseModel):
             "e,q,r,a~0.5,0.1,a,0.1,a,0.1,a,0.1,a,0.1",
             "e~0.5,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1",
         ],
-        title="战斗策略, 逗号分隔, e,q,r为技能, a为普攻, 数字为间隔时间,a~0.5为普工按下0.5秒",
+        title="战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻(默认连点0.3秒), 数字为间隔时间,a~0.5为普攻按下0.5秒,a(0.5)为连续普攻0.5秒",
     )
     DreamlessLevel: int = Field(40, title="无妄者推荐等级")
     DreamlessWaitTime: int = Field(5, title="无妄者等待时间", ge=0)
@@ -30,7 +30,7 @@ class Config(BaseModel):
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
     CharacterHeal: bool = Field(True, title="是否判断角色是否阵亡")
-
+    WaitUltAnimation: bool = Field(False, title="是否等待大招时间")
 
 # 判断是否存在配置文件
 if os.path.exists(os.path.join(root_path, "config.yaml")):
