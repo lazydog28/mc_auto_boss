@@ -24,6 +24,14 @@ class Config(BaseModel):
         ],
         title="战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻(默认连点0.3秒), 数字为间隔时间,a~0.5为普攻按下0.5秒,a(0.5)为连续普攻0.5秒",
     )
+    FightTacticsUlt: list[str] = Field(
+        [
+            "a(1.6),e,a(1.6),e,a(1.6)",
+            "a(1.6),e,a(1.6),e,a(1.6)",
+            "a(1.2),e",
+        ],
+        title="大招释放成功时的技能释放顺序",
+    )
     DreamlessLevel: int = Field(40, title="无妄者推荐等级")
     DreamlessWaitTime: int = Field(5, title="无妄者等待时间", ge=0)
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
@@ -31,6 +39,8 @@ class Config(BaseModel):
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
     CharacterHeal: bool = Field(True, title="是否判断角色是否阵亡")
     WaitUltAnimation: bool = Field(False, title="是否等待大招时间")
+    log_file_path: str = Field(r"C:\mc_log.txt",title="日志文件路径")
+
 
 # 判断是否存在配置文件
 if os.path.exists(os.path.join(root_path, "config.yaml")):

@@ -86,7 +86,9 @@ def release_skills():
                         is_similar_point2 = contrast_color(1740, 45, (255, 255, 255), 0.95)
                         if not (is_similar_point1 and is_similar_point2):
                             logger("检测到大招释放，等待大招动画")
-                            time.sleep(1.5)
+                            time.sleep(1.6)
+                            release_skills_after_ult()
+                            break
                 else:
                     control.fight_tap(tactic)
             elif len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
@@ -115,6 +117,72 @@ def release_skills():
                         control.fight_space()
                     else:
                         control.fight_tap(tactic)
+        except Exception as e:
+            logger(f"释放技能失败: {e}")
+            continue
+
+
+def release_skills_after_ult():
+    if len(config.FightTacticsUlt) < info.roleIndex:
+        config.FightTacticsUlt.append("a(1.6),e,a(1.6),e,a(1.6),e")
+    tacticsUlt = config.FightTacticsUlt[info.roleIndex - 1].split(",")
+    logger(f"开始进行大招状态下的连段")
+    for tacticUlt in tacticsUlt:  # 遍历对应角色的战斗策略
+        try:
+            try:
+                wait_time = float(tacticUlt)  # 如果是数字，等待时间
+                time.sleep(wait_time)
+                continue
+            except:
+                pass
+            time.sleep(np.random.uniform(0, 0.02))  # 随机等待
+            if len(tacticUlt) == 1:  # 如果只有一个字符，且为普通攻击，进行连续0.3s的点击
+                if tacticUlt == "a":
+                    continuous_tap_time = 0.3
+                    tap_start_time = time.time()
+                    while time.time() - tap_start_time < continuous_tap_time:
+                        # control.click()
+                        control.fight_click()
+                elif tacticUlt == "s":
+                    # control.space()
+                    control.fight_space()
+                elif tacticUlt == "r":  # 大招时判断是否释放
+                    control.fight_tap(tacticUlt)
+                    time.sleep(0.2)
+                    if config.WaitUltAnimation:  # 等待大招时间，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配
+                        is_similar_point1 = contrast_color(44, 227, (255, 255, 255), 0.95)
+                        is_similar_point2 = contrast_color(1740, 45, (255, 255, 255), 0.95)
+                        if not (is_similar_point1 and is_similar_point2):
+                            logger("检测到大招释放，等待大招动画")
+                            time.sleep(1.6)  # 此处或许不需要太长的等待时间，因为此处应该是二段大招(如果未来有)。
+                else:
+                    control.fight_tap(tacticUlt)
+            elif len(tacticUlt) == 2 and tacticUlt[1] == "~":  # 如果没有指定时间，默认0.5秒
+                tacticUlt = tacticUlt + "0.5"
+            elif len(tacticUlt) >= 3 and tacticUlt[1] == "~":
+                click_time = float(tacticUlt.split("~")[1])
+                if tacticUlt[0] == "a":
+                    control.mouse_press()
+                    time.sleep(click_time)
+                    control.mouse_release()
+                else:
+                    control.key_press(tacticUlt[0])
+                    time.sleep(click_time)
+                    control.key_release(tacticUlt[0])
+            elif '(' in tacticUlt and ')' in tacticUlt:  # 以设置的连续按键时间进行连续按键，识别格式：key(float)
+                continuous_tap_time = float(tacticUlt[tacticUlt.find('(') + 1:tacticUlt.find(')')])
+                try:
+                    continuous_tap_time = float(continuous_tap_time)
+                except ValueError:
+                    pass
+                tap_start_time = time.time()
+                while time.time() - tap_start_time < continuous_tap_time:
+                    if tacticUlt[0] == "a":
+                        control.fight_click()
+                    elif tacticUlt == "s":
+                        control.fight_space()
+                    else:
+                        control.fight_tap(tacticUlt)
         except Exception as e:
             logger(f"释放技能失败: {e}")
             continue
