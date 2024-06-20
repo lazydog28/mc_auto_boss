@@ -1,8 +1,8 @@
+import init
 import os
 import sys
 import version
 import ctypes
-
 from mouse_reset import mouse_reset
 from multiprocessing import Event, Process
 from status import logger
@@ -14,6 +14,7 @@ from utils import screenshot
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 
 logger(f"初始化完成")
 
@@ -90,10 +91,10 @@ if __name__ == "__main__":
     logger("鼠标重置进程启动")
     print(
            "\n --------------------------------------------------------------"
-           "\n  注意：此脚本为免费的开源软件，如果你是通过购买获得的，那么你受骗了！\n "
-           " --------------------------------------------------------------\n"
+           "\n     注意：此脚本为免费的开源软件，如果你是通过购买获得的，那么你受骗了！\n "
+           "--------------------------------------------------------------\n"
     )
-    print("请确认已经配置好了config.yaml文件")
+    print("请确认已经配置好了config.yaml文件\n")
     print("使用说明：\n   F5 启动脚本\n   F6 合成声骸\n   F7 暂停运行\n   F12 停止运行")
     logger("开始运行")
     with Listener(on_press=on_press) as listener:

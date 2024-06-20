@@ -38,6 +38,7 @@ class StatusInfo(BaseModel):
     healCount: int = Field(0, title="治疗次数")
     needHeal: bool = Field(False, title="需要治疗")
     checkHeal: bool = Field(True, title="检查角色存活情况")
+    waitBoss: bool = Field(True, title="检查角色存活情况")
 
     def resetTime(self):
         self.fightTime = datetime.now()

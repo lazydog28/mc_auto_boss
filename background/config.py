@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 import yaml
 import os
 from constant import wait_exit, root_path
-
+from typing import Optional
 
 class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
@@ -41,8 +41,17 @@ class Config(BaseModel):
     WaitUltAnimation: bool = Field(False, title="是否等待大招时间")
 
     # 获取项目根目录
-    project_root = os.path.dirname(os.path.abspath(__file__))
-    log_file_path: str = Field(os.path.join(project_root, "mc_log.txt"), title="日志文件路径")
+    project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    log_file_path: Optional[str] = Field(None, title="日志文件路径")
+
+    def __init__(self, **data):
+        super().__init__(**data)
+        if not self.log_file_path:
+            self.log_file_path = os.path.join(self.project_root, "mc_log.txt")
+
+
+project_root = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(project_root, "config.yaml")
 
 
 # 判断是否存在配置文件
