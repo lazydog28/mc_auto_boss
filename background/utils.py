@@ -802,7 +802,7 @@ def boss_wait(bossName):
     keywords_robot = ["聚", "械", "机", "偶"]
 
     def contains_any_combinations(name, keywords):
-        for r in range(1, len(keywords) + 1):
+        for r in range(2, len(keywords) + 1):
             for comb in itertools.combinations(keywords, r):
                 if all(word in name for word in comb):
                     return True
