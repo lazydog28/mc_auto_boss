@@ -32,7 +32,6 @@ class Config(BaseModel):
         ],
         title="大招释放成功时的技能释放顺序",
     )
-    DreamlessLevel: int = Field(40, title="无妄者推荐等级")
     DreamlessWaitTime: int = Field(5, title="无妄者等待时间", ge=0)
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)

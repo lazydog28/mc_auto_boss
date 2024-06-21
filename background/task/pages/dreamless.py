@@ -55,11 +55,18 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     interactive()
-    result = wait_text("推荐等级" + str(config.DreamlessLevel))
+    DreamlessLevel=40
+    result = wait_text("推荐等级" + str(DreamlessLevel))
+    if not result:
+        for i in range(1, 4):
+            control.esc()
+            result = wait_text("推荐等级" + str(DreamlessLevel + (10 * i)))
+            if result:
+                break
     if not result:
         control.esc()
         return False
-    for i in range(3):
+    for i in range(5):
         click_position(result.position)
         time.sleep(0.5)
     result = find_text("单人挑战")
