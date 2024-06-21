@@ -1,6 +1,14 @@
-__version__ = "1.0.2"
-release_date = "2024-06-19"
+__version__ = "1.0.3"
+release_date = "2024-06-22"
 description = "更新"
+
+# ver1.0.3
+# update:2024-06-22
+# updated by RoseRin0
+# 1.新增防止游戏崩溃的功能，实时检测游戏窗口
+# 2.游戏路径请在config.yaml中配置
+
+
 
 # ver1.0.2
 # update:2024-06-19
