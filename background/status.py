@@ -39,6 +39,8 @@ class StatusInfo(BaseModel):
     needHeal: bool = Field(False, title="需要治疗")
     checkHeal: bool = Field(True, title="检查角色存活情况")
     waitBoss: bool = Field(True, title="检查角色存活情况")
+    echoNumber: int = Field(0, title="当前进行的锁定声骸个数")
+    echoIsLockQuantity: int = Field(0, title="检测到连续锁定的声骸数量")
 
     def resetTime(self):
         self.fightTime = datetime.now()

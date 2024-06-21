@@ -1,6 +1,11 @@
-__version__ = "1.0.2"
-release_date = "2024-06-19"
+__version__ = "1.0.3"
+release_date = "2024-06-22"
 description = "更新"
+
+# ver1.0.3
+# update:2024-06-22
+# updated by RoseRin0
+# 1.增加了背包自动识别声骸属性并锁定的功能。
 
 # ver1.0.2
 # update:2024-06-19

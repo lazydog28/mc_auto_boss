@@ -12,6 +12,7 @@ import win32api
 import numpy as np
 from constant import hwnd
 
+
 class Control:
     def __init__(self, hwnd: int):
         self.hwnd = hwnd

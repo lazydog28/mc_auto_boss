@@ -13,7 +13,7 @@ import os
 import win32con
 import numpy as np
 import itertools
-from PIL import ImageGrab, Image
+from PIL import Image
 from ctypes import windll
 from typing import List, Tuple
 from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
@@ -25,6 +25,7 @@ from status import info, logger
 from schema import Position
 from datetime import datetime
 from yolo import search_echoes
+from echo import echo
 
 
 def interactive():
@@ -34,6 +35,7 @@ def interactive():
 def click_position(position: Position):
     """
     点击位置
+    :param position: 需要点击的位置
     """
     # 分析position的中点
     x = (position.x1 + position.x2) // 2
@@ -646,9 +648,8 @@ def check_heal():
             if info.roleIndex > 3:
                 info.roleIndex = 1
             control.tap(str(info.roleIndex))
-            region = (325 * width_ratio, 190 * height_ratio, 690 * width_ratio, 330 * height_ratio)
-            region = tuple(map(int, region))
-            if not wait_text_heal("复苏", timeout=3, region=region):
+            region = set_region(325, 190, 690, 330)
+            if not wait_text_designated_area("复苏", timeout=3, region=region):
                 logger(f"{info.roleIndex}号角色无需复苏")
                 info.needHeal = False
                 time.sleep(1)
@@ -659,7 +660,7 @@ def check_heal():
         info.checkHeal = False
 
 
-def wait_text_heal(targets: str | list[str], timeout: int = 1, region: tuple = None, max_attempts: int = 3):
+def wait_text_designated_area(targets: str | list[str], timeout: int = 1, region: tuple = None, max_attempts: int = 3):
     start = datetime.now()
     if isinstance(targets, str):
         targets = [targets]
@@ -710,10 +711,10 @@ def color_distance(color1, color2):
 
 # 截图进行单点的颜色判断
 def contrast_color(
-    x: int,
-    y: int,
-    target_color: Tuple[int, int, int],
-    threshold: float = 0.95
+        x: int,
+        y: int,
+        target_color: Tuple[int, int, int],
+        threshold: float = 0.95
 ) -> bool:
     """
     在 (x, y) 提取颜色，并与传入颜色元组进行欧氏距离对比获取相似度，并判断 。
@@ -818,3 +819,212 @@ def boss_wait(bossName):
         logger("当前BOSS可直接开始战斗！")
 
     info.waitBoss = False
+
+
+def set_region(x_upper_left: int = None, y_upper_left: int = None, x_lower_right: int = None,
+               y_lower_right: int = None):
+    """
+    设置区域的坐标并将其缩放到特定比例。
+
+    :param x_upper_left: 左上角的 x 坐标。
+    :param y_upper_left: 左上角的 y 坐标。
+    :param y_lower_right: 右下角的 x 坐标。
+    :param y_lower_right: 右下角的 y 坐标。
+
+    返回:
+    tuple or bool: 如果所有坐标参数都提供，返回缩放后的坐标元组 (x_upper_left_scaled, y_upper_left_scaled,
+                   x_lower_right_scaled, y_lower_right_scaled)。
+                   如果有任何坐标参数未提供，返回 False。
+
+    """
+    if None in [x_upper_left, y_upper_left, x_lower_right, y_lower_right]:
+        logger("set_region error:传入坐标参数不正确")
+        return False
+    region = (
+        x_upper_left * width_ratio,
+        y_upper_left * height_ratio,
+        x_lower_right * width_ratio,
+        y_lower_right * height_ratio
+    )
+    region = tuple(map(int, region))
+    return region
+
+
+def lock_echo():
+    """
+    声骸锁定
+    目前只支持背包锁定，暂不支持合成时判断
+    """
+    # 开始执行判断
+    if not config.EchoLock:
+        logger("未启动该功能")
+        return False
+    info.echoNumber += 1
+    this_echo_row = info.echoNumber // 6 + 1
+    this_echo_col = info.echoNumber % 6
+    if this_echo_col == 0:
+        this_echo_col = 6
+        this_echo_row -= 1
+    if info.echoNumber == 1:
+        logger("检测到声骸背包画面，3秒后将开始执行锁定程序，过程中请不要将鼠标移到游戏内。")
+        time.sleep(3)
+        # 切换到时间顺序(倒序)
+        logger("切换为时间倒序")
+        random_click(400, 980)
+        time.sleep(1)
+        random_click(400, 845)
+        time.sleep(0.5)
+        random_click(718,23)
+        time.sleep(0.5)
+    # logger(f"当前为第{this_echo_row}排，第{this_echo_col}个声骸 (总第{info.echoNumber}个)")
+    echo_start_position = [285, 205]  # 第一个声骸的坐标
+    echo_spacing = [165, 205]  # 两个声骸间的间距
+    this_echo_x_position = (this_echo_col - 1) * echo_spacing[0] + echo_start_position[0]  # 当前需要判断的声骸x坐标
+    random_click(this_echo_x_position, echo_start_position[1])  # 选择当前声骸
+    time.sleep(0.3)
+
+    # 判断声骸是否为金色品质，如果不是则返回
+    if not contrast_color(1704, 397, (255, 255, 255)):
+        # logger("当前声骸不是金色声骸，下一个")
+        echo_next_row(this_echo_row)
+        return True
+    # 判断当前声骸是否未锁定
+    if contrast_color(1812, 328, (232, 221, 198), 0.6):
+        info.echoIsLockQuantity += 1
+        if info.echoIsLockQuantity > config.EchoMaxContinuousLockQuantity:
+            logger(f"连续检出已锁定声骸{info.echoIsLockQuantity}个，超出设定值，结束")
+            this_echo_lock = True
+            return False
+        echo_next_row(this_echo_row)
+        return True
+    elif contrast_color(1812, 328, (36, 35, 11), 0.6):
+        this_echo_lock = False
+        info.echoIsLockQuantity = 0
+        # logger("当前声骸未锁定")
+    else:
+        this_echo_lock = None
+        logger("未检测到当前声骸锁定状况")
+        return False
+
+    # 识别声骸Cost
+    region = set_region(1690, 200, 1830, 240)  # 设置声骸COST显示位置区域
+    text_result = wait_text_designated_area(echo.echoCost, 1, region, 1)  # 搜索声骸COST
+    this_echo_cost = wait_text_result_search(text_result)
+    if this_echo_cost not in {"3", "4"}:
+        cost_text_check = wait_text_result_search(wait_text_designated_area("COST", 1, region, 3))
+        if cost_text_check == "COST":
+            this_echo_cost = "1"  # 由于识别不出来1，所以不是3cost和4cost且不为False则为1Cost
+        else:
+            logger("没有识别到声骸！")
+            return False
+    # logger(f"当前声骸Cost为{this_echo_cost}")
+
+    # 识别声骸主词条属性
+    if this_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
+        for i in range(6):
+            control.scroll(1, 1510, 690)
+            time.sleep(0.01)
+        time.sleep(0.5)
+    region = set_region(1425, 425, 1620, 470)
+    cost_mapping = {
+        "1": (echo.echoCost1MainStatus, 1),
+        "3": (echo.echoCost3MainStatus, 1),
+        "4": (echo.echoCost4MainStatus, 1),
+    }
+    if this_echo_cost in cost_mapping:
+        func, param = cost_mapping[this_echo_cost]
+        text_result = wait_text_designated_area(func, param, region, 3)
+        this_echo_main_status = wait_text_result_search(text_result)
+        # logger(f"当前声骸主词条为：{this_echo_main_status}")
+    else:
+        for i in range(6):
+            control.scroll(1, 1510, 690)
+            time.sleep(0.02)
+        time.sleep(0.8)
+        if this_echo_cost in cost_mapping:
+            func, param = cost_mapping[this_echo_cost]
+            text_result = wait_text_designated_area(func, param, region, 3)
+            this_echo_main_status = wait_text_result_search(text_result)
+            # logger(f"当前声骸主词条为：{this_echo_main_status}")
+        else:
+            logger(f"声骸主词条识别错误")
+            return False
+
+    # 识别声骸套装属性
+    region = set_region(1295, 430, 1850, 930)
+    text_result = wait_text_designated_area(echo.echoSetName, 1, region, 3)
+    this_echo_set = wait_text_result_search(text_result)
+    if this_echo_set:
+        # logger(f"当前声骸为套装为：{this_echo_set}")
+        pass
+    else:
+        for i in range(6):
+            control.scroll(-1, 1510, 690)
+            time.sleep(0.02)
+        time.sleep(0.8)
+        text_result = wait_text_designated_area(echo.echoSetName, 1, region, 3)
+        this_echo_set = wait_text_result_search(text_result)
+        if this_echo_set:
+            # logger(f"当前声骸为套装为：{this_echo_set}")
+            pass
+        else:
+            logger(f"声骸套装识别错误")
+            return False
+
+    # 声骸信息合成
+    logstr = "" + f"{info.echoNumber}" + f"，{this_echo_cost} COST" + f"，{this_echo_set}" + f"，{this_echo_main_status}"
+
+    # 锁定声骸，输出声骸信息
+    this_echo_cost = this_echo_cost + "COST"
+    if is_echo_main_status_valid(this_echo_set, this_echo_cost, this_echo_main_status, config.EchoLockConfig):
+        if this_echo_lock is True:
+            # logger("当前声骸符合要求，已处于锁定状态")
+            # 此处无作用，因为锁定的直接跳过了，提高效率
+            logstr = logstr + "，已锁定"
+            logger(logstr)
+        else:
+            # logger(f"当前声骸符合要求，锁定声骸")
+            logstr = logstr + "，执行锁定"
+            random_click(1807, 327)
+            time.sleep(0.5)
+            logger(logstr)
+    # else:
+        # logger(f"不符合，跳过")
+    echo_next_row(this_echo_row)
+
+
+def echo_next_row(this_echo_row):
+    # 自动换行，以及各种乱七八糟换行后位置的修正
+    if info.echoNumber % 6 == 0:
+        scroll_times = 7  # 默认值
+        # logger("切换至下一排")
+        if this_echo_row % 4 != 0 and this_echo_row % 15 != 0:
+            scroll_times = 8  # 通常情况下滑动滚轮8次
+        elif this_echo_row % 4 == 0 and this_echo_row % 15 != 0:
+            scroll_times = 7  # 每4行进行一次修正
+        elif this_echo_row % 15 == 0:
+            scroll_times = 9  # 每15行再进行一次修正
+        for i in range(scroll_times):
+            control.scroll(-1, 285, 205)
+            time.sleep(0.06)
+        time.sleep(0.3)
+        return True
+
+
+def wait_text_result_search(text_result):
+    result_str = str(text_result)
+    match = re.search(r"text='([^']+)'", result_str)
+    # logger(f"识别结果为{result_str}")
+    if match:
+        text_value = match.group(1)
+        return text_value
+    else:
+        # logger("识别失败")
+        return False
+
+
+def is_echo_main_status_valid(this_echo_set, this_echo_cost, this_echo_main_status, echo_lock_config):
+    if this_echo_set in echo_lock_config:
+        if this_echo_cost in echo_lock_config[this_echo_set]:
+            return this_echo_main_status in echo_lock_config[this_echo_set][this_echo_cost]
+    return False
