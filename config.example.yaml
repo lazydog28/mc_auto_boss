@@ -1,6 +1,9 @@
+#游戏路径，如需设置，使用"\\"而不是"\" 
+AppPath: "D:\\Wuthering Waves\\Wuthering Waves Game\\Wuthering Waves.exe" 
 MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目标
 MaxIdleTime: 10 # 战斗完成后的空闲时间，不能小于5
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
+DreamlessLevel: 40 # 无妄者等级
 DreamlessWaitTime: 3 # 进入无妄者后等待时间 不要超过战斗完成后的空闲时间的一半
 SearchEchoes: true # 是否搜索声骸
 SearchDreamlessEchoes: true # 是否搜索无妄者声骸
