@@ -3,7 +3,6 @@ MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目�
 MaxIdleTime: 10 # 战斗完成后的空闲时间，不能小于5
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
 DungeonWeeklyBossLevel: 40 # 自己可以掉落的周本(副本)boss最低等级（当前索拉等级*10）
-DreamlessWaitTime: 3 # 进入无妄者后等待时间 不要超过战斗完成后的空闲时间的一半
 SearchEchoes: true # 是否搜索声骸
 SearchDreamlessEchoes: true # 是否搜索无妄者声骸
 CharacterHeal: true #是否判断角色是否阵亡 若阵亡则返回神像复活
