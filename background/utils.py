@@ -801,20 +801,23 @@ def boss_wait(bossName):
 
     keywords_turtle = ["鸣", "钟", "之", "龟"]
     keywords_robot = ["聚", "械", "机", "偶"]
+    keywords_dreamless = ["无", "妄", "者"]
 
-    def contains_any_combinations(name, keywords):
-        for r in range(2, len(keywords) + 1):
+    def contains_any_combinations(name, keywords, min_chars):
+        for r in range(min_chars, len(keywords) + 1):
             for comb in itertools.combinations(keywords, r):
                 if all(word in name for word in comb):
                     return True
         return False
-
-    if contains_any_combinations(bossName, keywords_turtle):
+    if contains_any_combinations(bossName, keywords_turtle, min_chars=2):
         logger("龟龟需要等待16秒开始战斗！")
         time.sleep(16)
-    elif contains_any_combinations(bossName, keywords_robot):
+    elif contains_any_combinations(bossName, keywords_robot, min_chars=2):
         logger("机器人需要等待7秒开始战斗！")
         time.sleep(7)
+    elif contains_any_combinations(bossName, keywords_dreamless, min_chars=3):
+        logger("无妄者需要等待3秒开始战斗！")
+        time.sleep(3)
     else:
         logger("当前BOSS可直接开始战斗！")
 
@@ -922,7 +925,7 @@ def lock_echo():
     # 识别声骸主词条属性
     if this_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
         for i in range(6):
-            control.scroll(1, 1510, 690)
+            control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.01)
         time.sleep(0.5)
     region = set_region(1425, 425, 1620, 470)
@@ -938,7 +941,7 @@ def lock_echo():
         # logger(f"当前声骸主词条为：{this_echo_main_status}")
     else:
         for i in range(6):
-            control.scroll(1, 1510, 690)
+            control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.02)
         time.sleep(0.8)
         if this_echo_cost in cost_mapping:
@@ -959,7 +962,7 @@ def lock_echo():
         pass
     else:
         for i in range(6):
-            control.scroll(-1, 1510, 690)
+            control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.02)
         time.sleep(0.8)
         text_result = wait_text_designated_area(echo.echoSetName, 1, region, 3)
@@ -1005,7 +1008,7 @@ def echo_next_row(this_echo_row):
         elif this_echo_row % 15 == 0:
             scroll_times = 9  # 每15行再进行一次修正
         for i in range(scroll_times):
-            control.scroll(-1, 285, 205)
+            control.scroll(-1, 285 * width_ratio, 205 * height_ratio)
             time.sleep(0.06)
         time.sleep(0.3)
         return True

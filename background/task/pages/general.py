@@ -135,9 +135,10 @@ def fight_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     if info.status != Status.fight:
-        if info.inDreamless and config.DreamlessWaitTime > 0:
-            logger(f"无妄者副本战斗延迟{config.DreamlessWaitTime}")
-            time.sleep(config.DreamlessWaitTime)
+        # if info.inDreamless and config.DreamlessWaitTime > 0:
+        #    logger(f"无妄者副本战斗延迟{config.DreamlessWaitTime}")
+        #    time.sleep(config.DreamlessWaitTime)
+        # 转自BOSS延迟统一调用
         info.fightCount += 1
         info.needAbsorption = True
         info.fightTime = datetime.now()

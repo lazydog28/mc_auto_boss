@@ -1,10 +1,8 @@
-#游戏路径，如需设置，使用"\\"而不是"\" 
-AppPath: "D:\\Wuthering Waves\\Wuthering Waves Game\\Wuthering Waves.exe" 
+AppPath: #游戏路径，如需设置，使用"\\"而不是"\" ,留空为从注册表读取游戏运行目录，无法读取注册表，且此值为空时无法在崩溃时自动重启游戏。
 MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目标
 MaxIdleTime: 10 # 战斗完成后的空闲时间，不能小于5
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
-DreamlessLevel: 40 # 无妄者等级
-DreamlessWaitTime: 3 # 进入无妄者后等待时间 不要超过战斗完成后的空闲时间的一半
+DungeonWeeklyBossLevel: 40 # 自己可以掉落的周本(副本)boss最低等级（当前索拉等级*10）
 SearchEchoes: true # 是否搜索声骸
 SearchDreamlessEchoes: true # 是否搜索无妄者声骸
 CharacterHeal: true #是否判断角色是否阵亡 若阵亡则返回神像复活
@@ -12,13 +10,13 @@ WaitUltAnimation: false # 是否等待大招时间  （实验功能，目前4k�
 EchoLock: false #是否使用启用声骸锁定功能  （实验功能）
 EchoMaxContinuousLockQuantity: 5 # 最大连续检测到已锁定声骸的数量，超过此数量就停止
 OcrInterval: 0 # OCR识别间隔时间
-log_file_path:  # 日志保存路径，留空即为项目根目录，如需设置，则需为"c:\\mc_log.txt"格式，使用"\\"而不是"\"
-FightTactics: # 战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻(默认连点0.3秒), 数字为间隔时间,a~0.5为普攻按下0.5秒,a(0.5)为连续普攻0.5秒
+log_file_path: # 日志保存路径，留空即为项目根目录，如需设置，则需为"c:\\mc_log.txt"格式，使用"\\"而不是"\"
+FightTactics: # 战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻(默认连点0.3秒), 数字为间隔时间,a~0.5为普攻按下0.5秒,a(0.5)为连续普攻0.5秒，摩托车短按请用q~0.1
     - "a,r,q,a(2),f,e,a(1),e,a(1),e,a(1),0.05,f,a~0.8"   # 卡卡罗
     - "a,r,q~0.1,a(2),f,e,0.05,a~0.7"   #安可
     - "a,f,e,f,q,f,r,f,s,0.2,a(1)"      #维里奈
     # - "q,a(0.8),e,0.2,a~0.7,s,0.15,a(1.5),r,0.2,e,f"   #  吟霖
-FightTacticsUlt: # 大招释放成功时的技能释放顺序
+FightTacticsUlt: # 大招释放成功时的技能释放顺序，此处只允许有二段r的角色放r，否则可能会有少许延迟
     - "a(1.6),e,a(1.6),a(1.6),a(1.6),f"   # 卡卡罗
     - "a(2),e,a(2),e,a(2),e,0.05,a~0.7,f"   #安可
     - "a(0.3),s,0.2,a(1)"   #维里奈

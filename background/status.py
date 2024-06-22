@@ -9,6 +9,7 @@ from enum import Enum
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 from config import config
+from colorama import init, Fore, Style
 
 
 class Status(Enum):
@@ -41,6 +42,7 @@ class StatusInfo(BaseModel):
     waitBoss: bool = Field(True, title="检查角色存活情况")
     echoNumber: int = Field(0, title="当前进行的锁定声骸个数")
     echoIsLockQuantity: int = Field(0, title="检测到连续锁定的声骸数量")
+    DungeonWeeklyBossLevel: int = Field(0, title="储存自动判断出的最低可获奖励副本BOSS的等级")
 
     def resetTime(self):
         self.fightTime = datetime.now()
@@ -53,9 +55,10 @@ info = StatusInfo()
 lastMsg = ""
 
 
-def logger(msg: str):
+def logger(msg: str, level: str = "INFO", display: bool = True):
     global lastMsg
     content = (
+        f"【{level}】 "
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
         f"战斗次数：{info.fightCount} "
         f"吸收次数：{info.absorptionCount} "
@@ -66,8 +69,21 @@ def logger(msg: str):
 
     start = "\n" if lastMsg != msg else "\r"
     content = start + content
-    print(content, end="")
-    lastMsg = msg
+
+    # 设置日志级别颜色
+    if level == "INFO":
+        color = Fore.WHITE
+    elif level == "WARN":
+        color = Fore.YELLOW
+    elif level == "ERROR":
+        color = Fore.RED
+    else:
+        color = Fore.WHITE
+    colored_content = color + content
+
+    if display:
+        print(colored_content, end="")
+        lastMsg = msg
 
     with open(config.log_file_path, 'a', encoding='utf-8') as log_file:
         log_file.write(content)

@@ -1,7 +1,6 @@
 import os
+import init  # !!此导入删除将不会将游戏移动到左上角以及提示当前分辨率!!
 import sys
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import version
 import ctypes
 from mouse_reset import mouse_reset
@@ -12,55 +11,54 @@ import subprocess
 from task import boss_task, synthesis_task, lock_task
 from utils import *
 from threading import Event as event
+from config import config
+
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 hwnds = win32gui.FindWindow("UnrealWindow", "鸣潮")
-# 注意修改路径为你自己的路径，注意不是启动器路径！是游戏的路径
-# app_path = "E:\game\Wuthering Waves\Wuthering Waves Game\Wuthering Waves.exe"
-# app_path = "D:\Wuthering Waves\Wuthering Waves Game\Wuthering Waves.exe"
 app_path = config.AppPath
 
 
 def restart_app(e: event):
-    while True:
-        # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2个小时重启一次
-        # time.sleep(1800)
-        # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
-        time.sleep(1)  # 每秒检测一次，游戏窗口
+    if app_path:
+        while True:
+            # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2个小时重启一次
+            # time.sleep(1800)
+            # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
+            time.sleep(1)  # 每秒检测一次，游戏窗口
+            find_ue4("UnrealWindow", "UE4-Client Game已崩溃  ")
+            find_game_windows("UnrealWindow", "鸣潮  ", e)
 
-        find_UE4("UnrealWindow","UE4-Client Game已崩溃  ")
-        find_game_windows("UnrealWindow","鸣潮  ",e)
-           
-           
-def find_UE4(class_name, window_title):
-     UE4Windows = win32gui.FindWindow(class_name,window_title)
-     if UE4Windows != 0: #检测到游戏发生了崩溃-UE4弹窗
-         logger("UE4-Client Game已崩溃，尝试重启游戏......")
-         win32gui.SendMessage(UE4Windows, win32con.WM_CLOSE, 0, 0)
-         # 等待崩溃窗口关闭
-         time.sleep(2)
-         if win32gui.FindWindow(class_name, window_title) == 0:
-            return True
-     else:
-         return False
+
+def find_ue4(class_name, window_title):
+    if app_path:
+        ue4windows = win32gui.FindWindow(class_name, window_title)
+        if ue4windows != 0:  # 检测到游戏发生了崩溃-UE4弹窗
+            logger("UE4-Client Game已崩溃，尝试重启游戏......")
+            win32gui.SendMessage(ue4windows, win32con.WM_CLOSE, 0, 0)
+            # 等待崩溃窗口关闭
+            time.sleep(2)
+            if win32gui.FindWindow(class_name, window_title) == 0:
+                return True
+        else:
+            return False
+
 
 def find_game_windows(class_name, window_title, taskEvent):
-    gameWindows = win32gui.FindWindow(class_name, window_title)
-    if gameWindows == 0:
-        logger("未找到游戏窗口")
-        while not restart_application(app_path):  # 如果启动失败，则五秒后重新启动游戏窗口
-            logger("启动失败，五秒后尝试重新启动...")
-        # 运行方法一需要有前提条件
-        # 如果重启成功，执行方法一
-        time.sleep(20)
-        taskEvent.clear()  # 清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
-        logger("自动启动BOSS脚本")
-        thread = Process(target=run, args=(boss_task, taskEvent), name="task")
-        thread.start()
-
-
-logger(f"初始化完成")
+    if app_path:
+        gameWindows = win32gui.FindWindow(class_name, window_title)
+        if gameWindows == 0:
+            logger("未找到游戏窗口")
+            while not restart_application(app_path):  # 如果启动失败，则五秒后重新启动游戏窗口
+                logger("启动失败，五秒后尝试重新启动...")
+            # 运行方法一需要有前提条件
+            # 如果重启成功，执行方法一
+            time.sleep(20)
+            taskEvent.clear()  # 清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
+            logger("自动启动BOSS脚本")
+            thread = Process(target=run, args=(boss_task, taskEvent), name="task")
+            thread.start()
 
 
 def close_window(class_name, window_title):
@@ -76,43 +74,45 @@ def close_window(class_name, window_title):
 
 
 def restart_application(app_path):
-    time.sleep(5)
-    # 尝试启动应用程序，如果成功返回 True，否则返回 False
-    try:
-        subprocess.Popen(app_path)
-        logger("游戏疑似发生崩溃，尝试重启游戏......")
-        return True
-    except Exception as e:
-        logger(f"启动应用失败: {e}")
-        return False
+    if app_path:
+        time.sleep(5)
+        # 尝试启动应用程序，如果成功返回 True，否则返回 False
+        try:
+            subprocess.Popen(app_path)
+            logger("游戏疑似发生崩溃，尝试重启游戏......")
+            return True
+        except Exception as e:
+            logger(f"启动应用失败: {e}")
+            return False
 
 
 def manage_application(class_name, window_title, app_path, taskEvent):
-    # 先停止脚本
-    logger("自动暂停脚本！@")
-    taskEvent.clear()
-    while True:
-        if close_window(class_name, window_title):
-            # 如果关闭成功，尝试重启应用程序
-            logger("窗口关闭成功，正在尝试重新启动...")
-            while not restart_application(app_path):
-                logger("启动失败，五秒后尝试重新启动...")
-            # 运行方法一需要有前提条件
-            # 如果重启成功，执行方法一
-            time.sleep(20)
-            logger("自动启动BOSS脚本")
-            thread = Process(target=run, args=(boss_task, taskEvent), name="task")
-            thread.start()
-            break
-        else:
-            # 如果关闭失败，检查窗口是否还存在
-            if win32gui.FindWindow(class_name, window_title) != 0:
-                logger("关闭失败，窗口仍然存在，正在尝试重新关闭...")
-            else:
-                logger("窗口已不存在，尝试重启...")
+    if app_path:
+        # 先停止脚本
+        logger("自动暂停脚本！@")
+        taskEvent.clear()
+        while True:
+            if close_window(class_name, window_title):
+                # 如果关闭成功，尝试重启应用程序
+                logger("窗口关闭成功，正在尝试重新启动...")
                 while not restart_application(app_path):
                     logger("启动失败，五秒后尝试重新启动...")
+                # 运行方法一需要有前提条件
+                # 如果重启成功，执行方法一
+                time.sleep(20)
+                logger("自动启动BOSS脚本")
+                thread = Process(target=run, args=(boss_task, taskEvent), name="task")
+                thread.start()
                 break
+            else:
+                # 如果关闭失败，检查窗口是否还存在
+                if win32gui.FindWindow(class_name, window_title) != 0:
+                    logger("关闭失败，窗口仍然存在，正在尝试重新关闭...")
+                else:
+                    logger("窗口已不存在，尝试重启...")
+                    while not restart_application(app_path):
+                        logger("启动失败，五秒后尝试重新启动...")
+                    break
 
 
 logger(f"初始化完成")
@@ -173,7 +173,7 @@ def on_press(key):
     if key == Key.f7:
         logger("暂停脚本")
         taskEvent.clear()
-    if key == key.f8:
+    if key == Key.f8:
         logger("启动锁定脚本")
         mouseResetEvent.set()
         time.sleep(1)
@@ -201,6 +201,10 @@ if __name__ == "__main__":
         target=restart_app, args=(taskEvent,), name="restart_event"
     )
     restart_thread.start()
+    if app_path:
+        logger(f"游戏路径：{config.AppPath}")
+    else:
+        logger("未找到游戏路径", "WARN")
     logger("应用重启进程启动")
     logger(f"version: {version.__version__}")
     logger("鼠标重置进程启动")
