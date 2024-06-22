@@ -285,3 +285,47 @@ blank_area_page = Page(
 )
 
 pages.append(blank_area_page)
+
+
+# 定义一个名为login_action的函数，接收一个名为positions的字典参数，返回布尔值
+def login_action(positions: dict[str, Position]) -> bool:
+    try:
+        # 调用find_text函数，传入字符串"点击"，将返回值赋给result变量
+        result = find_text("点击")
+        # 循环3次点击文字
+        for i in range(3):
+            # 调用click_position函数，传入result.position作为参数
+            click_position(result.position)
+            # 暂停0.4秒
+            time.sleep(0.4)
+    # 如果在try语句块中发生异常，执行except语句块中的代码
+    except Exception as e:
+        # 打印异常信息
+        print(f"发生异常： {e}")
+        # 继续点击文字"点击连接"
+        result = find_text("点击")
+        # 循环3次点击文字
+        for i in range(3):
+            # 调用click_position函数，传入result.position作为参数
+            click_position(result.position)
+            # 暂停0.4秒
+            time.sleep(0.4)
+        # 返回False
+        return False
+    # 如果没有发生异常，返回True
+    return True
+
+# 创建一个名为login_page的Page对象
+login_page = Page(
+    name="点击连接",
+    targetTexts=[
+        TextMatch(
+            name="点击连接",
+            text="点击连接",
+        ),
+    ],  
+    action=login_action,
+)
+# 将login_page对象添加到pages列表中
+pages.append(login_page)
+
