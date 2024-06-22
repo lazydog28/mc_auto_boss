@@ -34,7 +34,7 @@ class Config(BaseModel):
         ],
         title="大招释放成功时的技能释放顺序",
     )
-    DreamlessWaitTime: int = Field(5, title="无妄者等待时间", ge=0)
+    DungeonWeeklyBossLevel: int = Field(40, title="周本(副本)boss等级")
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")

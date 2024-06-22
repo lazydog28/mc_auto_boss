@@ -801,20 +801,23 @@ def boss_wait(bossName):
 
     keywords_turtle = ["鸣", "钟", "之", "龟"]
     keywords_robot = ["聚", "械", "机", "偶"]
+    keywords_dreamless = ["无", "妄", "者"]
 
-    def contains_any_combinations(name, keywords):
-        for r in range(2, len(keywords) + 1):
+    def contains_any_combinations(name, keywords, min_chars):
+        for r in range(min_chars, len(keywords) + 1):
             for comb in itertools.combinations(keywords, r):
                 if all(word in name for word in comb):
                     return True
         return False
-
-    if contains_any_combinations(bossName, keywords_turtle):
+    if contains_any_combinations(bossName, keywords_turtle, min_chars=2):
         logger("龟龟需要等待16秒开始战斗！")
         time.sleep(16)
-    elif contains_any_combinations(bossName, keywords_robot):
+    elif contains_any_combinations(bossName, keywords_robot, min_chars=2):
         logger("机器人需要等待7秒开始战斗！")
         time.sleep(7)
+    elif contains_any_combinations(bossName, keywords_dreamless, min_chars=3):
+        logger("无妄者需要等待3秒开始战斗！")
+        time.sleep(3)
     else:
         logger("当前BOSS可直接开始战斗！")
 
