@@ -13,6 +13,7 @@ from typing import Optional, Dict, List
 
 
 class Config(BaseModel):
+    AppPath: str = Field("", title="游戏路径")
     MaxFightTime: int = Field(120, title="最大战斗时间")
     MaxIdleTime: int = Field(10, title="最大空闲时间", ge=5)
     TargetBoss: list[str] = Field([], title="目标关键字")
@@ -46,6 +47,7 @@ class Config(BaseModel):
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     log_file_path: Optional[str] = Field(None, title="日志文件路径")
+
 
     def __init__(self, **data):
         super().__init__(**data)
