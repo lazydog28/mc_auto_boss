@@ -9,7 +9,8 @@ from pydantic import BaseModel, Field
 import yaml
 import os
 from constant import wait_exit, root_path
-from typing import Optional
+from typing import Optional, Dict, List
+
 
 class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
@@ -38,6 +39,9 @@ class Config(BaseModel):
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
     CharacterHeal: bool = Field(True, title="是否判断角色是否阵亡")
     WaitUltAnimation: bool = Field(False, title="是否等待大招时间")
+    EchoLock: bool = Field(False, title="是否启用锁定声骸功能")
+    EchoLockConfig: Dict[str, Dict[str, List[str]]] = Field(default_factory=dict)
+    EchoMaxContinuousLockQuantity: int = Field(5, title="最大连续检测到已锁定声骸的数量")
 
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -65,3 +69,14 @@ else:
 if len(config.TargetBoss) == 0:
     print("请在项目根目录下的config.yaml中填写目标BOSS全名")
     wait_exit()
+
+# 加载声骸锁定配置文件
+if config.EchoLock:
+    print("\n准备加载声骸配置文件")
+    if os.path.exists(os.path.join(root_path, "echo_config.yaml")):
+        with open(os.path.join(root_path, "echo_config.yaml"), "r", encoding="utf-8") as f:
+            echo_config_data = yaml.safe_load(f)
+            config.EchoLockConfig = echo_config_data.get("EchoLockConfig", {})
+    else:
+        print("缺少声骸配置文件")
+        wait_exit()

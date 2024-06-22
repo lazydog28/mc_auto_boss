@@ -7,7 +7,7 @@ description = "更新"
 # updated by RoseRin0
 # 1.新增防止游戏崩溃的功能，实时检测游戏窗口
 # 2.游戏路径请在config.yaml中配置
-
+# 3.增加了背包自动识别声骸属性并锁定的功能。实验性
 
 
 # ver1.0.2
