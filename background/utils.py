@@ -922,7 +922,7 @@ def lock_echo():
     # 识别声骸主词条属性
     if this_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
         for i in range(6):
-            control.scroll(1, 1510, 690)
+            control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.01)
         time.sleep(0.5)
     region = set_region(1425, 425, 1620, 470)
@@ -938,7 +938,7 @@ def lock_echo():
         # logger(f"当前声骸主词条为：{this_echo_main_status}")
     else:
         for i in range(6):
-            control.scroll(1, 1510, 690)
+            control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.02)
         time.sleep(0.8)
         if this_echo_cost in cost_mapping:
@@ -959,7 +959,7 @@ def lock_echo():
         pass
     else:
         for i in range(6):
-            control.scroll(-1, 1510, 690)
+            control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.02)
         time.sleep(0.8)
         text_result = wait_text_designated_area(echo.echoSetName, 1, region, 3)
@@ -1005,7 +1005,7 @@ def echo_next_row(this_echo_row):
         elif this_echo_row % 15 == 0:
             scroll_times = 9  # 每15行再进行一次修正
         for i in range(scroll_times):
-            control.scroll(-1, 285, 205)
+            control.scroll(-1, 285 * width_ratio, 205 * height_ratio)
             time.sleep(0.06)
         time.sleep(0.3)
         return True

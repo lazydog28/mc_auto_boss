@@ -9,3 +9,4 @@ pydantic
 onnxruntime-gpu
 paddlepaddle-gpu
 paddleocr
+colorama
