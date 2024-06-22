@@ -270,7 +270,8 @@ class Task(BaseModel):
             match_page = page(img, ocrResults)
             if match_page:
                 info.currentPageName = page.name
-                logger(f"当前页面：{page.name}")
+                if page.name != "声骸":
+                    logger(f"当前页面：{page.name}")
                 page.action(page.matchPositions)
         for conditionalAction in self.conditionalActions:
             match_conditional_action = conditionalAction()

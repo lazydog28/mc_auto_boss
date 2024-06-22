@@ -1,3 +1,5 @@
+import time
+
 import init
 import os
 import sys
@@ -8,7 +10,7 @@ from multiprocessing import Event, Process
 from status import logger
 from pynput.keyboard import Key, Listener
 from schema import Task
-from task import boss_task, synthesis_task
+from task import boss_task, synthesis_task, lock_task
 from ocr import ocr
 from utils import screenshot
 
@@ -46,9 +48,11 @@ def run(task: Task, e: Event):
 
 def on_press(key):
     """
-    F5 启动
-    F6 停止
-    F7 退出
+    F5 启动BOSS脚本
+    F6 启动融合脚本
+    F7 暂停脚本
+    F8 启动锁定脚本
+    F12 停止脚本
     :param key:
     :return:
     """
@@ -72,6 +76,14 @@ def on_press(key):
     if key == Key.f7:
         logger("暂停脚本")
         taskEvent.clear()
+    if key == key.f8:
+        logger("启动锁定脚本")
+        mouseResetEvent.set()
+        time.sleep(1)
+        mouse_reset_thread.terminate()
+        mouse_reset_thread.join()
+        thread = Process(target=run, args=(lock_task, taskEvent), name="task")
+        thread.start()
     if key == Key.f12:
         logger("请等待程序退出后再关闭窗口...")
         taskEvent.clear()
@@ -95,7 +107,7 @@ if __name__ == "__main__":
            "--------------------------------------------------------------\n"
     )
     print("请确认已经配置好了config.yaml文件\n")
-    print("使用说明：\n   F5 启动脚本\n   F6 合成声骸\n   F7 暂停运行\n   F12 停止运行")
+    print("使用说明：\n   F5 启动脚本\n   F6 合成声骸\n   F7 暂停运行\n   F8 锁定声骸\n   F12 停止运行")
     logger("开始运行")
     with Listener(on_press=on_press) as listener:
         listener.join()
