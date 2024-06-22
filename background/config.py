@@ -48,6 +48,7 @@ class Config(BaseModel):
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     log_file_path: Optional[str] = Field(None, title="日志文件路径")
 
+
     def __init__(self, **data):
         super().__init__(**data)
         if not self.log_file_path:
