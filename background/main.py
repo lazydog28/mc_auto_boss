@@ -1,54 +1,51 @@
-import time
+import os
+import sys
 
-import init
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import version
 import ctypes
 from mouse_reset import mouse_reset
 from multiprocessing import Event, Process
-from status import logger
 from pynput.keyboard import Key, Listener
 from schema import Task
-import os
-import sys
 import subprocess
-import time
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from task import boss_task, synthesis_task, lock_task
-from ocr import ocr
-import win32gui
-import win32con
 from utils import *
 from threading import Event as event
+
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 hwnds = win32gui.FindWindow("UnrealWindow", "鸣潮")
 # 注意修改路径为你自己的路径，注意不是启动器路径！是游戏的路径
-#app_path = "E:\game\Wuthering Waves\Wuthering Waves Game\Wuthering Waves.exe"
-#app_path = "D:\Wuthering Waves\Wuthering Waves Game\Wuthering Waves.exe"
+# app_path = "E:\game\Wuthering Waves\Wuthering Waves Game\Wuthering Waves.exe"
+# app_path = "D:\Wuthering Waves\Wuthering Waves Game\Wuthering Waves.exe"
 app_path = config.AppPath
+
+
 def restart_app(e: event):
     while True:
         # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2个小时重启一次
         # time.sleep(1800)
         # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
-        time.sleep(1) #每秒检测一次，游戏窗口
-        find_game_windows("UnrealWindow","鸣潮  ",e)
-           
-           
+        time.sleep(1)  # 每秒检测一次，游戏窗口
+        find_game_windows("UnrealWindow", "鸣潮  ", e)
 
-def find_game_windows(class_name, window_title,taskEvent):
-    gameWindows = win32gui.FindWindow(class_name,window_title)
+
+def find_game_windows(class_name, window_title, taskEvent):
+    gameWindows = win32gui.FindWindow(class_name, window_title)
     if gameWindows == 0:
         logger("未找到游戏窗口")
-        while not restart_application(app_path): #如果启动失败，则五秒后重新启动游戏窗口
-                logger("启动失败，五秒后尝试重新启动...")
+        while not restart_application(app_path):  # 如果启动失败，则五秒后重新启动游戏窗口
+            logger("启动失败，五秒后尝试重新启动...")
         # 运行方法一需要有前提条件
         # 如果重启成功，执行方法一
         time.sleep(20)
-        taskEvent.clear()#清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
+        taskEvent.clear()  # 清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
         logger("自动启动BOSS脚本")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
+
+
 logger(f"初始化完成")
 
 
@@ -63,6 +60,7 @@ def close_window(class_name, window_title):
             return True
     return False
 
+
 def restart_application(app_path):
     time.sleep(5)
     # 尝试启动应用程序，如果成功返回 True，否则返回 False
@@ -74,8 +72,9 @@ def restart_application(app_path):
         logger(f"启动应用失败: {e}")
         return False
 
-def manage_application(class_name, window_title, app_path,taskEvent):
-    #先停止脚本
+
+def manage_application(class_name, window_title, app_path, taskEvent):
+    # 先停止脚本
     logger("自动暂停脚本！@")
     taskEvent.clear()
     while True:
@@ -99,7 +98,9 @@ def manage_application(class_name, window_title, app_path,taskEvent):
                 logger("窗口已不存在，尝试重启...")
                 while not restart_application(app_path):
                     logger("启动失败，五秒后尝试重新启动...")
-                break   
+                break
+
+
 logger(f"初始化完成")
 
 
@@ -190,9 +191,9 @@ if __name__ == "__main__":
     logger(f"version: {version.__version__}")
     logger("鼠标重置进程启动")
     print(
-           "\n --------------------------------------------------------------"
-           "\n     注意：此脚本为免费的开源软件，如果你是通过购买获得的，那么你受骗了！\n "
-           "--------------------------------------------------------------\n"
+        "\n --------------------------------------------------------------"
+        "\n     注意：此脚本为免费的开源软件，如果你是通过购买获得的，那么你受骗了！\n "
+        "--------------------------------------------------------------\n"
     )
     print("请确认已经配置好了config.yaml文件\n")
     print("使用说明：\n   F5 启动脚本\n   F6 合成声骸\n   F7 暂停运行\n   F8 锁定声骸\n   F12 停止运行")
