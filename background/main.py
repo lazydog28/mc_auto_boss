@@ -28,8 +28,22 @@ def restart_app(e: event):
         # time.sleep(1800)
         # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
         time.sleep(1)  # 每秒检测一次，游戏窗口
-        find_game_windows("UnrealWindow", "鸣潮  ", e)
 
+        find_UE4("UnrealWindow","UE4-Client Game已崩溃  ")
+        find_game_windows("UnrealWindow","鸣潮  ",e)
+           
+           
+def find_UE4(class_name, window_title):
+     UE4Windows = win32gui.FindWindow(class_name,window_title)
+     if UE4Windows != 0: #检测到游戏发生了崩溃-UE4弹窗
+         logger("UE4-Client Game已崩溃，尝试重启游戏......")
+         win32gui.SendMessage(UE4Windows, win32con.WM_CLOSE, 0, 0)
+         # 等待崩溃窗口关闭
+         time.sleep(2)
+         if win32gui.FindWindow(class_name, window_title) == 0:
+            return True
+     else:
+         return False
 
 def find_game_windows(class_name, window_title, taskEvent):
     gameWindows = win32gui.FindWindow(class_name, window_title)

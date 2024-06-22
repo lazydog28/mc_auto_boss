@@ -13,7 +13,7 @@ from typing import Optional, Dict, List
 
 
 class Config(BaseModel):
-    AppPath: str = Field("", title="游戏路径")
+    AppPath: str = Field("",title="游戏路径")
     MaxFightTime: int = Field(120, title="最大战斗时间")
     MaxIdleTime: int = Field(10, title="最大空闲时间", ge=5)
     TargetBoss: list[str] = Field([], title="目标关键字")
