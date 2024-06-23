@@ -71,34 +71,41 @@ class ImageMatch(BaseModel):
 
 
 def match_template(
-        img: np.ndarray, template_img: np.ndarray, threshold: float = 0.8
+        img: np.ndarray, template_img: np.ndarray, region: tuple = None, threshold: float = 0.8
 ) -> None | ImgPosition:
     """
-    使用 opencv matchTemplate 方法 模板匹配 返回匹配结果
+    使用 opencv matchTemplate 方法在指定区域内进行模板匹配并返回匹配结果
     :param img:  大图片
     :param template_img: 小图片
+    :param region: 区域（x1, y1, x2, y2），默认为 None 表示全图搜索
     :param threshold:  阈值
-    :return:
+    :return: ImgPosition 或 None
     """
     # 判断是否为灰度图，如果不是转换为灰度图
     if len(img.shape) == 3:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     if len(template_img.shape) == 3:
         template_img = cv2.cvtColor(template_img, cv2.COLOR_BGR2GRAY)
+    # 如果提供了region参数，则裁剪出指定区域，否则使用整幅图像
+    if region:
+        x1, y1, x2, y2 = region
+        cropped_img = img[y1:y2, x1:x2]
+    else:
+        cropped_img = img
+        x1, y1 = 0, 0
 
-    # 将  template 进行缩放
-    template_img = cv2.resize(template_img, (0, 0), fx=width_ratio, fy=height_ratio)
-
-    res = cv2.matchTemplate(img, template_img, cv2.TM_CCOEFF_NORMED)
+    # 在裁剪后的区域内进行模板匹配
+    res = cv2.matchTemplate(cropped_img, template_img, cv2.TM_CCOEFF_NORMED)
     confidence = np.max(res)
     if confidence < threshold:
         return None
-    maxLoc = np.where(res == confidence)
+    max_loc = np.where(res == confidence)
+
     return ImgPosition(
-        x1=maxLoc[1][0],
-        y1=maxLoc[0][0],
-        x2=maxLoc[1][0] + template_img.shape[1],
-        y2=maxLoc[0][0] + template_img.shape[0],
+        x1=max_loc[1][0] + x1,
+        y1=max_loc[0][0] + y1,
+        x2=max_loc[1][0] + x1 + template_img.shape[1],
+        y2=max_loc[0][0] + y1 + template_img.shape[0],
         confidence=confidence,
     )
 

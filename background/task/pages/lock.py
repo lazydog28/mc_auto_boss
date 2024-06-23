@@ -32,16 +32,8 @@ bag_page = Page(
             text="声",
         ),
         TextMatch(
-            name="顺序",
-            text="顺序",
-        ),
-        TextMatch(
             name="培养",
             text="培养",
-        ),
-        TextMatch(
-            name="COST",
-            text="COST"
         ),
     ],
     action=bag,

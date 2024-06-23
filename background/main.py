@@ -1,5 +1,5 @@
 import os
-import init  # !!此导入删除将不会将游戏移动到左上角以及提示当前分辨率!!
+import init  # !!此导入删除会导致不会将游戏移动到左上角以及提示当前分辨率!!
 import sys
 import version
 import ctypes
