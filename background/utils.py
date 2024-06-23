@@ -826,7 +826,7 @@ def boss_wait(bossName):
     :param bossName: boss名称
     """
     bossName = bossName.lower()  # 将bossName转换为小写
-    info.resetRole = True  # 战斗开始时重置角色顺位
+    info.resetRole = True
 
     keywords_turtle = ["鸣", "钟", "之", "龟"]
     keywords_robot = ["聚", "械", "机", "偶"]
@@ -918,7 +918,8 @@ def lock_echo():
     time.sleep(0.3)
 
     # 判断声骸是否为金色品质，如果不是则返回
-    if not contrast_colors((1704, 397), (255, 255, 255)):
+    # if not contrast_colors((1704 * width_ratio, 397 * height_ratio), (255, 255, 255)):
+    if find_pic(1295, 370, 1855, 425, "声骸_金色判定.png", 0.6):
         if debug_mode:
             logger("当前声骸不是金色声骸，下一个", "DEBUG")
         # echo_next_row(this_echo_row)
