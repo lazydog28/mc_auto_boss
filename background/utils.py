@@ -44,21 +44,25 @@ def click_position(position: Position):
     random_click(x, y, ratio=False)  # 找图所得坐标不需要缩放！
 
 
-def select_role():
+def select_role(reset_role: bool = False):
     now = datetime.now()
     if (now - info.lastSelectRoleTime).seconds < config.SelectRoleInterval:
         return
     info.lastSelectRoleTime = now
-    info.roleIndex += 1
-    if info.roleIndex > 3:
+    if reset_role:
         info.roleIndex = 1
+        info.resetRole = False
+    else:
+        info.roleIndex += 1
+        if info.roleIndex > 3:
+            info.roleIndex = 1
     control.tap(str(info.roleIndex))
 
 
 def release_skills():
-    select_role()
     if info.waitBoss:
         boss_wait(info.lastBossName)
+    select_role(info.resetRole)
     control.mouse_middle()
     if len(config.FightTactics) < info.roleIndex:
         # config.FightTactics.append("e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1")
@@ -814,12 +818,13 @@ def boss_wait(bossName):
     :param bossName: boss名称
     """
     bossName = bossName.lower()  # 将bossName转换为小写
+    info.resetRole = True  # 战斗开始时重置角色顺位
 
     keywords_turtle = ["鸣", "钟", "之", "龟"]
     keywords_robot = ["聚", "械", "机", "偶"]
     keywords_dreamless = ["无", "妄", "者"]
 
-    def contains_any_combinations(name, keywords, min_chars):
+    def contains_any_combinations(name, keywords, min_chars):  # 为了防止BOSS名重复，添加了最小匹配关键字数
         for r in range(min_chars, len(keywords) + 1):
             for comb in itertools.combinations(keywords, r):
                 if all(word in name for word in comb):
@@ -982,6 +987,7 @@ def lock_echo():
         pass
     else:
         for i in range(6):
+            random_click(1510, 690)
             control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.02)
         time.sleep(0.8)
