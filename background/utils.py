@@ -15,7 +15,7 @@ import numpy as np
 import itertools
 from PIL import Image
 from ctypes import windll
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
 from ocr import ocr
 from schema import match_template, OcrResult
@@ -87,8 +87,8 @@ def release_skills():
                     control.fight_tap(tactic)
                     time.sleep(0.2)
                     if config.WaitUltAnimation:  # 等待大招时间，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配
-                        is_similar_point1 = contrast_color(44, 227, (255, 255, 255), 0.95)
-                        is_similar_point2 = contrast_color(1740, 45, (255, 255, 255), 0.95)
+                        is_similar_point1 = contrast_colors((44, 227), (255, 255, 255), 0.95)
+                        is_similar_point2 = contrast_colors((1740, 45), (255, 255, 255), 0.95)
                         if not (is_similar_point1 and is_similar_point2):
                             logger("检测到大招释放，等待大招动画")
                             time.sleep(1.6)
@@ -123,7 +123,7 @@ def release_skills():
                     else:
                         control.fight_tap(tactic)
         except Exception as e:
-            logger(f"释放技能失败: {e}")
+            logger(f"释放技能失败: {e}", "WARN")
             continue
 
 
@@ -155,8 +155,8 @@ def release_skills_after_ult():
                     control.fight_tap(tacticUlt)
                     time.sleep(0.2)
                     if config.WaitUltAnimation:  # 等待大招时间，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配
-                        is_similar_point1 = contrast_color(44, 227, (255, 255, 255), 0.95)
-                        is_similar_point2 = contrast_color(1740, 45, (255, 255, 255), 0.95)
+                        is_similar_point1 = contrast_colors((44, 227), (255, 255, 255), 0.95)
+                        is_similar_point2 = contrast_colors((1740, 45), (255, 255, 255), 0.95)
                         if not (is_similar_point1 and is_similar_point2):
                             logger("检测到大招释放，等待大招动画")
                             time.sleep(1.6)  # 此处或许不需要太长的等待时间，因为此处应该是二段大招(如果未来有)。
@@ -189,7 +189,7 @@ def release_skills_after_ult():
                     else:
                         control.fight_tap(tacticUlt)
         except Exception as e:
-            logger(f"释放技能失败: {e}")
+            logger(f"释放技能失败: {e}", "WARN")
             continue
 
 
@@ -213,12 +213,12 @@ def transfer_to_boss(bossName):
     template = np.array(template)
     coordinate = match_template(img, template, threshold=0.5)
     if not coordinate:
-        logger("识别残像探寻失败")
+        logger("识别残像探寻失败", "WARN")
         control.esc()
         return False
     click_position(coordinate)  # 进入残像探寻
     if not wait_text("探测"):
-        logger("未进入残象探寻")
+        logger("未进入残象探寻", "WARN")
         control.esc()
         return False
     logger(f"当前目标boss：{bossName}")
@@ -236,7 +236,7 @@ def transfer_to_boss(bossName):
         time.sleep(0.3)
     if not findBoss:
         control.esc()
-        logger("未找到目标boss")
+        logger("未找到目标boss", "WARN")
         return False
     click_position(findBoss.position)
     click_position(findBoss.position)
@@ -244,14 +244,14 @@ def transfer_to_boss(bossName):
     # control.click(1700 * width_ratio, 980 * height_ratio)
     random_click(1700, 980)
     if not wait_text("追踪"):
-        logger("未找到追踪")
+        logger("未找到追踪", "WARN")
         control.esc()
         return False
     # control.click(960 * width_ratio, 540 * height_ratio)
     random_click(960, 540)
     beacon = wait_text("借位信标")
     if not beacon:
-        logger("未找到借位信标")
+        logger("未找到借位信标", "WARN")
         control.esc()
         return False
     click_position(beacon.position)
@@ -278,12 +278,12 @@ def transfer_to_dreamless():
     template = np.array(template)
     coordinate = match_template(img, template, threshold=0.5)
     if not coordinate:
-        logger("识别周期挑战失败")
+        logger("识别周期挑战失败", "WARN")
         control.esc()
         return False
     click_position(coordinate)  # 进入周期挑战
     if not wait_text("前往"):
-        logger("未进入周期挑战")
+        logger("未进入周期挑战", "WARN")
         control.esc()
         return False
     logger(f"当前目标boss：无妄者")
@@ -313,7 +313,7 @@ def transfer_to_dreamless():
             forward()
             time.sleep(0.1)
         return True
-    logger("未找到快速旅行")
+    logger("未找到快速旅行", "WARN")
     control.esc()
     return False
 
@@ -344,7 +344,7 @@ def transfer() -> bool:
     if not wait_text(
             ["日志", "活跃", "挑战", "强者", "残象", "周期", "探寻", "漂泊"], timeout=5
     ):
-        logger("未进入索拉指南")
+        logger("未进入索拉指南", "WARN")
         control.esc()
         info.lastFightTime = datetime.now()
         return False
@@ -380,7 +380,7 @@ def screenshot() -> np.ndarray | None:
     # 尝试使用PrintWindow函数截取窗口图像
     result = windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 3)
     if result != 1:
-        logger("截取屏幕失败")
+        logger("截取屏幕失败", "ERROR")
         # 释放所有资源
         try:
             win32gui.DeleteObject(saveBitMap.GetHandle())
@@ -389,7 +389,7 @@ def screenshot() -> np.ndarray | None:
             win32gui.ReleaseDC(hwnd, hwndDC)
             del hwndDC, mfcDC, saveDC, saveBitMap
         except Exception as e:
-            logger(f"清理截图资源失败: {e}")
+            logger(f"清理截图资源失败: {e}", "ERROR")
         return screenshot()  # 如果截取失败，则重试
 
     # 从位图中获取图像数据
@@ -407,7 +407,7 @@ def screenshot() -> np.ndarray | None:
         mfcDC.DeleteDC()
         win32gui.ReleaseDC(hwnd, hwndDC)
     except Exception as e:
-        logger(f"清理截图资源失败: {e}")
+        logger(f"清理截图资源失败: {e}","ERROR")
     return im  # 返回截取到的图像
 
 
@@ -584,12 +584,12 @@ def transfer_to_heal(healBossName: str = "朔雷之鳞"):
     template = np.array(template)
     coordinate = match_template(img, template, threshold=0.5)
     if not coordinate:
-        logger("识别残像探寻失败")
+        logger("识别残像探寻失败", "WARN")
         control.esc()
         return False
     click_position(coordinate)  # 进入残像探寻
     if not wait_text("探测"):
-        logger("未进入残象探寻")
+        logger("未进入残象探寻", "WARN")
         control.esc()
         return False
     findBoss = None
@@ -606,7 +606,7 @@ def transfer_to_heal(healBossName: str = "朔雷之鳞"):
         time.sleep(0.3)
     if not findBoss:
         control.esc()
-        logger("治疗_未找到神像附近点位BOSS(朔雷之鳞)")
+        logger("治疗_未找到神像附近点位BOSS(朔雷之鳞)", "WARN")
         return False
     click_position(findBoss.position)
     click_position(findBoss.position)
@@ -614,7 +614,7 @@ def transfer_to_heal(healBossName: str = "朔雷之鳞"):
     # control.click(1700 * width_ratio, 980 * height_ratio)
     random_click(1700, 980)
     if not wait_text("追踪"):
-        logger("治疗_未找到追踪")
+        logger("治疗_未找到追踪", "WARN")
         control.esc()
         return False
     # control.click(1210 * width_ratio, 525 * height_ratio)
@@ -710,42 +710,58 @@ def color_distance(color1, color2):
 
 
 # 截图进行单点的颜色判断
-def contrast_color(
-        x: int,
-        y: int,
-        target_color: Tuple[int, int, int],
-        threshold: float = 0.95
-) -> bool:
+def contrast_colors(
+    coordinates: Union[Tuple[int, int], List[Tuple[int, int]]],
+    target_colors: Union[Tuple[int, int, int], List[Tuple[int, int, int]]],
+    threshold: float = 0.95,
+    return_all: bool = False
+) -> Union[bool, List[bool]]:
     """
     在 (x, y) 提取颜色，并与传入颜色元组进行欧氏距离对比获取相似度，并判断 。
 
-    :param x: x 坐标
-    :param y: y 坐标
-    :param target_color: 目标颜色元组 (R, G, B)
+    :param coordinates: 坐标 (x, y) 或坐标列表 [(x1, y1), (x2, y2), ...]
+    :param target_colors: 目标颜色元组 (R, G, B) 或目标颜色元组列表 [(R1, G1, B1), (R2, G2, B2), ...]
     :param threshold: 相似度阈值
-    :return: 如果相似度高于阈值，则返回True，否则返回False
+    :param return_all: 是否返回所有布尔值结果列表，如果为 False 则返回单个布尔值
+    :return: 如果 return_all 为 True，则返回布尔值列表；否则返回单个布尔值
     """
-    if x is None or y is None:
-        logger("传入坐标错误")
-        return False
+    # 如果传入的是单个坐标和颜色，将它们转换为列表
+    if isinstance(coordinates, tuple) and isinstance(target_colors, tuple):
+        coordinates = [coordinates]
+        target_colors = [target_colors]
+
+    if len(coordinates) != len(target_colors):
+        raise ValueError("坐标和颜色的数量必须相同")
 
     # 获取截图
     img = screenshot()
 
-    # 将numpy数组转换为PIL.Image对象
+    # 将 numpy 数组转换为 PIL.Image 对象
     img = Image.fromarray(img)
 
-    # 计算实际坐标
-    coord = (int(x * width_ratio), int(y * height_ratio))
+    results = []
+    for (x, y), target_color in zip(coordinates, target_colors):
+        if x is None or y is None:
+            logger("传入坐标错误", "WARN")
+            results.append(False)
+            continue
 
-    # 获取指定坐标的颜色
-    color = img.getpixel(coord)
+        # 计算实际坐标
+        coord = (int(x * width_ratio), int(y * height_ratio))
 
-    # 对比颜色与参考颜色，并计算相似度
-    distance = color_distance(color, target_color)
-    similarity = 1 - (distance / np.linalg.norm(np.array(target_color)))
+        # 获取指定坐标的颜色
+        color = img.getpixel(coord)
 
-    return similarity >= threshold
+        # 对比颜色与参考颜色，并计算相似度
+        distance = color_distance(color, target_color)
+        similarity = 1 - (distance / np.linalg.norm(np.array(target_color)))
+
+        results.append(similarity >= threshold)
+
+        if not return_all and similarity >= threshold:
+            return True
+
+    return results if return_all else any(results)
 
 
 def random_click(
@@ -767,7 +783,7 @@ def random_click(
     :param need_print: 是否输出log，debug用
     """
     if x is None or y is None:
-        logger("没有传入坐标，无法点击")
+        logger("没有传入坐标，无法点击", "WARN")
     else:
         random_x = x + np.random.uniform(-range_x, range_x)
         random_y = y + np.random.uniform(-range_y, range_y)
@@ -787,7 +803,7 @@ def random_click(
         control.click(random_x, random_y)
 
         if need_print:
-            logger(f"点击了坐标{random_x},{random_y}")
+            logger(f"点击了坐标{random_x},{random_y}", "DEBUG")
         # logger(f"点击了坐标{random_x},{random_y}")
 
 
@@ -810,16 +826,16 @@ def boss_wait(bossName):
                     return True
         return False
     if contains_any_combinations(bossName, keywords_turtle, min_chars=2):
-        logger("龟龟需要等待16秒开始战斗！")
+        logger("龟龟需要等待16秒开始战斗！", "DEBUG")
         time.sleep(16)
     elif contains_any_combinations(bossName, keywords_robot, min_chars=2):
-        logger("机器人需要等待7秒开始战斗！")
+        logger("机器人需要等待7秒开始战斗！", "DEBUG")
         time.sleep(7)
     elif contains_any_combinations(bossName, keywords_dreamless, min_chars=3):
-        logger("无妄者需要等待3秒开始战斗！")
+        logger("无妄者需要等待3秒开始战斗！", "DEBUG")
         time.sleep(3)
     else:
-        logger("当前BOSS可直接开始战斗！")
+        logger("当前BOSS可直接开始战斗！", "DEBUG")
 
     info.waitBoss = False
 
@@ -831,7 +847,7 @@ def set_region(x_upper_left: int = None, y_upper_left: int = None, x_lower_right
 
     :param x_upper_left: 左上角的 x 坐标。
     :param y_upper_left: 左上角的 y 坐标。
-    :param y_lower_right: 右下角的 x 坐标。
+    :param x_lower_right: 右下角的 x 坐标。
     :param y_lower_right: 右下角的 y 坐标。
 
     返回:
@@ -841,7 +857,7 @@ def set_region(x_upper_left: int = None, y_upper_left: int = None, x_lower_right
 
     """
     if None in [x_upper_left, y_upper_left, x_lower_right, y_lower_right]:
-        logger("set_region error:传入坐标参数不正确")
+        logger("set_region error:传入坐标参数不正确", "WARN")
         return False
     region = (
         x_upper_left * width_ratio,
@@ -860,7 +876,7 @@ def lock_echo():
     """
     # 开始执行判断
     if not config.EchoLock:
-        logger("未启动该功能")
+        logger("未启动该功能", "WARN")
         return False
     info.echoNumber += 1
     this_echo_row = info.echoNumber // 6 + 1
@@ -869,7 +885,7 @@ def lock_echo():
         this_echo_col = 6
         this_echo_row -= 1
     if info.echoNumber == 1:
-        logger("检测到声骸背包画面，3秒后将开始执行锁定程序，过程中请不要将鼠标移到游戏内。")
+        logger("检测到声骸背包画面，3秒后将开始执行锁定程序，过程中请不要将鼠标移到游戏内。", "DEBUG")
         time.sleep(3)
         # 切换到时间顺序(倒序)
         logger("切换为时间倒序")
@@ -877,7 +893,7 @@ def lock_echo():
         time.sleep(1)
         random_click(400, 845)
         time.sleep(0.5)
-        random_click(718,23)
+        random_click(718, 23)
         time.sleep(0.5)
     # logger(f"当前为第{this_echo_row}排，第{this_echo_col}个声骸 (总第{info.echoNumber}个)")
     echo_start_position = [285, 205]  # 第一个声骸的坐标
@@ -887,47 +903,51 @@ def lock_echo():
     time.sleep(0.3)
 
     # 判断声骸是否为金色品质，如果不是则返回
-    if not contrast_color(1704, 397, (255, 255, 255)):
+    if not contrast_colors((1704, 397), (255, 255, 255)):
         # logger("当前声骸不是金色声骸，下一个")
-        echo_next_row(this_echo_row)
+        # echo_next_row(this_echo_row)
+        echo_next_row(info.echoNumber)
         return True
     # 判断当前声骸是否未锁定
-    if contrast_color(1812, 328, (232, 221, 198), 0.6):
+    if contrast_colors((1812, 328), (232, 221, 198), 0.6):
         info.echoIsLockQuantity += 1
         if info.echoIsLockQuantity > config.EchoMaxContinuousLockQuantity:
-            logger(f"连续检出已锁定声骸{info.echoIsLockQuantity}个，超出设定值，结束")
+            logger(f"连续检出已锁定声骸{info.echoIsLockQuantity}个，超出设定值，结束", "DEBUG")
             this_echo_lock = True
             return False
-        echo_next_row(this_echo_row)
+        # echo_next_row(this_echo_row)
+        echo_next_row(info.echoNumber)
         return True
-    elif contrast_color(1812, 328, (36, 35, 11), 0.6):
+    elif contrast_colors((1812, 328), (36, 35, 11), 0.6):
         this_echo_lock = False
         info.echoIsLockQuantity = 0
         # logger("当前声骸未锁定")
     else:
         this_echo_lock = None
-        logger("未检测到当前声骸锁定状况")
+        logger("未检测到当前声骸锁定状况", "WARN")
         return False
 
     # 识别声骸Cost
     region = set_region(1690, 200, 1830, 240)  # 设置声骸COST显示位置区域
-    text_result = wait_text_designated_area(echo.echoCost, 1, region, 1)  # 搜索声骸COST
+    text_result = wait_text_designated_area(echo.echoCost, 2, region, 5)  # 搜索声骸COST
     this_echo_cost = wait_text_result_search(text_result)
     if this_echo_cost not in {"3", "4"}:
         cost_text_check = wait_text_result_search(wait_text_designated_area("COST", 1, region, 3))
         if cost_text_check == "COST":
             this_echo_cost = "1"  # 由于识别不出来1，所以不是3cost和4cost且不为False则为1Cost
         else:
-            logger("没有识别到声骸！")
+            logger("没有识别到声骸！", "ERROR")
             return False
     # logger(f"当前声骸Cost为{this_echo_cost}")
 
     # 识别声骸主词条属性
     if this_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
-        for i in range(6):
-            control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.01)
-        time.sleep(0.5)
+        random_click(1510, 690)
+        if not contrast_colors((1337, 489), (255, 255, 255), 0.95):
+            for i in range(6):
+                control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
+                time.sleep(0.02)
+            time.sleep(0.8)
     region = set_region(1425, 425, 1620, 470)
     cost_mapping = {
         "1": (echo.echoCost1MainStatus, 1),
@@ -950,12 +970,12 @@ def lock_echo():
             this_echo_main_status = wait_text_result_search(text_result)
             # logger(f"当前声骸主词条为：{this_echo_main_status}")
         else:
-            logger(f"声骸主词条识别错误")
+            logger(f"声骸主词条识别错误", "ERROR")
             return False
 
     # 识别声骸套装属性
     region = set_region(1295, 430, 1850, 930)
-    text_result = wait_text_designated_area(echo.echoSetName, 1, region, 3)
+    text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     if this_echo_set:
         # logger(f"当前声骸为套装为：{this_echo_set}")
@@ -965,53 +985,84 @@ def lock_echo():
             control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.02)
         time.sleep(0.8)
-        text_result = wait_text_designated_area(echo.echoSetName, 1, region, 3)
+        text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
         this_echo_set = wait_text_result_search(text_result)
         if this_echo_set:
             # logger(f"当前声骸为套装为：{this_echo_set}")
             pass
         else:
-            logger(f"声骸套装识别错误")
+            logger(f"声骸套装识别错误", "ERROR")
             return False
 
     # 声骸信息合成
-    logstr = "" + f"{info.echoNumber}" + f"，{this_echo_cost} COST" + f"，{this_echo_set}" + f"，{this_echo_main_status}"
-
+    log_str = (
+            "" +
+            f"当前是第{info.echoNumber}个声骸" +
+            f"，{this_echo_cost}Cost" +
+            f"，{this_echo_set}" +
+            f"，{this_echo_main_status}"
+    )
     # 锁定声骸，输出声骸信息
     this_echo_cost = this_echo_cost + "COST"
     if is_echo_main_status_valid(this_echo_set, this_echo_cost, this_echo_main_status, config.EchoLockConfig):
         if this_echo_lock is True:
             # logger("当前声骸符合要求，已处于锁定状态")
             # 此处无作用，因为锁定的直接跳过了，提高效率
-            logstr = logstr + "，已锁定"
-            logger(logstr)
+            log_str = log_str + "，已锁定"
+            logger(log_str)
         else:
             # logger(f"当前声骸符合要求，锁定声骸")
-            logstr = logstr + "，执行锁定"
+            log_str = log_str + "，执行锁定"
             random_click(1807, 327)
             time.sleep(0.5)
-            logger(logstr)
+            logger(log_str)
     # else:
         # logger(f"不符合，跳过")
-    echo_next_row(this_echo_row)
+    # echo_next_row(this_echo_row)
+    echo_next_row(info.echoNumber)
 
 
-def echo_next_row(this_echo_row):
-    # 自动换行，以及各种乱七八糟换行后位置的修正
-    if info.echoNumber % 6 == 0:
-        scroll_times = 7  # 默认值
-        # logger("切换至下一排")
-        if this_echo_row % 4 != 0 and this_echo_row % 15 != 0:
-            scroll_times = 8  # 通常情况下滑动滚轮8次
-        elif this_echo_row % 4 == 0 and this_echo_row % 15 != 0:
-            scroll_times = 7  # 每4行进行一次修正
-        elif this_echo_row % 15 == 0:
-            scroll_times = 9  # 每15行再进行一次修正
-        for i in range(scroll_times):
+# def echo_next_row(this_echo_row):
+def echo_next_row(echo_number):
+    # 自动换行
+    scroll_times = 0
+    scroll_multiple_coordinates = [(270, 275), (270, 280), (270, 285), (270, 290)]
+    scroll_multiple_target_colors = [(34, 34, 39), (34, 34, 39), (34, 34, 39), (34, 34, 39)]
+    if echo_number % 6 == 0:
+        random_click(285, 205)
+        while scroll_times < 3 or contrast_colors(scroll_multiple_coordinates, scroll_multiple_target_colors, 0.95):
+            # logger("正在划出当前边缘", "DEBUG")
             control.scroll(-1, 285 * width_ratio, 205 * height_ratio)
+            scroll_times += 1
+            time.sleep(0.06)
+        # logger(f"已划出当前边缘,滑动次数：{scroll_times}", "DEBUG")
+
+        # 划到下一个声骸时停止，且最多8次
+        while scroll_times < 9 and not contrast_colors(scroll_multiple_coordinates, scroll_multiple_target_colors, 0.95):
+            # logger("正在划到下一个边缘", "DEBUG")
+            control.scroll(-1, 285 * width_ratio, 205 * height_ratio)
+            scroll_times += 1
             time.sleep(0.06)
         time.sleep(0.3)
-        return True
+        if scroll_times > 8:
+            logger("自动滑动至下一排超出尝试次数，使用默认值尝试", "WARN")
+            return False
+        # logger(f"已划到下一个边缘,滑动次数：{scroll_times}", "DEBUG")
+
+    # if info.echoNumber % 6 == 0:
+    #     scroll_times = 7  # 默认值
+    #     # logger("切换至下一排")
+    #     if this_echo_row % 4 != 0 and this_echo_row % 15 != 0:
+    #         scroll_times = 8  # 通常情况下滑动滚轮8次
+    #     elif this_echo_row % 4 == 0 and this_echo_row % 15 != 0:
+    #         scroll_times = 7  # 每4行进行一次修正
+    #     elif this_echo_row % 15 == 0:
+    #         scroll_times = 9  # 每15行再进行一次修正
+    #     for i in range(scroll_times):
+    #         control.scroll(-1, 285 * width_ratio, 205 * height_ratio)
+    #         time.sleep(0.06)
+    #     time.sleep(0.3)
+    #     return True
 
 
 def wait_text_result_search(text_result):

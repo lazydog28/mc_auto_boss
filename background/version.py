@@ -9,7 +9,6 @@ description = "更新"
 # 2.游戏路径请在config.yaml中配置
 # 3.增加了背包自动识别声骸属性并锁定的功能。实验性
 
-
 # ver1.0.2
 # update:2024-06-19
 # updated by RoseRin0

@@ -77,6 +77,8 @@ def logger(msg: str, level: str = "INFO", display: bool = True):
         color = Fore.YELLOW
     elif level == "ERROR":
         color = Fore.RED
+    elif level == "DEBUG":
+        color = Fore.GREEN
     else:
         color = Fore.WHITE
     colored_content = color + content
