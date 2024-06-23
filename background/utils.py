@@ -100,10 +100,9 @@ def release_skills():
                             break
                 else:
                     control.fight_tap(tactic)
-            elif len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
-                tactic = tactic + "0.5"
-            elif len(tactic) >= 3 and tactic[1] == "~":
-                click_time = float(tactic.split("~")[1])
+            elif len(tactic) >= 2 and tactic[1] == "~":
+                # 如果没有指定时间，默认0.5秒
+                click_time = 0.5 if len(tactic) == 2 else float(tactic.split("~")[1])
                 if tactic[0] == "a":
                     control.mouse_press()
                     time.sleep(click_time)
@@ -166,10 +165,9 @@ def release_skills_after_ult():
                             time.sleep(1.6)  # 此处或许不需要太长的等待时间，因为此处应该是二段大招(如果未来有)。
                 else:
                     control.fight_tap(tacticUlt)
-            elif len(tacticUlt) == 2 and tacticUlt[1] == "~":  # 如果没有指定时间，默认0.5秒
-                tacticUlt = tacticUlt + "0.5"
-            elif len(tacticUlt) >= 3 and tacticUlt[1] == "~":
-                click_time = float(tacticUlt.split("~")[1])
+            elif len(tacticUlt) >= 2 and tacticUlt[1] == "~":
+                # 如果没有指定时间，默认0.5秒
+                click_time = 0.5 if len(tacticUlt) == 2 else float(tacticUlt.split("~")[1])
                 if tacticUlt[0] == "a":
                     control.mouse_press()
                     time.sleep(click_time)
