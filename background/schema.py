@@ -71,7 +71,7 @@ class ImageMatch(BaseModel):
 
 
 def match_template(
-        img: np.ndarray, template_img: np.ndarray, region: tuple = None, threshold: float = 0.8
+        img: np.ndarray, template_img: np.ndarray, region: tuple = None, threshold: float = 0.8, need_resize: bool = True
 ) -> None | ImgPosition:
     """
     使用 opencv matchTemplate 方法在指定区域内进行模板匹配并返回匹配结果
@@ -79,6 +79,7 @@ def match_template(
     :param template_img: 小图片
     :param region: 区域（x1, y1, x2, y2），默认为 None 表示全图搜索
     :param threshold:  阈值
+    :param need_resize: 图片是否需要缩放
     :return: ImgPosition 或 None
     """
     # 判断是否为灰度图，如果不是转换为灰度图
@@ -93,11 +94,8 @@ def match_template(
     else:
         cropped_img = img
         x1, y1 = 0, 0
-
-    if region is None:
+    if need_resize:
         template_img = cv2.resize(template_img, (0, 0), fx=width_ratio, fy=height_ratio)
-
-    # 在裁剪后的区域内进行模板匹配
     res = cv2.matchTemplate(cropped_img, template_img, cv2.TM_CCOEFF_NORMED)
     confidence = np.max(res)
     if confidence < threshold:

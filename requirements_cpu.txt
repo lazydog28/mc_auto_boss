@@ -9,3 +9,4 @@ pydantic
 onnxruntime
 paddlepaddle
 paddleocr
+colorama
