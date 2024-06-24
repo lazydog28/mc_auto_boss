@@ -94,6 +94,9 @@ def match_template(
         cropped_img = img
         x1, y1 = 0, 0
 
+    if region is None:
+        template_img = cv2.resize(template_img, (0, 0), fx=width_ratio, fy=height_ratio)
+
     # 在裁剪后的区域内进行模板匹配
     res = cv2.matchTemplate(cropped_img, template_img, cv2.TM_CCOEFF_NORMED)
     confidence = np.max(res)
