@@ -12,6 +12,7 @@ from task import boss_task, synthesis_task, lock_task
 from utils import *
 from threading import Event as event
 from config import config
+from readCrashesData import readCrashesDatas
 
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -29,12 +30,13 @@ def restart_app(e: event):
             time.sleep(config.GameMonitorTime)  # 每秒检测一次，游戏窗口      改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
             find_ue4("UnrealWindow", "UE4-Client Game已崩溃  ")
             find_game_windows("UnrealWindow", "鸣潮  ", e)
+            
 
 
 def find_ue4(class_name, window_title):
     if app_path:
         ue4windows = win32gui.FindWindow(class_name, window_title)
-        if ue4windows != 0:  # 检测到游戏发生了崩溃-UE4弹窗
+        if ue4windows != 0:  # 检测到游戏发生崩溃-UE4弹窗
             logger("UE4-Client Game已崩溃，尝试重启游戏......")
             win32gui.SendMessage(ue4windows, win32con.WM_CLOSE, 0, 0)
             # 等待崩溃窗口关闭
@@ -56,6 +58,7 @@ def find_game_windows(class_name, window_title, taskEvent):
             # 如果重启成功，执行方法一
             time.sleep(20)
             taskEvent.clear()  # 清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
+           
             logger("自动启动BOSS脚本")
             thread = Process(target=run, args=(boss_task, taskEvent), name="task")
             thread.start()
@@ -80,6 +83,13 @@ def restart_application(app_path):
         try:
             subprocess.Popen(app_path)
             logger("游戏疑似发生崩溃，尝试重启游戏......")
+            # 判断文件是否存在，如果存在则删除
+            if os.path.exists("isCrashes.txt"):
+                os.remove("isCrashes.txt")
+
+            # 重新创建文件并写入值
+            with open("isCrashes.txt", "w") as f:
+                f.write(str(True))
             return True
         except Exception as e:
             logger(f"启动应用失败: {e}")
@@ -157,6 +167,7 @@ def on_press(key):
         logger("启动BOSS脚本")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
+        readCrashesDatas()
     if key == Key.f6:
         logger("启动融合脚本")
         print("")
