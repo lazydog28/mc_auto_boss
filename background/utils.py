@@ -902,10 +902,11 @@ def lock_echo():
     time.sleep(0.3)
 
     # 判断声骸是否为金色品质，如果不是则返回
-    check_point = (1704, 397)
+    check_point = (1704, 393)
     if not contrast_colors(check_point, (255, 255, 255)):
         if debug_mode:
             logger("当前声骸不是金色声骸，下一个", "DEBUG")
+            logger("tips:此功能需要关闭声骸详细描述(在角色声骸装备处打开简介这里是详情，关闭简介这里是简介，反着的)","WARN")
         echo_next_row(info.echoNumber)
         return True
     # 判断当前声骸是否未锁定
