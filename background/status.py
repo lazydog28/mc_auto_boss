@@ -10,20 +10,31 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 from config import config
 from colorama import init, Fore, Style
-
+from readCrashesData import readCrashesDatas
 
 class Status(Enum):
     idle = "空闲"
     fight = "战斗"
 
 
+
+# 如果游戏发生了崩溃则会创建文本文件isCrashes.txt，写入布尔值True
+# F5重启脚本后，会触发readCrashesDatas函数
+# 通过IO读取布尔值判断是否处于崩溃状态
+# 如果为True  则读取日志中的崩溃的值作为当前的数据，包含：战斗次数,吸收次数，治疗次数，作为当前日志的记录
+# 如果为False 或者该文本文件不存在，则使用默认值0，作为当前的日志记录
+battle_count, absorb_count, heal_count  =readCrashesDatas()
+
+
+
 class StatusInfo(BaseModel):
+    
     roleIndex: int = Field(0, title="角色索引")
     bossIndex: int = Field(0, title="boss索引")
     status: Status = Field(Status.idle, title="状态")
     fightTime: datetime = Field(datetime.now(), title="战斗开始时间")
-    fightCount: int = Field(0, title="战斗次数")
-    absorptionCount: int = Field(0, title="吸收次数")
+    fightCount: int = Field(battle_count, title="战斗次数")
+    absorptionCount: int = Field(absorb_count, title="吸收次数")
     absorptionSuccess: bool = Field(False, title="吸收成功")
     needAbsorption: bool = Field(False, title="需要吸收")
     lastFightTime: datetime = Field(
@@ -36,7 +47,7 @@ class StatusInfo(BaseModel):
     currentPageName: str = Field("", title="当前页面名称")
     inDreamless: bool = Field(False, title="是否在无妄者副本内")
     lastBossName: str = Field("", title="最近BOSS名称")
-    healCount: int = Field(0, title="治疗次数")
+    healCount: int = Field(heal_count, title="治疗次数")
     needHeal: bool = Field(False, title="需要治疗")
     checkHeal: bool = Field(True, title="检查角色存活情况")
     waitBoss: bool = Field(True, title="检查角色存活情况")
@@ -55,9 +66,12 @@ info = StatusInfo()
 
 lastMsg = ""
 
+  
+          
 
 def logger(msg: str, level: str = "INFO", display: bool = True):
     global lastMsg
+    
     content = (
         f"【{level}】 "
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
