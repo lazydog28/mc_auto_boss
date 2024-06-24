@@ -167,7 +167,6 @@ def on_press(key):
         logger("启动BOSS脚本")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
-        readCrashesDatas()
     if key == Key.f6:
         logger("启动融合脚本")
         print("")
