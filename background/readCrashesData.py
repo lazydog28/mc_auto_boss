@@ -12,8 +12,8 @@ def getCrashesValue():
             if match:
                 battle_count = int(match.group(1))
                 absorb_count = int(match.group(2))
-                heal_count = int(match.group(3)) if match.group(3) else -1
-                if battle_count >= 1 and absorb_count >= 0 and heal_count >= -1:
+                heal_count = int(match.group(3)) if match.group(3) else 0
+                if battle_count >= 1 and absorb_count >= 0 and heal_count >= 0:
                     return battle_count, absorb_count, heal_count
 
 # battle_count, absorb_count, heal_count = getCrashesValue()
