@@ -866,7 +866,7 @@ def set_region(x_upper_left: int = None, y_upper_left: int = None, x_lower_right
 
 
 def lock_echo():
-    debug_mode = True
+    config.EchoDebugMode = True
     adapts()
     """
     声骸锁定
@@ -884,6 +884,7 @@ def lock_echo():
         this_echo_row -= 1
     if info.echoNumber == 1:
         logger("检测到声骸背包画面，3秒后将开始执行锁定程序，过程中请不要将鼠标移到游戏内。", "DEBUG")
+        logger("tips:此功能需要关闭声骸详细描述(在角色声骸装备处打开简介这里是详情，关闭简介这里是简介，反着的)", "WARN")
         time.sleep(3)
         # 切换到时间顺序(倒序)
         logger("切换为时间倒序")
@@ -893,7 +894,7 @@ def lock_echo():
         time.sleep(0.5)
         random_click(718, 23)
         time.sleep(0.5)
-    if debug_mode:
+    if config.EchoDebugMode:
         logger(f"当前为第{this_echo_row}排，第{this_echo_col}个声骸 (总第{info.echoNumber}个)", "DEBUG")
     echo_start_position = [285, 205]  # 第一个声骸的坐标
     echo_spacing = [165, 205]  # 两个声骸间的间距
@@ -904,9 +905,8 @@ def lock_echo():
     # 判断声骸是否为金色品质，如果不是则返回
     check_point = (1704, 393)
     if not contrast_colors(check_point, (255, 255, 255)):
-        if debug_mode:
+        if config.EchoDebugMode:
             logger("当前声骸不是金色声骸，下一个", "DEBUG")
-            logger("tips:此功能需要关闭声骸详细描述(在角色声骸装备处打开简介这里是详情，关闭简介这里是简介，反着的)","WARN")
         echo_next_row(info.echoNumber)
         return True
     # 判断当前声骸是否未锁定
@@ -916,7 +916,7 @@ def lock_echo():
     if coordinate_lock:
         lock_position = coordinate_lock
         info.echoIsLockQuantity += 1
-        if debug_mode:
+        if config.EchoDebugMode:
             logger("当前声骸已锁定", "DEBUG")
         if info.echoIsLockQuantity > config.EchoMaxContinuousLockQuantity:
             logger(f"连续检出已锁定声骸{info.echoIsLockQuantity}个，超出设定值，结束", "DEBUG")
@@ -930,7 +930,7 @@ def lock_echo():
         lock_position = coordinate_unlock
         this_echo_lock = False
         info.echoIsLockQuantity = 0
-        if debug_mode:
+        if config.EchoDebugMode:
             logger("当前声骸未锁定", "DEBUG")
     else:
         this_echo_lock = None
@@ -949,7 +949,7 @@ def lock_echo():
     if this_echo_cost is None:
         logger("未能识别到Cost","ERROR")
         return False
-    if debug_mode:
+    if config.EchoDebugMode:
         logger(f"当前声骸Cost为{this_echo_cost}", "DEBUG")
 
     # 识别声骸主词条属性
@@ -972,7 +972,7 @@ def lock_echo():
         func, param = cost_mapping[this_echo_cost]
         text_result = wait_text_designated_area(func, param, region, 3)
         this_echo_main_status = wait_text_result_search(text_result)
-        if debug_mode:
+        if config.EchoDebugMode:
             logger(f"当前声骸主词条为：{this_echo_main_status}", "DEBUG")
     else:
         random_click(1510, 690)
@@ -986,7 +986,7 @@ def lock_echo():
             func, param = cost_mapping[this_echo_cost]
             text_result = wait_text_designated_area(func, param, region, 3)
             this_echo_main_status = wait_text_result_search(text_result)
-            if debug_mode:
+            if config.EchoDebugMode:
                 logger(f"当前声骸主词条为：{this_echo_main_status}", "DEBUG")
         else:
             logger(f"声骸主词条识别错误", "ERROR")
@@ -997,7 +997,7 @@ def lock_echo():
     text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     if this_echo_set:
-        if debug_mode:
+        if config.EchoDebugMode:
             logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
         pass
     else:
@@ -1011,7 +1011,7 @@ def lock_echo():
         text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
         this_echo_set = wait_text_result_search(text_result)
         if this_echo_set:
-            if debug_mode:
+            if config.EchoDebugMode:
                 logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
             pass
         else:
@@ -1030,13 +1030,13 @@ def lock_echo():
     this_echo_cost = this_echo_cost + "COST"
     if is_echo_main_status_valid(this_echo_set, this_echo_cost, this_echo_main_status, config.EchoLockConfig):
         if this_echo_lock is True:
-            if debug_mode:
+            if config.EchoDebugMode:
                 logger("当前声骸符合要求，已处于锁定状态", "DEBUG")
                 # 此处无作用，因为锁定的直接跳过了，提高效率
                 log_str = log_str + "，已锁定"
                 logger(log_str, "DEBUG")
         else:
-            if debug_mode:
+            if config.EchoDebugMode:
                 logger(f"当前声骸符合要求，锁定声骸", "DEBUG")
             log_str = log_str + "，执行锁定"
             info.in_spec_echo_quantity += 1
@@ -1045,7 +1045,7 @@ def lock_echo():
             time.sleep(0.5)
             logger(log_str)
     else:
-        if debug_mode:
+        if config.EchoDebugMode:
             logger(f"不符合，跳过", "DEBUG")
     # echo_next_row(this_echo_row)
     echo_next_row(info.echoNumber)
