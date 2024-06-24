@@ -13,10 +13,10 @@ import os
 import win32con
 import numpy as np
 import itertools
-from PIL import Image
+from PIL import Image, ImageGrab
 from ctypes import windll
 from typing import List, Tuple, Union
-from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
+from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio, scale_factor
 from ocr import ocr
 from schema import match_template, OcrResult
 from control import control
@@ -60,6 +60,7 @@ def select_role(reset_role: bool = False):
 
 
 def release_skills():
+    adapts()
     if info.waitBoss:
         boss_wait(info.lastBossName)
     select_role(info.resetRole)
@@ -91,10 +92,7 @@ def release_skills():
                     control.fight_tap(tactic)
                     time.sleep(0.2)
                     if config.WaitUltAnimation:  # 等待大招时间，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配
-                        ult_animation_not_use = find_pic(1750, 915, 1860, 1035, "R按键.png", 0.6)
-                        # is_similar_point1 = contrast_colors((44, 227), (255, 255, 255), 0.95)
-                        # is_similar_point2 = contrast_colors((1740, 45), (255, 255, 255), 0.95)
-                        # if not (is_similar_point1 and is_similar_point2):
+                        ult_animation_not_use = find_pic(1750, 915, 1860, 1035,f"R按键{info.adaptsResolution}.png", 0.6, need_resize=False)
                         if ult_animation_not_use is None:
                             logger("检测到大招释放，等待大招动画")
                             time.sleep(1.6)
@@ -102,9 +100,10 @@ def release_skills():
                             break
                 else:
                     control.fight_tap(tactic)
-            elif len(tactic) >= 2 and tactic[1] == "~":
-                # 如果没有指定时间，默认0.5秒
-                click_time = 0.5 if len(tactic) == 2 else float(tactic.split("~")[1])
+            elif len(tactic) == 2 and tactic[1] == "~":  # 如果没有指定时间，默认0.5秒
+                tactic = tactic + "0.5"
+            elif len(tactic) >= 3 and tactic[1] == "~":
+                click_time = float(tactic.split("~")[1])
                 if tactic[0] == "a":
                     control.mouse_press()
                     time.sleep(click_time)
@@ -160,19 +159,17 @@ def release_skills_after_ult():
                     control.fight_tap(tacticUlt)
                     time.sleep(0.2)
                     if config.WaitUltAnimation:  # 等待大招时间，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配
-                        ult_animation_not_use = find_pic(1750, 915, 1860, 1035, "R按键.png", 0.6)
-                        # is_similar_point1 = contrast_colors((44, 227), (255, 255, 255), 0.95)
-                        # is_similar_point2 = contrast_colors((1740, 45), (255, 255, 255), 0.95)
-                        # if not (is_similar_point1 and is_similar_point2):
+                        ult_animation_not_use = find_pic(1750, 915, 1860, 1035,f"R按键{info.adaptsResolution}.png", 0.6)
                         if ult_animation_not_use is None:
                             logger("检测到大招释放，等待大招动画")
                             time.sleep(0.5)
                             release_skills_after_ult()  # 此处或许不需要太长的等待时间，因为此处应该是二段大招(如果未来有)。
                 else:
                     control.fight_tap(tacticUlt)
-            elif len(tacticUlt) >= 2 and tacticUlt[1] == "~":
-                # 如果没有指定时间，默认0.5秒
-                click_time = 0.5 if len(tacticUlt) == 2 else float(tacticUlt.split("~")[1])
+            elif len(tacticUlt) == 2 and tacticUlt[1] == "~":  # 如果没有指定时间，默认0.5秒
+                tacticUlt = tacticUlt + "0.5"
+            elif len(tacticUlt) >= 3 and tacticUlt[1] == "~":
+                click_time = float(tacticUlt.split("~")[1])
                 if tacticUlt[0] == "a":
                     control.mouse_press()
                     time.sleep(click_time)
@@ -215,11 +212,7 @@ def forward():
 
 
 def transfer_to_boss(bossName):
-    # img = screenshot()
-    # template = Image.open(os.path.join(root_path, r"template/残象探寻.png"))
-    # template = np.array(template)
-    # coordinate = match_template(img, template, threshold=0.5)
-    coordinate = find_pic(template_name="残象探寻.png", threshold=0.5)
+    coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
         control.esc()
@@ -281,10 +274,6 @@ def transfer_to_boss(bossName):
 
 
 def transfer_to_dreamless():
-    # img = screenshot()
-    # template = Image.open(os.path.join(root_path, r"template/周期挑战.png"))
-    # template = np.array(template)
-    # coordinate = match_template(img, template, threshold=0.5)
     coordinate = find_pic(template_name="周期挑战.png", threshold=0.5)
     if not coordinate:
         logger("识别周期挑战失败", "WARN")
@@ -588,10 +577,6 @@ def transfer_to_heal(healBossName: str = "朔雷之鳞"):
     """
     如果需要治疗，传送到固定位置进行治疗。
     """
-    # img = screenshot()
-    # template = Image.open(os.path.join(root_path, r"template/残象探寻.png"))
-    # template = np.array(template)
-    # coordinate = match_template(img, template, threshold=0.5)
     coordinate = find_pic(template_name="残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -882,6 +867,7 @@ def set_region(x_upper_left: int = None, y_upper_left: int = None, x_lower_right
 
 def lock_echo():
     debug_mode = True
+    adapts()
     """
     声骸锁定
     目前只支持背包锁定，暂不支持合成时判断
@@ -916,25 +902,16 @@ def lock_echo():
     time.sleep(0.3)
 
     # 判断声骸是否为金色品质，如果不是则返回
-    # if not contrast_colors((1704 * width_ratio, 397 * height_ratio), (255, 255, 255)):
-    if find_pic(1295, 370, 1855, 425, "声骸_金色判定.png", 0.6):
+    check_point = (1704, 397)
+    if not contrast_colors(check_point, (255, 255, 255)):
         if debug_mode:
             logger("当前声骸不是金色声骸，下一个", "DEBUG")
-        # echo_next_row(this_echo_row)
         echo_next_row(info.echoNumber)
         return True
     # 判断当前声骸是否未锁定
     img = screenshot()
-    # echo_cost_area = set_region(1295, 110, 1050, 396)
-    # template = Image.open(os.path.join(root_path, r"template/声骸锁定.png"))
-    # template = np.array(template)
-    # coordinate_lock = match_template(img, template, echo_cost_area, threshold=0.98)
-    # template = Image.open(os.path.join(root_path, r"template/声骸未锁定.png"))
-    # template = np.array(template)
-    # coordinate_unlock = match_template(img, template, echo_cost_area, threshold=0.98)
-    coordinate_lock = find_pic(1295, 110, 1850, 396, "声骸锁定.png", 0.98, img)
-    coordinate_unlock = find_pic(1295, 110, 1850, 396, "声骸未锁定.png", 0.98, img)
-    # if contrast_colors((1812, 328), (232, 221, 198), 0.6):
+    coordinate_lock = find_pic(1700, 270, 1850, 395, f"声骸锁定{info.adaptsResolution}.png", 0.98, img, False)
+    coordinate_unlock = find_pic(1700, 270, 1850, 395, f"声骸未锁定{info.adaptsResolution}.png", 0.98, img, False)
     if coordinate_lock:
         lock_position = coordinate_lock
         info.echoIsLockQuantity += 1
@@ -942,9 +919,9 @@ def lock_echo():
             logger("当前声骸已锁定", "DEBUG")
         if info.echoIsLockQuantity > config.EchoMaxContinuousLockQuantity:
             logger(f"连续检出已锁定声骸{info.echoIsLockQuantity}个，超出设定值，结束", "DEBUG")
+            logger(f"本次总共检查{info.echoNumber}个声骸，有{info.in_spec_echo_quantity}符合条件并锁定！！\n")
             this_echo_lock = True
             return False
-        # echo_next_row(this_echo_row)
         echo_next_row(info.echoNumber)
         return True
     # elif contrast_colors((1812, 328), (36, 35, 11), 0.6):
@@ -960,23 +937,13 @@ def lock_echo():
         return False
 
     # 识别声骸Cost
-    # region = set_region(1690, 200, 1830, 240)  # 设置声骸COST显示位置区域
-    # text_result = wait_text_designated_area(echo.echoCost, 2, region, 5)  # 搜索声骸COST
-    # this_echo_cost = wait_text_result_search(text_result)
-    # if this_echo_cost not in {"3", "4"}:
-    #     cost_text_check = wait_text_result_search(wait_text_designated_area("COST", 1, region, 3))
-    #     if cost_text_check == "COST":
-    #         this_echo_cost = "1"  # 由于识别不出来1，所以不是3cost和4cost且不为False则为1Cost
-    #     else:
-    #         logger("没有识别到声骸！", "ERROR")
-    #         return False
     this_echo_cost = None
     img = screenshot()
-    if find_pic(1690, 200, 1830, 240, "COST1.png", 0.98, img):
+    if find_pic(1690, 200, 1830, 240, f"COST1{info.adaptsResolution}.png", 0.98, img, False):
         this_echo_cost = "1"
-    if find_pic(1690, 200, 1830, 240, "COST3.png", 0.98, img):
+    if find_pic(1690, 200, 1830, 240, f"COST3{info.adaptsResolution}.png", 0.98, img, False):
         this_echo_cost = "3"
-    if find_pic(1690, 200, 1830, 240, "COST4.png", 0.98, img):
+    if find_pic(1690, 200, 1830, 240, f"COST4{info.adaptsResolution}.png", 0.98, img, False):
         this_echo_cost = "4"
     if this_echo_cost is None:
         logger("未能识别到Cost","ERROR")
@@ -988,9 +955,8 @@ def lock_echo():
     if this_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
         random_click(1510, 690)
         time.sleep(0.02)
-        # if not contrast_colors((1337, 489), (255, 255, 255), 0.95):
-        if find_pic(1295, 465, 1360, 515, "声骸_攻击.png", 0.7) is None:
-            for i in range(6):
+        if find_pic(1295, 465, 1360, 515, f"声骸_攻击{info.adaptsResolution}.png", 0.7, need_resize=False) is None:
+            for i in range(18):
                 control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
                 time.sleep(0.02)
             time.sleep(0.8)
@@ -1010,7 +976,7 @@ def lock_echo():
     else:
         random_click(1510, 690)
         time.sleep(0.02)
-        for i in range(6):
+        for i in range(18):
             control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
             time.sleep(0.02)
         time.sleep(0.8)
@@ -1036,9 +1002,9 @@ def lock_echo():
     else:
         random_click(1510, 690)
         time.sleep(0.02)
-        for i in range(6):
+        for i in range(18):
             control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.05)
+            time.sleep(0.02)
         time.sleep(0.8)
         random_click(1510, 690)
         text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
@@ -1072,6 +1038,7 @@ def lock_echo():
             if debug_mode:
                 logger(f"当前声骸符合要求，锁定声骸", "DEBUG")
             log_str = log_str + "，执行锁定"
+            info.in_spec_echo_quantity += 1
             # random_click(1807, 327)
             click_position(lock_position)
             time.sleep(0.5)
@@ -1085,31 +1052,38 @@ def lock_echo():
 
 # def echo_next_row(this_echo_row):
 def echo_next_row(echo_number):
-    # 自动换行
-    scroll_times = 0
-    # scroll_multiple_coordinates = [(270, 240), (270, 255), (270, 270), (270, 280)]
-    # scroll_multiple_target_colors = [(33, 33, 38), (33, 33, 38), (33, 33, 38), (33, 33, 38)]
+    def scroll_and_check(min_times, max_times, message, check_condition):
+        local_scroll_times = 0
+        img = screenshot()
+        while local_scroll_times < min_times or (local_scroll_times < max_times and not check_condition(img)):
+            logger(message, "DEBUG")
+            control.scroll(-1, 1120 * width_ratio, 210 * height_ratio)
+            local_scroll_times += 1
+            time.sleep(0.06)
+            img = screenshot()
+        return local_scroll_times
+
+    def find_cost(img):
+        for i in [1, 3, 4]:
+            if find_pic(315, 220, 360, 275, f"声骸行数滑动判断用COST{i}{info.adaptsResolution}.png", 0.8, img, False):
+                return True
+        return False
+
     if echo_number % 6 == 0:
         random_click(1120, 210)
-        while scroll_times < 3 or find_pic(300, 250, 350, 300, "声骸底边.png", threshold=0.8):
-            logger("正在划出当前边缘", "DEBUG")
-            control.scroll(-1, 1120 * width_ratio, 210 * height_ratio)
-            scroll_times += 1
-            time.sleep(0.06)
-        logger(f"已划出当前边缘,滑动次数：{scroll_times}", "DEBUG")
 
-        # 划到下一个声骸时停止，且最多8次
-        while scroll_times < 9 and not find_pic(300, 250, 350, 300, "声骸底边.png", threshold=0.8):
-            # logger("正在划到下一个边缘", "DEBUG")
-            control.scroll(-1, 1120 * width_ratio, 210 * height_ratio)
-            scroll_times += 1
-            time.sleep(0.06)
+        scroll_times_out_edge = scroll_and_check(3, 6, "正在划出当前边缘", find_cost)
+        logger(f"已划出当前边缘,滑动次数：{scroll_times_out_edge}", "DEBUG")
+
+        scroll_times_next_edge = scroll_and_check(0, 4, "正在划到下一个边缘", lambda img: find_cost(img))
         time.sleep(0.3)
-        if scroll_times >= 8:
+
+        if scroll_times_next_edge >= 4:
             logger("自动滑动至下一排超出尝试次数，使用默认值尝试", "WARN")
             return False
-        logger(f"已划到下一个边缘,滑动次数：{scroll_times}", "DEBUG")
+        logger(f"已划到下一个边缘,滑动次数：{scroll_times_next_edge}", "DEBUG")
 
+    # 另一种行数切换的方法，需要电脑特别稳定
     # if info.echoNumber % 6 == 0:
     #     scroll_times = 7  # 默认值
     #     # logger("切换至下一排")
@@ -1147,7 +1121,7 @@ def is_echo_main_status_valid(this_echo_set, this_echo_cost, this_echo_main_stat
 
 def find_pic(x_upper_left: int = None, y_upper_left: int = None,
              x_lower_right: int = None, y_lower_right: int = None,
-             template_name: str = None, threshold: float = 0.8, img: np.ndarray = None):
+             template_name: str = None, threshold: float = 0.8, img: np.ndarray = None, need_resize: bool = True):
     if img is None:
         img = screenshot()
     region = None
@@ -1155,5 +1129,33 @@ def find_pic(x_upper_left: int = None, y_upper_left: int = None,
         region = set_region(x_upper_left, y_upper_left, x_lower_right, y_lower_right)
     template = Image.open(os.path.join(root_path, "template", template_name))
     template = np.array(template)
-    result = match_template(img, template, region, threshold)
+    result = match_template(img, template, region, threshold, need_resize)
     return result
+
+
+def adapts():
+    adapts_type = info.adaptsType
+
+    def calculate_distance(w1, h1, w2, h2):
+        return ((w1 - w2) ** 2 + (h1 - h2) ** 2) ** 0.5
+    if adapts_type is None:
+        if 1910 <= real_w <= 1930 and 1070 <= real_h <= 1090:
+            logger("分辨率正确，使用原生坐标")
+            info.adaptsType = 1
+            info.adaptsResolution = "_1920_1080"
+        elif 1270 <= real_w <= 1290 and 710 <= real_h <= 730:
+            logger("分辨率正确，使用适配坐标")
+            info.adaptsType = 2
+            info.adaptsResolution = "_1280_720"
+        else:
+            logger("尝试使用相近分辨率，如有问题，请切换分辨率到 1920*1080 或者 1280*720", "WARN")
+            info.adaptsType = 3
+        if info.adaptsType == 3:
+            distance_1920_1080 = calculate_distance(real_w, real_h, 1920, 1080)
+            distance_1280_720 = calculate_distance(real_w, real_h, 1280, 720)
+            if distance_1920_1080 < distance_1280_720:
+                info.adaptsType = 1
+                info.adaptsResolution = "_1920_1080"
+            else:
+                info.adaptsType = 2
+                info.adaptsResolution = "_1280_720"

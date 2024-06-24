@@ -50,11 +50,15 @@ class StatusInfo(BaseModel):
     healCount: int = Field(heal_count, title="治疗次数")
     needHeal: bool = Field(False, title="需要治疗")
     checkHeal: bool = Field(True, title="检查角色存活情况")
-    waitBoss: bool = Field(True, title="检查角色存活情况")
+    waitBoss: bool = Field(True, title="等待Boss时间")
     echoNumber: int = Field(0, title="当前进行的锁定声骸个数")
     echoIsLockQuantity: int = Field(0, title="检测到连续锁定的声骸数量")
     DungeonWeeklyBossLevel: int = Field(0, title="储存自动判断出的最低可获奖励副本BOSS的等级")
     resetRole: bool = Field(False, title="重置选择角色")
+    adaptsType: int = Field(None, title="适配类型")
+    adaptsResolution: str = Field(None, title="适配分辨率")
+    in_spec_echo_quantity: int = Field(0, title="检测到的符合配置的声骸数量")
+
 
     def resetTime(self):
         self.fightTime = datetime.now()
@@ -71,7 +75,6 @@ lastMsg = ""
 
 def logger(msg: str, level: str = "INFO", display: bool = True):
     global lastMsg
-    
     content = (
         f"【{level}】 "
         f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} "
