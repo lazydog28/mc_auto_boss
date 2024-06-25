@@ -866,7 +866,6 @@ def set_region(x_upper_left: int = None, y_upper_left: int = None, x_lower_right
 
 
 def lock_echo():
-    config.EchoDebugMode = True
     adapts()
     """
     声骸锁定
