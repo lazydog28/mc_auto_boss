@@ -13,18 +13,19 @@ import sys
 pages = []
 
 
-def bag(positions: dict[str, Position]) -> bool:
+def echo_bag(positions: dict[str, Position]) -> bool:
     """
     提示
     :param positions:
     :return:
     """
-    if lock_echo() is False:
-        print("声骸锁定功能结束或异常退出，结束脚本")
+    if echo_bag_lock() is False:
+        print("\n背包声骸锁定功能结束或异常退出，结束脚本")
         sys.exit(0)
     return True
 
-bag_page = Page(
+
+echo_bag_page = Page(
     name="声骸",
     targetTexts=[
         TextMatch(
@@ -36,7 +37,7 @@ bag_page = Page(
             text="培养",
         ),
     ],
-    action=bag,
+    action=echo_bag,
 )
 
-pages.append(bag_page)
+pages.append(echo_bag_page)

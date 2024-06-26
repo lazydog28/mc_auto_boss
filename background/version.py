@@ -1,6 +1,14 @@
-__version__ = "1.0.4"
-release_date = "2024-06-24"
+__version__ = "1.0.5"
+release_date = "2024-06-26"
 description = "更新"
+
+# ver1.0.5
+# update:2024-06-26
+# updated by RoseRin0
+# 1.增强了合成功能的实用性。
+# 2.修改了部分变量的名字
+# 3.修复了部分设备上对【湮灭】词条的识别问题。
+# 4.将isCrashes.txt移至项目根目录
 
 # ver1.0.4
 # update:2024-06-22
@@ -8,12 +16,10 @@ description = "更新"
 # 1.新增防止游戏崩溃的功能，实时检测游戏窗口
 # 2.修复游戏崩溃后，数据重置为0的问题
 
-
 # ver1.0.3
 # update:2024-06-22
 # updated by RoseRin0
 # 1.增加了背包自动识别声骸属性并锁定的功能。实验性
-
 
 # ver1.0.2
 # update:2024-06-19

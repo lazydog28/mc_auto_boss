@@ -8,11 +8,11 @@ from multiprocessing import Event, Process
 from pynput.keyboard import Key, Listener
 from schema import Task
 import subprocess
-from task import boss_task, synthesis_task, lock_task
+from task import boss_task, synthesis_task, echo_bag_lock_task
 from utils import *
 from threading import Event as event
 from config import config
-from readCrashesData import readCrashesDatas
+from read_crashes_data import read_crashes_datas
 
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -169,14 +169,16 @@ def on_press(key):
         thread.start()
     if key == Key.f6:
         logger("启动融合脚本")
-        print("")
-        print("https://hermes981128.oss-cn-shanghai.aliyuncs.com/ImageBed/1717865624102.png")
         try:
             input(
-                "启动融合脚本之前请确保已筛选声骸品质，避免将五星声骸被合成！确定已筛选后按回车继续..."
+                "启动融合脚本之前请确保已锁定现有的有用声骸！确定已锁定后按回车继续..."
             )
         except Exception:
             pass
+        mouseResetEvent.set()
+        time.sleep(1)
+        mouse_reset_thread.terminate()
+        mouse_reset_thread.join()
         print("")
         thread = Process(target=run, args=(synthesis_task, taskEvent), name="task")
         thread.start()
@@ -189,7 +191,7 @@ def on_press(key):
         time.sleep(1)
         mouse_reset_thread.terminate()
         mouse_reset_thread.join()
-        thread = Process(target=run, args=(lock_task, taskEvent), name="task")
+        thread = Process(target=run, args=(echo_bag_lock_task, taskEvent), name="task")
         thread.start()
     if key == Key.f12:
         logger("请等待程序退出后再关闭窗口...")
