@@ -1045,7 +1045,7 @@ def echo_bag_lock():
             if config.EchoDebugMode:
                 logger(f"当前声骸符合要求，锁定声骸", "DEBUG")
             log_str = log_str + "，执行锁定"
-            info.in_spec_echo_quantity += 1
+            info.inSpecEchoQuantity += 1
             # random_click(1807, 327)
             click_position(lock_position)
             time.sleep(0.5)
