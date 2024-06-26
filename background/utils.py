@@ -1213,7 +1213,7 @@ def echo_synthesis():
     def lock_echo_synthesis(this_synthesis_echo_cost, this_synthesis_echo_main_status, this_synthesis_echo_set):
         log_str = (
                 "" +
-                f"当前是第{info.echoNumber}个声骸" +
+                f"当前是第{info.inSpecSynthesisEchoQuantity}个有效声骸" +
                 f"，{this_synthesis_echo_cost}Cost" +
                 f"，{this_synthesis_echo_set}" +
                 f"，{this_synthesis_echo_main_status}"
