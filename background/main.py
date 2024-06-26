@@ -175,6 +175,10 @@ def on_press(key):
             )
         except Exception:
             pass
+        mouseResetEvent.set()
+        time.sleep(1)
+        mouse_reset_thread.terminate()
+        mouse_reset_thread.join()
         print("")
         thread = Process(target=run, args=(synthesis_task, taskEvent), name="task")
         thread.start()
