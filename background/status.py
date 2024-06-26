@@ -10,21 +10,21 @@ from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
 from config import config
 from colorama import init, Fore, Style
-from readCrashesData import readCrashesDatas
+from read_crashes_data import read_crashes_datas
+
 
 class Status(Enum):
     idle = "空闲"
     fight = "战斗"
-
-
 
 # 如果游戏发生了崩溃则会创建文本文件isCrashes.txt，写入布尔值True
 # F5重启脚本后，会触发readCrashesDatas函数
 # 通过IO读取布尔值判断是否处于崩溃状态
 # 如果为True  则读取日志中的崩溃的值作为当前的数据，包含：战斗次数,吸收次数，治疗次数，作为当前日志的记录
 # 如果为False 或者该文本文件不存在，则使用默认值0，作为当前的日志记录
-battle_count, absorb_count, heal_count  =readCrashesDatas()
 
+
+battle_count, absorb_count, heal_count = read_crashes_datas()
 
 
 class StatusInfo(BaseModel):
@@ -51,14 +51,17 @@ class StatusInfo(BaseModel):
     needHeal: bool = Field(False, title="需要治疗")
     checkHeal: bool = Field(True, title="检查角色存活情况")
     waitBoss: bool = Field(True, title="等待Boss时间")
-    echoNumber: int = Field(0, title="当前进行的锁定声骸个数")
-    echoIsLockQuantity: int = Field(0, title="检测到连续锁定的声骸数量")
     DungeonWeeklyBossLevel: int = Field(0, title="储存自动判断出的最低可获奖励副本BOSS的等级")
     resetRole: bool = Field(False, title="重置选择角色")
     adaptsType: int = Field(None, title="适配类型")
     adaptsResolution: str = Field(None, title="适配分辨率")
-    in_spec_echo_quantity: int = Field(0, title="检测到的符合配置的声骸数量")
 
+    echoIsLockQuantity: int = Field(0, title="检测到连续锁定的声骸数量")
+    echoNumber: int = Field(0, title="当前进行的锁定声骸个数")
+    inSpecEchoQuantity: int = Field(0, title="检测到的符合配置的声骸数量")
+    synthesisGoldQuantity: int = Field(0, title="合成声骸数量")
+    synthesisTimes: int = Field(0, title="声骸合成次数")
+    inSpecSynthesisEchoQuantity: int = Field(0, title="合成的符合配置的声骸数量")
 
     def resetTime(self):
         self.fightTime = datetime.now()
@@ -70,8 +73,6 @@ info = StatusInfo()
 
 lastMsg = ""
 
-  
-          
 
 def logger(msg: str, level: str = "INFO", display: bool = True):
     global lastMsg
@@ -105,5 +106,5 @@ def logger(msg: str, level: str = "INFO", display: bool = True):
         print(colored_content, end="")
         lastMsg = msg
 
-    with open(config.log_file_path, 'a', encoding='utf-8') as log_file:
+    with open(config.LogFilePath, 'a', encoding='utf-8') as log_file:
         log_file.write(content)

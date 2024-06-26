@@ -100,8 +100,7 @@ def release_skills():
                             break
                 else:
                     control.fight_tap(tactic)
-            elif len(tactic) >= 2 and tactic[1] == "~":
-                # 如果没有指定时间，默认0.5秒
+            elif len(tactic) >= 2 and tactic[1] == "~": # 如果没有指定时间，默认0.5秒
                 click_time = 0.5 if len(tactic) == 2 else float(tactic.split("~")[1])
                 if tactic[0] == "a":
                     control.mouse_press()
@@ -165,8 +164,7 @@ def release_skills_after_ult():
                             release_skills_after_ult()  # 此处或许不需要太长的等待时间，因为此处应该是二段大招(如果未来有)。
                 else:
                     control.fight_tap(tacticUlt)
-            elif len(tacticUlt) >= 2 and tacticUlt[1] == "~":
-                # 如果没有指定时间，默认0.5秒
+            elif len(tacticUlt) >= 2 and tacticUlt[1] == "~":  # 如果没有指定时间，默认0.5秒
                 click_time = 0.5 if len(tacticUlt) == 2 else float(tacticUlt.split("~")[1])
                 if tacticUlt[0] == "a":
                     control.mouse_press()
@@ -707,7 +705,7 @@ def contrast_colors(
     coordinates: Union[Tuple[int, int], List[Tuple[int, int]]],
     target_colors: Union[Tuple[int, int, int], List[Tuple[int, int, int]]],
     threshold: float = 0.95,
-    return_all: bool = False
+    return_all: bool = False, img: np.ndarray = None
 ) -> Union[bool, List[bool]]:
     """
     在 (x, y) 提取颜色，并与传入颜色元组进行欧氏距离对比获取相似度，并判断 。
@@ -716,6 +714,7 @@ def contrast_colors(
     :param target_colors: 目标颜色元组 (R, G, B) 或目标颜色元组列表 [(R1, G1, B1), (R2, G2, B2), ...]
     :param threshold: 相似度阈值
     :param return_all: 是否返回所有布尔值结果列表，如果为 False 则返回单个布尔值
+    :param img 如已截图，可直接使用
     :return: 如果 return_all 为 True，则返回布尔值列表；否则返回单个布尔值
     """
     # 如果传入的是单个坐标和颜色，将它们转换为列表
@@ -727,7 +726,8 @@ def contrast_colors(
         raise ValueError("坐标和颜色的数量必须相同")
 
     # 获取截图
-    img = screenshot()
+    if img is None:
+        img = screenshot()
 
     # 将 numpy 数组转换为 PIL.Image 对象
     img = Image.fromarray(img)
@@ -741,9 +741,10 @@ def contrast_colors(
 
         # 计算实际坐标
         coord = (int(x * width_ratio), int(y * height_ratio))
-
+        # print(f"坐标为{coord}")
         # 获取指定坐标的颜色
         color = img.getpixel(coord)
+        # print(f"颜色为{color}")
 
         # 对比颜色与参考颜色，并计算相似度
         distance = color_distance(color, target_color)
@@ -863,7 +864,7 @@ def set_region(x_upper_left: int = None, y_upper_left: int = None, x_lower_right
     return region
 
 
-def lock_echo():
+def echo_bag_lock():
     adapts()
     """
     声骸锁定
@@ -917,7 +918,7 @@ def lock_echo():
             logger("当前声骸已锁定", "DEBUG")
         if info.echoIsLockQuantity > config.EchoMaxContinuousLockQuantity:
             logger(f"连续检出已锁定声骸{info.echoIsLockQuantity}个，超出设定值，结束", "DEBUG")
-            logger(f"本次总共检查{info.echoNumber}个声骸，有{info.in_spec_echo_quantity}符合条件并锁定！！\n")
+            logger(f"本次总共检查{info.echoNumber}个声骸，有{info.inSpecEchoQuantity}符合条件并锁定！！")
             this_echo_lock = True
             return False
         echo_next_row(info.echoNumber)
@@ -969,6 +970,10 @@ def lock_echo():
         func, param = cost_mapping[this_echo_cost]
         text_result = wait_text_designated_area(func, param, region, 3)
         this_echo_main_status = wait_text_result_search(text_result)
+        if this_echo_main_status is False:
+            text_result = wait_text_designated_area("灭伤害加成", 1, region, 3)
+            if text_result:
+                this_echo_main_status = "湮灭伤害加成"
         if config.EchoDebugMode:
             logger(f"当前声骸主词条为：{this_echo_main_status}", "DEBUG")
     else:
@@ -983,6 +988,10 @@ def lock_echo():
             func, param = cost_mapping[this_echo_cost]
             text_result = wait_text_designated_area(func, param, region, 3)
             this_echo_main_status = wait_text_result_search(text_result)
+            if this_echo_main_status is False:
+                text_result = wait_text_designated_area("灭伤害加成", 1, region, 3)
+                if text_result:
+                    this_echo_main_status = "湮灭伤害加成"
             if config.EchoDebugMode:
                 logger(f"当前声骸主词条为：{this_echo_main_status}", "DEBUG")
         else:
@@ -1054,7 +1063,8 @@ def echo_next_row(echo_number):
         local_scroll_times = 0
         img = screenshot()
         while local_scroll_times < min_times or (local_scroll_times < max_times and not check_condition(img)):
-            logger(message, "DEBUG")
+            if config.EchoDebugMode:
+                logger(message, "DEBUG")
             control.scroll(-1, 1120 * width_ratio, 210 * height_ratio)
             local_scroll_times += 1
             time.sleep(0.06)
@@ -1071,15 +1081,18 @@ def echo_next_row(echo_number):
         random_click(1120, 210)
 
         scroll_times_out_edge = scroll_and_check(3, 6, "正在划出当前边缘", find_cost)
-        logger(f"已划出当前边缘,滑动次数：{scroll_times_out_edge}", "DEBUG")
+        if config.EchoDebugMode:
+            logger(f"已划出当前边缘,滑动次数：{scroll_times_out_edge}", "DEBUG")
 
         scroll_times_next_edge = scroll_and_check(0, 4, "正在划到下一个边缘", lambda img: find_cost(img))
         time.sleep(0.3)
 
         if scroll_times_next_edge >= 4:
-            logger("自动滑动至下一排超出尝试次数，使用默认值尝试", "WARN")
+            if config.EchoDebugMode:
+                logger("自动滑动至下一排超出尝试次数，使用默认值尝试", "WARN")
             return False
-        logger(f"已划到下一个边缘,滑动次数：{scroll_times_next_edge}", "DEBUG")
+        if config.EchoDebugMode:
+            logger(f"已划到下一个边缘,滑动次数：{scroll_times_next_edge}", "DEBUG")
 
     # 另一种行数切换的方法，需要电脑特别稳定
     # if info.echoNumber % 6 == 0:
@@ -1096,6 +1109,215 @@ def echo_next_row(echo_number):
     #         time.sleep(0.06)
     #     time.sleep(0.3)
     #     return True
+
+
+def echo_synthesis():
+    """
+        : 声骸合成锁定功能
+        : update: 2024/06/26 16:16:00
+        : author: RoseRin0
+    """
+    def check_echo_cost():
+        this_synthesis_echo_cost = None
+        cost_img = screenshot()
+        if find_pic(1090, 210, 1230, 255, f"合成_COST1{info.adaptsResolution}.png", 0.98, cost_img, False):
+            this_synthesis_echo_cost = "1"
+        if find_pic(1075, 195, 1230, 255, f"合成_COST3{info.adaptsResolution}.png", 0.98, cost_img, False):
+            this_synthesis_echo_cost = "3"
+        if find_pic(1075, 195, 1230, 255, f"合成_COST4{info.adaptsResolution}.png", 0.98, cost_img, False):
+            this_synthesis_echo_cost = "4"
+        if this_synthesis_echo_cost is None:
+            logger("未能识别到Cost", "ERROR")
+            return False
+        if config.EchoSynthesisDebugMode:
+            logger(f"当前声骸Cost为{this_synthesis_echo_cost}", "DEBUG")
+        return this_synthesis_echo_cost
+
+    def check_echo_main_status(this_synthesis_echo_cost):
+        if this_synthesis_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
+            random_click(1000, 685)
+            time.sleep(0.02)
+            if find_pic(715, 480, 760, 520, f"声骸_攻击{info.adaptsResolution}.png", 0.7, need_resize=False) is None:
+                for i in range(18):
+                    control.scroll(1, 1000 * width_ratio, 685 * height_ratio)
+                    time.sleep(0.02)
+                time.sleep(0.8)
+                random_click(1000, 685)
+        region = set_region(830, 440, 1250, 470)
+        cost_mapping = {
+            "1": (echo.echoCost1MainStatus, 1),
+            "3": (echo.echoCost3MainStatus, 1),
+            "4": (echo.echoCost4MainStatus, 1),
+        }
+        if this_synthesis_echo_cost in cost_mapping:
+            func, param = cost_mapping[this_synthesis_echo_cost]
+            text_result = wait_text_designated_area(func, param, region, 3)
+            this_synthesis_echo_main_status = wait_text_result_search(text_result)
+            if this_synthesis_echo_main_status is False:
+                text_result = wait_text_designated_area("灭伤害加成", 1, region, 3)
+                if text_result:
+                    this_synthesis_echo_main_status = "湮灭伤害加成"
+            if config.EchoSynthesisDebugMode:
+                logger(f"当前声骸主词条为：{this_synthesis_echo_main_status}", "DEBUG")
+            return this_synthesis_echo_main_status
+        else:
+            random_click(1000, 685)
+            time.sleep(0.02)
+            for i in range(18):
+                control.scroll(1, 1000 * width_ratio, 685 * height_ratio)
+                time.sleep(0.02)
+            time.sleep(0.8)
+            random_click(1000, 685)
+            if this_synthesis_echo_cost in cost_mapping:
+                func, param = cost_mapping[this_synthesis_echo_cost]
+                text_result = wait_text_designated_area(func, param, region, 3)
+                this_synthesis_echo_main_status = wait_text_result_search(text_result)
+                if this_synthesis_echo_main_status is False:
+                    text_result = wait_text_designated_area("灭伤害加成", 1, region, 3)
+                    if text_result:
+                        this_synthesis_echo_main_status = "湮灭伤害加成"
+                if config.EchoSynthesisDebugMode:
+                    logger(f"当前声骸主词条为：{this_synthesis_echo_main_status}", "DEBUG")
+                return this_synthesis_echo_main_status
+            else:
+                logger(f"声骸主词条识别错误", "ERROR")
+                return False
+
+    def check_echo_set():
+        # 识别声骸套装属性
+        region = set_region(690, 685, 1250, 945)
+        text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+        this_synthesis_echo_set = wait_text_result_search(text_result)
+        if this_synthesis_echo_set:
+            if config.EchoSynthesisDebugMode:
+                logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
+            return this_synthesis_echo_set
+        else:
+            random_click(1000, 685)
+            time.sleep(0.02)
+            for i in range(18):
+                control.scroll(-1, 1000 * width_ratio, 685 * height_ratio)
+                time.sleep(0.02)
+            time.sleep(0.8)
+            random_click(1000, 685)
+            text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+            this_synthesis_echo_set = wait_text_result_search(text_result)
+            if this_synthesis_echo_set:
+                if config.EchoSynthesisDebugMode:
+                    logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
+                return this_synthesis_echo_set
+            else:
+                logger(f"声骸套装识别错误", "ERROR")
+                return False
+
+    def lock_echo_synthesis(this_synthesis_echo_cost, this_synthesis_echo_main_status, this_synthesis_echo_set):
+        log_str = (
+                "" +
+                f"当前是第{info.echoNumber}个声骸" +
+                f"，{this_synthesis_echo_cost}Cost" +
+                f"，{this_synthesis_echo_set}" +
+                f"，{this_synthesis_echo_main_status}"
+        )
+        this_synthesis_echo_cost = this_synthesis_echo_cost + "COST"
+        if is_echo_main_status_valid(this_synthesis_echo_set, this_synthesis_echo_cost, this_synthesis_echo_main_status, config.EchoLockConfig):
+            if config.EchoSynthesisDebugMode:
+                logger(f"当前声骸符合要求，锁定声骸", "DEBUG")
+            log_str = log_str + "，执行锁定"
+            info.inSpecSynthesisEchoQuantity += 1
+            control.click(1205 * width_ratio, 345 * height_ratio)
+            time.sleep(0.5)
+            logger(log_str)
+        else:
+            if config.EchoSynthesisDebugMode:
+                logger(f"不符合，跳过", "DEBUG")
+
+    def check_synthesis_echo_level_and_quantity(first_index, echo_results, click_points):
+        loop_times = None
+        if first_index == 0:
+            loop_times = 1
+        elif first_index == 1:
+            loop_times = 2
+        elif first_index == 3:
+            loop_times = 3
+        length = (len(results) + 1) // 2
+
+        for i in range(loop_times):
+            echo_index_purple = echo_results[first_index + i]
+            echo_index_gold = echo_results[first_index + i + length]
+            if echo_index_purple:
+                logger(f"合成次数：{info.synthesisTimes}，当前已成功合成符合配置的金色声骸/已获得的金色声骸：{info.inSpecSynthesisEchoQuantity}/{info.synthesisGoldQuantity}个。")
+            elif echo_index_gold:
+                info.synthesisGoldQuantity += 1
+                click_x, click_y = click_points[first_index + i]
+                control.click(click_x * width_ratio, click_y * height_ratio)
+                time.sleep(0.2)
+                control.click(click_x * width_ratio, click_y * height_ratio)
+                time.sleep(1.5)
+                this_echo_cost = check_echo_cost()
+                this_echo_main_status = check_echo_main_status(this_echo_cost)
+                this_echo_set = check_echo_set()
+                lock_echo_synthesis(this_echo_cost, this_echo_main_status, this_echo_set)
+                logger(f"合成次数：{info.synthesisTimes}，当前已成功合成符合配置的金色声骸/已获得的金色声骸：{info.inSpecSynthesisEchoQuantity}/{info.synthesisGoldQuantity}个。")
+                control.esc()
+                time.sleep(1.5)
+            else:
+                logger("声骸识别出现问题(1)", "ERROR")
+        control.esc()
+
+    adapts()
+    synthesis_wait_time = 3
+    if config.EchoSynthesisDebugMode:
+        logger(f"等待合成中{synthesis_wait_time}", "DEBUG")
+    time.sleep(synthesis_wait_time)
+    info.synthesisTimes += 1
+    # check_area_list = [(924, 577, 942, 596),
+    #                    (856, 577, 871, 596), (995, 577, 1011, 596),
+    #                    (790, 577, 804, 596), (923, 577, 942, 596), (1060, 577, 1080, 596)]
+    check_point_list = [(960, 591),
+                        (891, 591), (1028, 591),
+                        (823, 591), (960, 591), (1096, 591)]
+    click_point_list = [(960, 540),
+                        (891, 540), (1028, 540),
+                        (823, 540), (960, 540), (1096, 540)]
+    purple = (255, 172, 255)
+    gold = (255, 239, 171)
+    results = []
+    img = screenshot()
+    for point in check_point_list:
+        result = contrast_colors(point, purple, 0.85, False, img)
+        results.append(result)
+    purple_length = len(results)
+    for point in check_point_list:
+        result = contrast_colors(point, gold, 0.85, False, img)
+        results.append(result)
+    if results[0] or results[0 + purple_length]:
+        if results[3] is False and results[3 + purple_length] is False:
+            if config.EchoSynthesisDebugMode:
+                true_count_purple = results[0:1].count(True)
+                true_count_gold = results[0 + purple_length:1 + purple_length].count(True)
+                logger(f"合成了1个声骸，其中紫色{true_count_purple}个，金色{true_count_gold}个。", "DEBUG")
+            check_synthesis_echo_level_and_quantity(0, results, click_point_list)
+        else:
+            if config.EchoSynthesisDebugMode:
+                true_count_purple = results[3:6].count(True)
+                true_count_gold = results[3 + purple_length:6 + purple_length].count(True)
+                logger(f"合成了3个声骸，其中紫色{true_count_purple}个，金色{true_count_gold}个。", "DEBUG")
+            check_synthesis_echo_level_and_quantity(3, results, click_point_list)
+    elif results[1] or results[1 + purple_length]:
+        if config.EchoSynthesisDebugMode:
+            true_count_purple = results[1:3].count(True)
+            true_count_gold = results[1 + purple_length:3 + purple_length].count(True)
+            logger(f"合成了2个声骸，其中紫色{true_count_purple}个，金色{true_count_gold}个。", "DEBUG")
+        check_synthesis_echo_level_and_quantity(1, results, click_point_list)
+    elif results[3] or results[3 + purple_length]:
+        if config.EchoSynthesisDebugMode:
+            true_count_purple = results[3:6].count(True)
+            true_count_gold = results[3 + purple_length:6 + purple_length].count(True)
+            logger(f"合成了3个声骸，其中紫色{true_count_purple}个，金色{true_count_gold}个。", "DEBUG")
+        check_synthesis_echo_level_and_quantity(3, results, click_point_list)
+    else:
+        logger("声骸识别出现问题(2)", "ERROR")
+        return False
 
 
 def wait_text_result_search(text_result):

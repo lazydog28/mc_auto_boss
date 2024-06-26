@@ -11,7 +11,7 @@ from .pages.boss import pages as boss_pages
 from .pages.dreamless import pages as dreamless_pages
 from .conditional_actions.boss import conditional_actions
 from .pages.synthesis import pages as synthesis_pages
-from .pages.lock import pages as lock_pages
+from .pages.echo_bag_lock import pages as echo_bag_lock_pages
 
 # 合并所有页面
 boss_task = Task()
@@ -21,5 +21,5 @@ boss_task.conditionalActions = conditional_actions  # 添加boss专属条件动�
 synthesis_task = Task()
 synthesis_task.pages = synthesis_pages  # 合成页面
 
-lock_task = Task()
-lock_task.pages = lock_pages  # 合成页面
+echo_bag_lock_task = Task()
+echo_bag_lock_task.pages = echo_bag_lock_pages  # 声骸背包页面

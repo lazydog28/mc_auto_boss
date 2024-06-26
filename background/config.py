@@ -45,16 +45,17 @@ class Config(BaseModel):
     EchoMaxContinuousLockQuantity: int = Field(5, title="最大连续检测到已锁定声骸的数量")
     GameMonitorTime: int = Field(5, title="游戏窗口检测间隔时间")
     EchoDebugMode: bool = Field(True, title="声骸锁定功能DEBUG显示输出的开关")
+    EchoSynthesisDebugMode: bool = Field(True, title="声骸合成锁定功能DEBUG显示输出的开关")
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    log_file_path: Optional[str] = Field(None, title="日志文件路径")
+    LogFilePath: Optional[str] = Field(None, title="日志文件路径")
 
     AppPath: Optional[str] = Field(None, title="游戏路径")
 
     def __init__(self, **data):
         super().__init__(**data)
-        if not self.log_file_path:
-            self.log_file_path = os.path.join(self.project_root, "mc_log.txt")
+        if not self.LogFilePath:
+            self.LogFilePath = os.path.join(self.project_root, "mc_log.txt")
         if not self.AppPath:
             self.AppPath = get_wuthering_waves_path()
 
