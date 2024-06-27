@@ -40,7 +40,7 @@ def is_app_crashes():
             #     print("文件内容不是True或False")
         return value
     elif not os.path.exists(is_crashes_file):
-        # 如果isCrashes.txt不存在， 创建并写入False，表示游戏无崩溃-一般在启动脚本时创建
+        # 如果isCrashes.txt不存在， 创建并写入False，表示游戏无崩溃，一般在启动脚本时创建
         with open(is_crashes_file, "w") as f:
             f.write(str(False))
         return False
