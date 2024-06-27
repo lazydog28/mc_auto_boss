@@ -24,7 +24,7 @@ app_path = config.AppPath
 def restart_app(e: event):
     if app_path:
         while True:
-            # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2个小时重启一次
+            # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2小时重启一次
             # time.sleep(1800)
             # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
             time.sleep(config.GameMonitorTime)  # 每秒检测一次，游戏窗口      改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
