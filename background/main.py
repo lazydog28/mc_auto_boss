@@ -13,9 +13,10 @@ from task import boss_task, synthesis_task, echo_bag_lock_task
 from utils import *
 from threading import Event as event
 from config import config
-from read_crashes_data import read_crashes_datas
 from collections import OrderedDict
 from cmd_line import get_cmd_task_opts
+from read_crashes_data import read_crashes_datas,is_app_crashes,is_app_crashes_init
+
 
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -27,7 +28,7 @@ app_path = config.AppPath
 def restart_app(e: event):
     if app_path:
         while True:
-            # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2个小时重启一次
+            # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2小时重启一次
             # time.sleep(1800)
             # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
             time.sleep(config.GameMonitorTime)  # 每秒检测一次，游戏窗口      改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
@@ -53,6 +54,7 @@ def find_ue4(class_name, window_title):
 def find_game_windows(class_name, window_title, taskEvent):
     if app_path:
         gameWindows = win32gui.FindWindow(class_name, window_title)
+        # 没有检测到游戏窗口
         if gameWindows == 0:
             logger("未找到游戏窗口")
             while not restart_application(app_path):  # 如果启动失败，则五秒后重新启动游戏窗口
@@ -65,6 +67,13 @@ def find_game_windows(class_name, window_title, taskEvent):
             logger("自动启动BOSS脚本")
             thread = Process(target=run, args=(boss_task, taskEvent), name="task")
             thread.start()
+        else:  
+            # 检查到游戏窗口
+            # 这段代码的功能是检查一个名为 "isCrashes.txt" 的文件是否存在于项目的根目录下。
+            # 如果文件存在，它会读取文件内容并判断是否为 "True" 或 "False"。
+            # 如果文件不存在，它会创建一个新文件并写入 "True 或者 False，通过isFileExist_TORF传入"。
+            is_app_crashes_init(False)
+
 
 
 def close_window(class_name, window_title):
@@ -86,12 +95,13 @@ def restart_application(app_path):
         try:
             subprocess.Popen(app_path)
             logger("游戏疑似发生崩溃，尝试重启游戏......")
-            # 判断文件是否存在，如果存在则删除
+            # 判断根目录文件isCrashes.txt是否存在，如果存在则删除
+            is_crashes_file = os.path.join(config.project_root, "isCrashes.txt")
             if os.path.exists("isCrashes.txt"):
-                os.remove("isCrashes.txt")
+                os.remove(is_crashes_file)
 
             # 重新创建文件并写入值
-            with open("isCrashes.txt", "w") as f:
+            with open(is_crashes_file, "w") as f:
                 f.write(str(True))
             return True
         except Exception as e:
