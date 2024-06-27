@@ -20,7 +20,7 @@ def get_crashes_value():
                 heal_count = int(match.group(3)) if match.group(3) else 0
                 if battle_count >= 1 and absorb_count >= 0 and heal_count >= 0:
                     return battle_count, absorb_count, heal_count
-
+    return 0, 0, 0
 
 # battle_count, absorb_count, heal_count = getCrashesValue()
 # print(f"最近的战斗次数：{battle_count}，吸取次数：{absorb_count}，治疗次数：{heal_count}")
