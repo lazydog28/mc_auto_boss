@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 import yaml
 import os
 import winreg
+from cmd_line import get_config_path
 from constant import wait_exit, root_path
 from typing import Optional, Dict, List
 
@@ -88,20 +89,18 @@ def get_wuthering_waves_path():
     return None
 
 
-project_root = os.path.dirname(os.path.abspath(__file__))
-config_path = os.path.join(project_root, "config.yaml")
-
+config_path = get_config_path()
 # 判断是否存在配置文件
-if os.path.exists(os.path.join(root_path, "config.yaml")):
-    with open(os.path.join(root_path, "config.yaml"), "r", encoding="utf-8") as f:
+if os.path.exists(config_path):
+    with open(config_path, "r", encoding="utf-8") as f:
         config = Config(**yaml.safe_load(f))
 else:
     config = Config()
-    with open(os.path.join(root_path, "config.yaml"), "w", encoding="utf-8") as f:
+    with open(config_path, "w", encoding="utf-8") as f:
         yaml.safe_dump(config.dict(), f)
 
 if len(config.TargetBoss) == 0:
-    print("请在项目根目录下的config.yaml中填写目标BOSS全名")
+    print("请在配置文件中填写目标BOSS全名，配置文件路径: %s" % config_path)
     wait_exit()
 
 # 加载声骸锁定配置文件

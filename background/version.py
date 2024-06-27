@@ -1,6 +1,12 @@
-__version__ = "1.0.5"
-release_date = "2024-06-26"
-description = "更新"
+__version__ = "1.0.6"
+release_date = "2024-06-27"
+description = "更新支持命令行参数"
+
+# ver1.0.6
+# update:2024-06-27
+# updated by wakening
+# 1.增加了命令行参数-t/--task，可以在启动后立即打boss，无需再按快捷键
+# 1.增加了命令行参数-c/--config，可以指定自定义的配置文件，打不同boss使用不同配置启动
 
 # ver1.0.5
 # update:2024-06-26

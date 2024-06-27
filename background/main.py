@@ -3,6 +3,7 @@ import init  # !!此导入删除会导致不会将游戏移动到左上角以及
 import sys
 import version
 import ctypes
+import threading
 from mouse_reset import mouse_reset
 from multiprocessing import Event, Process
 from pynput.keyboard import Key, Listener
@@ -13,6 +14,8 @@ from utils import *
 from threading import Event as event
 from config import config
 from read_crashes_data import read_crashes_datas
+from collections import OrderedDict
+from cmd_line import get_cmd_task_opts
 
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -202,6 +205,38 @@ def on_press(key):
     return None
 
 
+# 执行命令行启动任务，todo 多个将异步顺序执行
+def run_cmd_tasks_async():
+    cmd_task_dict = get_cmd_task_opts()
+    if cmd_task_dict is None:
+        return
+    cmd_keys = ""
+    for key_str, keyboard in cmd_task_dict.items():
+        cmd_keys += key_str if len(cmd_keys) == 0 else ", " + key_str
+    logger("依次执行命令: " + cmd_keys)
+    if len(cmd_task_dict) == 1:
+        for key_str, keyboard in cmd_task_dict.items():
+            on_press(keyboard)
+        return
+    # 异步 todo F12中断线程
+    cmd_task_thread = threading.Thread(target=cmd_task_func, args=(cmd_task_dict,))
+    # 守护线程
+    cmd_task_thread.daemon = True
+    cmd_task_thread.start()
+
+
+def cmd_task_func(cmd_task_dict: OrderedDict[str, Key]):
+    # print(str(cmd_task_dict))
+    for key_str, keyboard in cmd_task_dict.items():
+        on_press(keyboard)
+        # 一键锁定合成刷声骸
+        # python background/main.py -t F8,F6,F5 -c config-add-f.yaml
+        # todo 暂时只支持单个命令，需等其他功能适配
+        # todo F8目前得在背包声骸界面才生效，缺少自动传送到安全点（朔雷右侧），自动打开背包选中声骸栏，进程结束告知执行完
+        # todo F6目前得在声骸合成界面才生效，缺少自动传送到安全点（朔雷右侧），自动打开数据坞选中数据融合，进程结束告知执行完
+        break
+
+
 if __name__ == "__main__":
     taskEvent = Event()  # 用于停止任务线程
     mouseResetEvent = Event()  # 用于停止鼠标重置线程
@@ -228,6 +263,7 @@ if __name__ == "__main__":
     print("请确认已经配置好了config.yaml文件\n")
     print("使用说明：\n   F5 启动脚本\n   F6 合成声骸\n   F7 暂停运行\n   F8 锁定声骸\n   F12 停止运行")
     logger("开始运行")
+    run_cmd_tasks_async()
     with Listener(on_press=on_press) as listener:
         listener.join()
     print("结束运行")
