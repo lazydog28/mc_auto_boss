@@ -20,7 +20,7 @@ def get_crashes_value():
                 heal_count = int(match.group(3)) if match.group(3) else 0
                 if battle_count >= 1 and absorb_count >= 0 and heal_count >= 0:
                     return battle_count, absorb_count, heal_count
-    return 0, 0, 0
+
 
 # battle_count, absorb_count, heal_count = getCrashesValue()
 # print(f"最近的战斗次数：{battle_count}，吸取次数：{absorb_count}，治疗次数：{heal_count}")
@@ -50,6 +50,28 @@ def is_app_crashes():
 
 # value = isAppCrashes()
 # print(value)
+
+
+# 这段代码的功能是检查一个名为 "isCrashes.txt" 的文件是否存在于项目的根目录下。
+# 如果文件存在，它会读取文件内容并判断是否为 "True" 或 "False"。
+# 如果文件不存在，它会创建一个新文件并写入 "True 或者 False，通过isFileExist_TORF传入"。
+def is_app_crashes_init(isFileExist_TORF:bool):
+    is_crashes_file = os.path.join(config.project_root, "isCrashes.txt")
+    if os.path.exists(is_crashes_file):
+        with open(is_crashes_file, "r") as f:
+            content = f.read().strip()  # 读取文件内容并去除首尾空格
+            if content == "True":
+              with open(is_crashes_file, "w") as f:
+                f.write(str(False))
+            # elif content == "False":
+            #   with open(is_crashes_file, "w") as f:
+            #     f.write(str(True))
+            # else:
+            #     print("文件内容不是True或False")
+    elif not os.path.exists(is_crashes_file):
+        # 如果isCrashes.txt不存在， 创建并写入False，表示游戏无崩溃-一般在启动脚本时创建
+        with open(is_crashes_file, "w") as f:
+            f.write(str(isFileExist_TORF))
 
 
 # 游戏发生了崩溃则修改-使用上次崩溃后的数据-作为输出日志
