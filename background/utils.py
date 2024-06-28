@@ -290,7 +290,7 @@ def transfer_to_dreamless():
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
-    random_click(1720, 420)
+    random_click(1720, 460)
     # control.click(1720 * width_ratio, 420 * height_ratio)
     if transfer := wait_text("快速旅行"):
         click_position(transfer.position)
