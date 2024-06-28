@@ -62,30 +62,46 @@ class Config(BaseModel):
 
 
 # 获取鸣潮游戏路径
+def open_registry_key(key_path):
+    try:
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
+        return key
+    except FileNotFoundError:
+        # print(f"未找到注册表路径'{key_path}'")
+        pass
+    except Exception as e:
+        print(f"访问注册表错误: {e}")  
+    return None
+
 def get_wuthering_waves_path():
     key = None
-    try:
-        # 打开注册表项
-        key_path = r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves"
-        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
+    # 打开注册表项
+    # key_path = r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves"
+        
+    key_paths = [
+        r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves",
+        r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves Overseas"
+        ]
 
-        try:
-            # 读取安装路径
-            install_path, _ = winreg.QueryValueEx(key, "InstallPath")
-            if install_path:
-                # 构造完整的程序路径
-                program_path = os.path.join(install_path, "Wuthering Waves Game", "Wuthering Waves.exe")
-                # print(f"从注册表中加载到游戏目录：{program_path}")
-                return program_path
-        except FileNotFoundError:
-            # print("无法在注册表中找到游戏路径.")
-            pass
-    except Exception as e:
-        # print(f"访问注册表错误: {e}")
-        pass
-    finally:
-        if 'key' in locals():
-            key.Close()
+    for key_path in key_paths:
+        key = open_registry_key(key_path)
+        
+        if key:
+            try:
+                # 读取安装路径
+                install_path, _ = winreg.QueryValueEx(key, "InstallPath")
+                if install_path:
+                    # 构造完整的程序路径
+                    program_path = os.path.join(install_path, "Wuthering Waves Game", "Wuthering Waves.exe")
+                    # print(f"从注册表中加载到游戏目录：{program_path}")
+                    return program_path
+            except Exception as e:
+                    # print(f"构建安装路径错误: {e}")
+                    pass
+            finally:
+                if 'key' in locals():
+                    key.Close()        
+        
     return None
 
 
