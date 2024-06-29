@@ -152,27 +152,14 @@ fight_page = Page(
     name="战斗画面",
     targetTexts=[
         TextMatch(
-            name="击败",
-            text="击败",
+            name="战斗",
+            text=template(r"(击败|对战)"),  # 使用正则表达式匹配 支持击败和对战
         ),
     ],
     action=fight_action,
 )
 
 pages.append(fight_page)
-
-fight_page_2 = Page(
-    name="战斗画面",
-    targetTexts=[
-        TextMatch(
-            name="对战",
-            text="对战",
-        ),
-    ],
-    action=fight_action,
-)
-
-pages.append(fight_page_2)
 
 
 # 点击领取今日月卡奖励
@@ -329,6 +316,7 @@ def login_action(positions: dict[str, Position]) -> bool:
     # 如果没有发生异常，返回True
     return True
 
+
 # 创建一个名为login_page的Page对象
 login_page = Page(
     name="点击连接",
@@ -337,9 +325,8 @@ login_page = Page(
             name="点击连接",
             text="点击连接",
         ),
-    ],  
+    ],
     action=login_action,
 )
 # 将login_page对象添加到pages列表中
 pages.append(login_page)
-
