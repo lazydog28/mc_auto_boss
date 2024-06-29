@@ -182,7 +182,7 @@ receive_monthly_card_rewards_page = Page(
     targetTexts=[
         TextMatch(
             name="月卡奖励",
-            text="月卡奖励",
+            text="今日月相",
         ),
     ],
     action=click_receive_monthly_card_rewards,
