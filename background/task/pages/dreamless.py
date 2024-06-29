@@ -58,7 +58,7 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     if info.DungeonWeeklyBossLevel != 0:
         dungeon_weekly_boss_level = info.DungeonWeeklyBossLevel  # 如果已有自动搜索结果，那么直接使用自动搜索的结果值
     elif config.DungeonWeeklyBossLevel is None or config.DungeonWeeklyBossLevel < 40 or config.DungeonWeeklyBossLevel % 10 != 0:
-        dungeon_weekly_boss_level = 40   # 如果没有自动搜索的结果，且没有Config值或为值异常，则从40开始判断
+        dungeon_weekly_boss_level = 40  # 如果没有自动搜索的结果，且没有Config值或为值异常，则从40开始判断
     else:
         dungeon_weekly_boss_level = config.DungeonWeeklyBossLevel  # 如果没有自动搜索的结果，但有Config值且不为默认值，则使用Config值
     result = wait_text("推荐等级" + str(dungeon_weekly_boss_level))
@@ -169,7 +169,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
-    control.click(1250 * width_ratio, 650 * height_ratio)
+    click_position(positions["确认"])
     time.sleep(3)
     wait_home()
     logger("无妄者副本结束")
@@ -187,6 +187,10 @@ confirm_leave_page = Page(
         TextMatch(
             name="确认离开",
             text="确认离开",
+        ),
+        TextMatch(
+            name="确认",
+            text=template("^确认$"),
         ),
     ],
     action=confirm_leave_action,
