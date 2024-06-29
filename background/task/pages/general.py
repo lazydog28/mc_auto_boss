@@ -161,6 +161,19 @@ fight_page = Page(
 
 pages.append(fight_page)
 
+fight_page_2 = Page(
+    name="战斗画面",
+    targetTexts=[
+        TextMatch(
+            name="对战",
+            text="对战",
+        ),
+    ],
+    action=fight_action,
+)
+
+pages.append(fight_page_2)
+
 
 # 点击领取今日月卡奖励
 def click_receive_monthly_card_rewards(positions: dict[str, Position]) -> bool:
