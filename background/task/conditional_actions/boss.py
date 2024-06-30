@@ -40,7 +40,7 @@ conditional_actions.append(judgment_absorption_condition_action)
 def judgment_idle() -> bool:
     return (
         datetime.now() - info.lastFightTime
-    ).seconds > config.MaxIdleTime and not info.inDreamless
+    ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
 
 
 def judgment_idle_action() -> bool:
@@ -60,7 +60,7 @@ conditional_actions.append(judgment_idle_conditional_action)
 def judgment_fight() -> bool:
     return (
         datetime.now() - info.fightTime
-    ).seconds > config.MaxFightTime and not info.inDreamless
+    ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue
 
 
 def judgment_fight_action() -> bool:
