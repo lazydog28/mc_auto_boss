@@ -333,8 +333,24 @@ def transfer() -> bool:
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = ""
         return True
+    if info.lastBossName == "角" and bossName == "角":
+        logger("前往角 且 刚才已经前往过")
+        control.tap("a")
+        control.tap("a")
+        time.sleep(0.2)
+        control.tap("s")
+        control.tap("s")
+        control.tap("s")
+        control.tap("s")
+        now = datetime.now()
+        info.idleTime = now  # 重置空闲时间
+        info.lastFightTime = now  # 重置最近检测到战斗时间
+        info.fightTime = now  # 重置战斗时间
+        info.lastBossName = ""
+        return True
     control.activate()
     control.tap(win32con.VK_F2)
+    time.sleep(1)
     if not wait_text(
             ["日志", "活跃", "挑战", "强者", "残象", "周期", "探寻", "漂泊"], timeout=5
     ):

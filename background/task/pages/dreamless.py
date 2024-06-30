@@ -15,7 +15,7 @@ pages = []
 
 
 # 进入
-def enter_action(positions: dict[str, Position]) -> bool:
+def enter_action_dreamless(positions: dict[str, Position]) -> bool:
     """
     进入
     :param positions: 位置信息
@@ -27,12 +27,12 @@ def enter_action(positions: dict[str, Position]) -> bool:
     return True
 
 
-enter_page = Page(
-    name="进入",
+enter_page_dreamless = Page(
+    name="无冠者之像·心脏",
     targetTexts=[
         TextMatch(
-            name="进入",
-            text="进入",
+            name="无冠者之像",
+            text="无冠者之像",
         ),
     ],
     excludeTexts=[
@@ -41,10 +41,43 @@ enter_page = Page(
             text="确认",
         ),
     ],
-    action=enter_action,
+    action=enter_action_dreamless,
 )
 
-pages.append(enter_page)
+pages.append(enter_page_dreamless)
+
+
+# 进入
+def enter_action_jue(positions: dict[str, Position]) -> bool:
+    """
+    进入
+    :param positions: 位置信息
+    :return:
+    """
+    interactive()
+    info.inJue = True
+    info.lastBossName = "角"
+    return True
+
+
+enter_page_jue = Page(
+    name="时序之寰",
+    targetTexts=[
+        TextMatch(
+            name="时序之寰",
+            text="进入时序之",
+        ),
+    ],
+    excludeTexts=[
+        TextMatch(
+            name="确认",
+            text="确认",
+        ),
+    ],
+    action=enter_action_jue,
+)
+
+pages.append(enter_page_jue)
 
 
 # 推荐等级
@@ -79,7 +112,7 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     if not result:
         control.esc()
         return False
-    logger(f"最低推荐等级为{info.DungeonWeeklyBossLevel}级")
+    logger(f"最低推荐等级为{dungeon_weekly_boss_level}级")
     click_position(result.position)
     info.waitBoss = True
     info.lastFightTime = datetime.now()
@@ -172,9 +205,12 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     click_position(positions["确认"])
     time.sleep(3)
     wait_home()
-    logger("无妄者副本结束")
+    logger(f"{info.lastBossName}副本结束")
     time.sleep(2)
-    info.inDreamless = False
+    if info.lastBossName == "角":
+        info.inJue = False
+    else:
+        info.inDreamless = False
     info.status = Status.idle
     now = datetime.now()
     info.lastFightTime = now + timedelta(seconds=config.MaxFightTime / 2)
