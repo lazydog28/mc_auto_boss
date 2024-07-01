@@ -86,12 +86,14 @@ def judgment_leave() -> bool:
 
 
 def judgment_leave_action() -> bool:
+    # 重置最后战斗时间
     if info.needAbsorption and config.SearchDreamlessEchoes:
         absorption_action()
     else:
         absorption_and_receive_rewards({})
     control.esc()
     time.sleep(1)
+    info.lastFightTime = datetime.now()
     return True
 
 
