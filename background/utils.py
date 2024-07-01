@@ -1159,7 +1159,7 @@ def echo_synthesis():
                     time.sleep(0.02)
                 time.sleep(0.8)
                 random_click(1000, 685)
-        region = set_region(830, 440, 1250, 470)
+        region = set_region(830, 440, 1250, 485)
         cost_mapping = {
             "1": (echo.echoCost1MainStatus, 1),
             "3": (echo.echoCost3MainStatus, 1),
