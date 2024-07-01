@@ -18,15 +18,16 @@ def judgment_absorption_action():
         absorption_action()
     else:
         forward()
+    return True
 
 
 # 战斗完成 吸收
 def judgment_absorption() -> bool:
     return (
-        config.MaxIdleTime / 2
-        < (datetime.now() - info.lastFightTime).seconds
-        < config.MaxIdleTime  # 空闲时间未超过最大空闲时间 且 空闲时间超过最大空闲时间的一半
-        and info.needAbsorption  # 未吸收
+            config.MaxIdleTime / 2
+            < (datetime.now() - info.lastFightTime).seconds
+            < config.MaxIdleTime  # 空闲时间未超过最大空闲时间 且 空闲时间超过最大空闲时间的一半
+            and info.needAbsorption  # 未吸收
     )
 
 
@@ -39,7 +40,7 @@ conditional_actions.append(judgment_absorption_condition_action)
 # 超过最大空闲时间
 def judgment_idle() -> bool:
     return (
-        datetime.now() - info.lastFightTime
+            datetime.now() - info.lastFightTime
     ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
 
 
@@ -59,7 +60,7 @@ conditional_actions.append(judgment_idle_conditional_action)
 # 超过最大战斗时间
 def judgment_fight() -> bool:
     return (
-        datetime.now() - info.fightTime
+            datetime.now() - info.fightTime
     ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue
 
 
@@ -76,3 +77,27 @@ judgment_fight_conditional_action = ConditionalAction(
 )
 
 conditional_actions.append(judgment_fight_conditional_action)
+
+
+def judgment_leave() -> bool:
+    return (
+            datetime.now() - info.lastFightTime
+    ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue)
+
+
+def judgment_leave_action() -> bool:
+    if info.needAbsorption and config.SearchDreamlessEchoes:
+        absorption_action()
+    else:
+        absorption_and_receive_rewards({})
+    control.esc()
+    time.sleep(1)
+    return True
+
+
+judgment_leave_conditional_action = ConditionalAction(
+    name="副本内超过最大空闲时间,离开",
+    condition=judgment_leave,
+    action=judgment_leave_action,
+)
+conditional_actions.append(judgment_leave_conditional_action)
