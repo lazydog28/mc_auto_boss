@@ -5,6 +5,7 @@
 @time: 2024/6/4 上午10:18
 @author SuperLazyDog
 """
+import os
 import time
 
 from pydantic import BaseModel, Field
@@ -98,6 +99,16 @@ def match_template(
         template_img = cv2.resize(template_img, (0, 0), fx=width_ratio, fy=height_ratio)
     res = cv2.matchTemplate(cropped_img, template_img, cv2.TM_CCOEFF_NORMED)
     confidence = np.max(res)
+    # 保存图片到目录内，方便开发者调试
+    # tst = int(time.time())
+    # dir_test = r"img_test"
+    # if not os.path.exists(dir_test):
+    #     os.mkdir(dir_test)
+    # Image.fromarray(img).save(rf"{dir_test}\{tst}-img.png")
+    # Image.fromarray(cropped_img).save(rf"{dir_test}\{tst}-cropped-{confidence}.png")
+    # Image.fromarray(template_img).save(rf"{dir_test}\{tst}-template.png")
+    # time.sleep(1)
+    # print("\n保存" + str(tst) + ", 匹配: " + str(confidence))
     if confidence < threshold:
         return None
     max_loc = np.where(res == confidence)

@@ -927,46 +927,57 @@ def echo_bag_lock():
         return True
     # 判断当前声骸是否未锁定
     img = screenshot()
-    coordinate_lock = find_pic(1700, 270, 1850, 395, f"声骸锁定{info.adaptsResolution}.png", 0.98, img, False)
     coordinate_unlock = find_pic(1700, 270, 1850, 395, f"声骸未锁定{info.adaptsResolution}.png", 0.98, img, False)
-    if coordinate_lock:
-        lock_position = coordinate_lock
+    # 先检测未锁定，再检测锁定，更快
+    if coordinate_unlock:
+        this_echo_lock = False
+        info.echoIsLockQuantity = 0
+        if config.EchoDebugMode:
+            logger("当前声骸未锁定", "DEBUG")
+    # 是否为锁定
+    elif find_pic(1700, 270, 1850, 395, f"声骸锁定{info.adaptsResolution}.png", 0.98, img, False):
         info.echoIsLockQuantity += 1
         if config.EchoDebugMode:
             logger("当前声骸已锁定", "DEBUG")
         if info.echoIsLockQuantity > config.EchoMaxContinuousLockQuantity:
             logger(f"连续检出已锁定声骸{info.echoIsLockQuantity}个，超出设定值，结束", "DEBUG")
             logger(f"本次总共检查{info.echoNumber}个声骸，有{info.inSpecEchoQuantity}符合条件并锁定！！")
-            this_echo_lock = True
             return False
         echo_next_row(info.echoNumber)
         return True
-    # elif contrast_colors((1812, 328), (36, 35, 11), 0.6):
-    elif coordinate_unlock:
-        lock_position = coordinate_unlock
-        this_echo_lock = False
-        info.echoIsLockQuantity = 0
-        if config.EchoDebugMode:
-            logger("当前声骸未锁定", "DEBUG")
     else:
-        this_echo_lock = None
         logger("未检测到当前声骸锁定状况", "WARN")
         return False
 
     # 识别声骸Cost
     this_echo_cost = None
-    img = screenshot()
-    if find_pic(1690, 200, 1830, 240, f"COST1{info.adaptsResolution}.png", 0.98, img, False):
-        this_echo_cost = "1"
-    if find_pic(1690, 200, 1830, 240, f"COST3{info.adaptsResolution}.png", 0.98, img, False):
-        this_echo_cost = "3"
+    # 先检测cost 4
     if find_pic(1690, 200, 1830, 240, f"COST4{info.adaptsResolution}.png", 0.98, img, False):
         this_echo_cost = "4"
+    elif find_pic(1690, 200, 1830, 240, f"COST1{info.adaptsResolution}.png", 0.98, img, False):
+        this_echo_cost = "1"
+    elif find_pic(1690, 200, 1830, 240, f"COST3{info.adaptsResolution}.png", 0.98, img, False):
+        this_echo_cost = "3"
+
     if this_echo_cost is None:
-        logger("未能识别到Cost","ERROR")
+        logger("未能识别到Cost", "ERROR")
         return False
     if config.EchoDebugMode:
         logger(f"当前声骸Cost为{this_echo_cost}", "DEBUG")
+
+    this_echo_cost_key = this_echo_cost + "COST"
+
+    # 当配置文件每个套装的这个cost值需要的词条一条也没写，即都不需要，直接跳过，不检测主词条
+    this_echo_cost_not_in_echo_config = True
+    for cost_config_dict in config.EchoLockConfig.values():
+        this_echo_cost_not_in_echo_config &= len(cost_config_dict.get(this_echo_cost_key)) == 0
+    if this_echo_cost_not_in_echo_config:
+        if config.EchoDebugMode:
+            logger(f"[Cost {this_echo_cost}]声骸都不需要，下一个", "DEBUG")
+        echo_next_row(info.echoNumber)
+        # 等一会，防止太快来不及挪到下一个
+        time.sleep(0.3)
+        return True
 
     # 识别声骸主词条属性
     if this_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
@@ -984,63 +995,56 @@ def echo_bag_lock():
         "3": (echo.echoCost3MainStatus, 1),
         "4": (echo.echoCost4MainStatus, 1),
     }
-    if this_echo_cost in cost_mapping:
-        func, param = cost_mapping[this_echo_cost]
-        text_result = wait_text_designated_area(func, param, region, 3)
-        this_echo_main_status = wait_text_result_search(text_result)
-        if this_echo_main_status is False:
-            text_result = wait_text_designated_area("灭伤害加成", 1, region, 3)
-            if text_result:
-                this_echo_main_status = "湮灭伤害加成"
+    func, param = cost_mapping[this_echo_cost]
+    text_result = wait_text_designated_area(func, param, region, 3)
+    this_echo_main_status = wait_text_result_search(text_result)
+    if this_echo_main_status is False:
+        text_result = wait_text_designated_area("灭伤害加成", 1, region, 3)
+        if text_result:
+            this_echo_main_status = "湮灭伤害加成"
+    if config.EchoDebugMode:
+        logger(f"当前声骸主词条为：{this_echo_main_status}", "DEBUG")
+    if this_echo_main_status is None or this_echo_main_status is False:
+        logger(f"声骸主属性识别错误", "ERROR")
+        return False
+
+    # 每个套装都不需要这个cost对应的主属性，直接跳过，不检测套装属性
+    echo_main_is_not_exist_in_all_set = True
+    # 每个套装都需要这个cost对应的主属性，直接锁定，不检测套装属性
+    echo_main_is_exist_in_all_set = True
+    for cost_config_dict in config.EchoLockConfig.values():
+        echo_main_is_not_exist_in_all_set &= this_echo_main_status not in cost_config_dict.get(this_echo_cost_key)
+        echo_main_is_exist_in_all_set &= this_echo_main_status in cost_config_dict.get(this_echo_cost_key)
+    if echo_main_is_not_exist_in_all_set:
         if config.EchoDebugMode:
-            logger(f"当前声骸主词条为：{this_echo_main_status}", "DEBUG")
-    else:
-        random_click(1510, 690)
-        time.sleep(0.02)
-        for i in range(18):
-            control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.02)
-        time.sleep(0.8)
-        random_click(1510, 690)
-        if this_echo_cost in cost_mapping:
-            func, param = cost_mapping[this_echo_cost]
-            text_result = wait_text_designated_area(func, param, region, 3)
-            this_echo_main_status = wait_text_result_search(text_result)
-            if this_echo_main_status is False:
-                text_result = wait_text_designated_area("灭伤害加成", 1, region, 3)
-                if text_result:
-                    this_echo_main_status = "湮灭伤害加成"
-            if config.EchoDebugMode:
-                logger(f"当前声骸主词条为：{this_echo_main_status}", "DEBUG")
-        else:
-            logger(f"声骸主词条识别错误", "ERROR")
-            return False
+            logger(f"主属性[{str(this_echo_main_status)}]都不需要，下一个", "DEBUG")
+        echo_next_row(info.echoNumber)
+        return True
+    if echo_main_is_exist_in_all_set:
+        if config.EchoDebugMode:
+            logger(f"主属性[{str(this_echo_main_status)}]都需要，直接锁定", "DEBUG")
+        info.inSpecEchoQuantity += 1
+        click_position(coordinate_unlock)
+        time.sleep(0.5)
+        echo_next_row(info.echoNumber)
+        return True
 
     # 识别声骸套装属性
     region = set_region(1295, 430, 1850, 930)
+    random_click(1510, 690)
+    time.sleep(0.02)
+    for i in range(18):
+        control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
+        time.sleep(0.02)
+    time.sleep(0.8)
+    random_click(1510, 690)
     text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
-    if this_echo_set:
-        if config.EchoDebugMode:
-            logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
-        pass
-    else:
-        random_click(1510, 690)
-        time.sleep(0.02)
-        for i in range(18):
-            control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.02)
-        time.sleep(0.8)
-        random_click(1510, 690)
-        text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
-        this_echo_set = wait_text_result_search(text_result)
-        if this_echo_set:
-            if config.EchoDebugMode:
-                logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
-            pass
-        else:
-            logger(f"声骸套装识别错误", "ERROR")
-            return False
+    if not this_echo_set:
+        logger(f"声骸套装识别错误", "ERROR")
+        return False
+    if config.EchoDebugMode:
+        logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
 
     # 声骸信息合成
     log_str = (
@@ -1051,8 +1055,7 @@ def echo_bag_lock():
             f"，{this_echo_main_status}"
     )
     # 锁定声骸，输出声骸信息
-    this_echo_cost = this_echo_cost + "COST"
-    if is_echo_main_status_valid(this_echo_set, this_echo_cost, this_echo_main_status, config.EchoLockConfig):
+    if is_echo_main_status_valid(this_echo_set, this_echo_cost_key, this_echo_main_status, config.EchoLockConfig):
         if this_echo_lock is True:
             if config.EchoDebugMode:
                 logger("当前声骸符合要求，已处于锁定状态", "DEBUG")
@@ -1065,12 +1068,22 @@ def echo_bag_lock():
             log_str = log_str + "，执行锁定"
             info.inSpecEchoQuantity += 1
             # random_click(1807, 327)
-            click_position(lock_position)
+            click_position(coordinate_unlock)
             time.sleep(0.5)
             logger(log_str)
     else:
         if config.EchoDebugMode:
             logger(f"不符合，跳过", "DEBUG")
+
+    # 上滚恢复到主词条页面
+    random_click(1510, 690)
+    time.sleep(0.02)
+    for i in range(18):
+        control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
+        time.sleep(0.02)
+    time.sleep(0.8)
+    random_click(1510, 690)
+
     # echo_next_row(this_echo_row)
     echo_next_row(info.echoNumber)
 
@@ -1161,7 +1174,7 @@ def echo_synthesis():
                     time.sleep(0.02)
                 time.sleep(0.8)
                 random_click(1000, 685)
-        region = set_region(830, 440, 1250, 485)
+        region = set_region(830, 440, 1250, 470)
         cost_mapping = {
             "1": (echo.echoCost1MainStatus, 1),
             "3": (echo.echoCost3MainStatus, 1),

@@ -1,12 +1,18 @@
-__version__ = "1.0.6"
-release_date = "2024-06-27"
-description = "更新支持命令行参数"
+__version__ = "1.0.7"
+release_date = "2024-07-03"
+description = "更新"
+
+# ver1.0.7
+# update:2024-07-03
+# updated by wakening
+# 1.修复声骸锁定异常退出bug，无法识别主属性bug
+# 2.声骸锁定代码逻辑优化，提升执行速度
 
 # ver1.0.6
 # update:2024-06-27
 # updated by wakening
 # 1.增加了命令行参数-t/--task，可以在启动后立即打boss，无需再按快捷键
-# 1.增加了命令行参数-c/--config，可以指定自定义的配置文件，打不同boss使用不同配置启动
+# 2.增加了命令行参数-c/--config，可以指定自定义的配置文件，打不同boss使用不同配置启动
 
 # ver1.0.5
 # update:2024-06-26

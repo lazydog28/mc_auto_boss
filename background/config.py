@@ -12,6 +12,7 @@ import winreg
 from cmd_line import get_config_path
 from constant import wait_exit, root_path
 from typing import Optional, Dict, List
+from echo import EchoModel
 
 
 class Config(BaseModel):
@@ -126,6 +127,20 @@ if config.EchoLock:
         with open(os.path.join(root_path, "echo_config.yaml"), "r", encoding="utf-8") as f:
             echo_config_data = yaml.safe_load(f)
             config.EchoLockConfig = echo_config_data.get("EchoLockConfig", {})
+        # 补齐数据结构，保证该有的key和value都有，将没有的值赋为空数组而非None，
+        # 保证后续遍历处理时每个套装都能过一遍，也不用再判None
+        echo_model = EchoModel()
+        for echo_set_name in echo_model.echoSetName:
+            if config.EchoLockConfig is None:
+                config.EchoLockConfig = {}
+            echo_set_dict = config.EchoLockConfig.get(echo_set_name)
+            if echo_set_dict is None:
+                echo_set_dict = {}
+                config.EchoLockConfig[echo_set_name] = echo_set_dict
+            if len(echo_set_dict) == 0:
+                for cost in echo_model.echoCost:
+                    echo_set_dict[cost + "COST"] = []
+        # print("\n" + str(config.EchoLockConfig))
     else:
         print("缺少声骸配置文件")
         wait_exit()
