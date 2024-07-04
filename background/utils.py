@@ -396,7 +396,8 @@ def screenshot() -> np.ndarray | None:
     # 尝试使用PrintWindow函数截取窗口图像
     result = windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 3)
     if result != 1:
-        logger("截取屏幕失败", "ERROR")
+        config.RebootCount += 1
+        logger("截取游戏窗口失败，请勿最小化窗口，重试次数：" + str(config.RebootCount), "ERROR")
         # 释放所有资源
         try:
             win32gui.DeleteObject(saveBitMap.GetHandle())
@@ -406,8 +407,16 @@ def screenshot() -> np.ndarray | None:
             del hwndDC, mfcDC, saveDC, saveBitMap
         except Exception as e:
             logger(f"清理截图资源失败: {e}", "ERROR")
-        return screenshot()  # 如果截取失败，则重试
-
+        #重试，若失败多次重新启动游戏以唤醒至前台(ArcS17)
+        if config.RebootCount < 10:
+            return screenshot()  # 如果截取失败，则重试十次
+        else:
+            config.RebootCount = 0
+            logger("正在重新启动游戏及脚本...", "INFO")
+            from main import close_window
+            close_window("UnrealWindow", "鸣潮  ")
+            raise Exception('截取游戏窗口失败且重试次数超过上限，正在重启游戏')
+        
     # 从位图中获取图像数据
     bmp_info = saveBitMap.GetInfo()  # 获取位图信息
     bmp_str = saveBitMap.GetBitmapBits(True)  # 获取位图数据
@@ -896,7 +905,6 @@ def echo_bag_lock():
     adapts()
     """
     声骸锁定
-    目前只支持背包锁定，暂不支持合成时判断
     """
     # 开始执行判断
     if not config.EchoLock:
@@ -910,8 +918,9 @@ def echo_bag_lock():
         this_echo_row -= 1
     if info.echoNumber == 1:
         logger("检测到声骸背包画面，3秒后将开始执行锁定程序，过程中请不要将鼠标移到游戏内。", "DEBUG")
-        logger("tips:此功能需要关闭声骸详细描述(在角色声骸装备处打开简介这里是详情，关闭简介这里是简介，反着的)", "WARN")
-        logger("步骤:点击键盘【C键】打开共鸣者，点击声骸，点击任意声骸，点击右上角简述将开关拨向左边，声骸描述文字变多就对了", "WARN")
+        logger("tips:此功能需要关闭声骸详细描述(即在角色声骸装备处显示详情，在背包内显示简介)", "WARN")
+        logger("步骤:点击键盘【C键】打开共鸣者，点击声骸，点击任意声骸，点击右上角简述将开关拨向左边", "WARN")
+        logger("请使用已适配分辨率：\n  1920*1080分辨率1.0缩放\n  1600*900分辨率1.0缩放\n  1280*720分辨率1.5缩放\n 1280*720分辨率1.0缩放", "WARN")
         time.sleep(3)
         # 切换到时间顺序(倒序)
         logger("切换为时间倒序")
@@ -1180,15 +1189,16 @@ def echo_synthesis():
     def check_echo_cost():
         this_synthesis_echo_cost = None
         cost_img = screenshot()
-        if find_pic(1090, 210, 1230, 255, f"合成_COST1{info.adaptsResolution}.png", 0.98, cost_img, False):
+        if find_pic(1090, 210, 1240, 295, f"合成_COST1{info.adaptsResolution}.png", 0.98, cost_img, False):
             this_synthesis_echo_cost = "1"
-        if find_pic(1075, 195, 1230, 255, f"合成_COST3{info.adaptsResolution}.png", 0.98, cost_img, False):
+        if find_pic(1075, 195, 1240, 295, f"合成_COST3{info.adaptsResolution}.png", 0.98, cost_img, False):
             this_synthesis_echo_cost = "3"
-        if find_pic(1075, 195, 1230, 255, f"合成_COST4{info.adaptsResolution}.png", 0.98, cost_img, False):
+        if find_pic(1075, 195, 1240, 295, f"合成_COST4{info.adaptsResolution}.png", 0.98, cost_img, False):
             this_synthesis_echo_cost = "4"
         if this_synthesis_echo_cost is None:
             logger("未能识别到Cost", "ERROR")
-            return False
+            raise Exception('Cost识别失败，请检查是否使用推荐分辨率：\n  1920*1080分辨率1.0缩放\n  1600*900分辨率1.0缩放\n  1280*720分辨率1.5缩放\n 1280*720分辨率1.0缩放')
+            # 识别失败返回false将抛出TypeError，在此处提醒使用适配完善的分辨率(ArcS17)
         if config.EchoSynthesisDebugMode:
             logger(f"当前声骸Cost为{this_synthesis_echo_cost}", "DEBUG")
         return this_synthesis_echo_cost
@@ -1197,7 +1207,7 @@ def echo_synthesis():
         if this_synthesis_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
             random_click(1000, 685)
             time.sleep(0.02)
-            if find_pic(715, 480, 760, 520, f"声骸_攻击{info.adaptsResolution}.png", 0.7, need_resize=False) is None:
+            if find_pic(715, 480, 770, 530, f"声骸_攻击{info.adaptsResolution}.png", 0.7, need_resize=False) is None:
                 for i in range(18):
                     control.scroll(1, 1000 * width_ratio, 685 * height_ratio)
                     time.sleep(0.02)
@@ -1346,6 +1356,7 @@ def echo_synthesis():
     purple = (255, 172, 255)
     gold = (255, 239, 171)
     results = []
+    print(results) # Debug使用
     img = screenshot()
     for point in check_point_list:
         result = contrast_colors(point, purple, 0.85, False, img)
@@ -1354,6 +1365,7 @@ def echo_synthesis():
     for point in check_point_list:
         result = contrast_colors(point, gold, 0.85, False, img)
         results.append(result)
+    #print(results) # Debug用(AcS17)
     if results[0] or results[0 + purple_length]:
         if results[3] is False and results[3 + purple_length] is False:
             if config.EchoSynthesisDebugMode:
@@ -1381,6 +1393,8 @@ def echo_synthesis():
         check_synthesis_echo_level_and_quantity(3, results, click_point_list)
     else:
         logger("声骸识别出现问题(2)", "ERROR")
+        logger("\n合成结果识别失败，请检查是否使用推荐分辨率：\n 1920*1080分辨率1.0缩放\n 1920*1080分辨率1.75缩放\n 1600*900分辨率1.0缩放\n 1280*720分辨率1.0缩放", "WARn")
+        # 此处提醒使用适配完善的分辨率(ArcS17)
         return False
 
 
@@ -1423,23 +1437,43 @@ def adapts():
     def calculate_distance(w1, h1, w2, h2):
         return ((w1 - w2) ** 2 + (h1 - h2) ** 2) ** 0.5
     if adapts_type is None:
-        if 1910 <= real_w <= 1930 and 1070 <= real_h <= 1090:
+        if 1910 <= real_w <= 1930 and 1070 <= real_h <= 1090: # 判断适配1920*1080
             logger("分辨率正确，使用原生坐标")
             info.adaptsType = 1
             info.adaptsResolution = "_1920_1080"
-        elif 1270 <= real_w <= 1290 and 710 <= real_h <= 730:
+        elif 1590 <= real_w <= 1610 and 890 <= real_h <= 910: # 判断适配1600*900
             logger("分辨率正确，使用适配坐标")
             info.adaptsType = 2
+            info.adaptsResolution = "_1600_900"
+        # elif 1430 <= real_w <= 1450 and 890 <= real_h <= 910: # template比例实际与1600*900相同但region需要重设(ArcS17)
+        #     logger("分辨率正确，使用通用坐标")
+        #     info.adaptsType = 2
+        #     info.adaptsResolution = "_1600_900"
+        elif 1360 <= real_w <= 1380 and 750 <= real_h <= 790: # 判断适配1366*768
+            logger("分辨率正确，使用适配坐标")
+            info.adaptsType = 3
+            info.adaptsResolution = "_1366_768"
+        elif 1270 <= real_w <= 1290 and 710 <= real_h <= 730: # 判断适配1280*720
+            logger("分辨率正确，使用适配坐标")
+            info.adaptsType = 4
             info.adaptsResolution = "_1280_720"
         else:
-            logger("尝试使用相近分辨率，如有问题，请切换分辨率到 1920*1080 或者 1280*720", "WARN")
-            info.adaptsType = 3
-        if info.adaptsType == 3:
+            logger("尝试使用相近分辨率，如有问题，请切换分辨率到 1920*1080*1.0 或者 1280*720*1.0", "WARN")
+            info.adaptsType = 5
+        if info.adaptsType == 5:
             distance_1920_1080 = calculate_distance(real_w, real_h, 1920, 1080)
+            distance_1600_900 = calculate_distance(real_w, real_h, 1600, 900)
+            distance_1366_768 = calculate_distance(real_w, real_h, 1366, 768)
             distance_1280_720 = calculate_distance(real_w, real_h, 1280, 720)
-            if distance_1920_1080 < distance_1280_720:
+            if distance_1920_1080 < distance_1600_900:
                 info.adaptsType = 1
                 info.adaptsResolution = "_1920_1080"
-            else:
+            elif distance_1600_900 < distance_1366_768:
                 info.adaptsType = 2
+                info.adaptsResolution = "_1600_900"
+            elif distance_1366_768 < distance_1280_720:
+                info.adaptsType = 3
+                info.adaptsResolution = "_1366_768"
+            else:
+                info.adaptsType = 4
                 info.adaptsResolution = "_1280_720"

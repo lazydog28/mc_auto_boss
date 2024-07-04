@@ -1,6 +1,16 @@
-__version__ = "1.0.7"
-release_date = "2024-07-03"
+__version__ = "1.0.8"
+release_date = "2024-07-05"
 description = "更新"
+
+# ver1.0.8
+# update:2024-07-05
+# updated by ArcS17
+# 1.优化了游戏窗口崩溃后重启启动游戏及脚本的逻辑
+# 2.修复了一个BUG（崩溃后log统计战斗次数为0会抛出TypeError: cannot unpack non-iterable NoneType object）
+# 3.增加了在config文件设置游戏定时重启的功能
+# 4.增加了多次截取游戏窗口失败后重启游戏及脚本的功能
+# 5.增加了声骸锁定及声骸合成功能对1600*900分辨率1.0缩放、1366*768分辨率1.0缩放的适配
+# 6.增加了声骸识别失败后主动抛出适配分辨率提醒
 
 # ver1.0.7
 # update:2024-07-03

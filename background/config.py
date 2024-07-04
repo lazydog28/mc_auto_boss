@@ -47,9 +47,14 @@ class Config(BaseModel):
     EchoLock: bool = Field(False, title="是否启用锁定声骸功能")
     EchoLockConfig: Dict[str, Dict[str, List[str]]] = Field(default_factory=dict)
     EchoMaxContinuousLockQuantity: int = Field(5, title="最大连续检测到已锁定声骸的数量")
+    ReStartWutheringWavas: bool = Field(False, title="为避免游戏卡10%、75%等特殊进度定时重启游戏的开关")
+    ReStartWutheringWavasTime: int = Field(10800, title="游戏自动重启间隔时间")
+    RebootScreenshot: bool = Field(False, title="是否在游戏窗口存在但截取图像失败后重启")
+    RebootCount: int = Field(0, title="截取窗口失败次数")
     GameMonitorTime: int = Field(5, title="游戏窗口检测间隔时间")
     EchoDebugMode: bool = Field(True, title="声骸锁定功能DEBUG显示输出的开关")
     EchoSynthesisDebugMode: bool = Field(True, title="声骸合成锁定功能DEBUG显示输出的开关")
+
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     LogFilePath: Optional[str] = Field(None, title="日志文件路径")

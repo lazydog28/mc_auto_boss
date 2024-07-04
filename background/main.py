@@ -28,10 +28,11 @@ app_path = config.AppPath
 def restart_app(e: event):
     if app_path:
         while True:
-            # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2小时重启一次
-            # time.sleep(1800)
-            # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
-            time.sleep(config.GameMonitorTime)  # 每秒检测一次，游戏窗口      改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
+            # 定时重启功能设置已加入config.yaml(ArcS17)
+            if config.ReStartWutheringWavas:
+                time.sleep(config.ReStartWutheringWavasTime)
+                manage_application("UnrealWindow", "鸣潮  ", app_path,e)
+            time.sleep(config.GameMonitorTime)  # 每秒检测一次，游戏窗口   改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
             find_ue4("UnrealWindow", "UE4-Client Game已崩溃  ")
             find_game_windows("UnrealWindow", "鸣潮  ", e)
             
@@ -61,10 +62,11 @@ def find_game_windows(class_name, window_title, taskEvent):
                 logger("启动失败，五秒后尝试重新启动...")
             # 运行方法一需要有前提条件
             # 如果重启成功，执行方法一
-            time.sleep(20)
+            time.sleep(15)
             taskEvent.clear()  # 清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
            
             logger("自动启动BOSS脚本")
+            time.sleep(10) # 增加重启线程延时避免重启游戏加载过程中仍无法截取游戏窗口(ArcS17)
             thread = Process(target=run, args=(boss_task, taskEvent), name="task")
             thread.start()
         else:  
@@ -94,7 +96,7 @@ def restart_application(app_path):
         # 尝试启动应用程序，如果成功返回 True，否则返回 False
         try:
             subprocess.Popen(app_path)
-            logger("游戏疑似发生崩溃，尝试重启游戏......")
+            logger("游戏疑似发生崩溃或自动关闭，尝试重启游戏...")
             # 判断根目录文件isCrashes.txt是否存在，如果存在则删除
             is_crashes_file = os.path.join(config.project_root, "isCrashes.txt")
             if os.path.exists("isCrashes.txt"):
@@ -112,7 +114,7 @@ def restart_application(app_path):
 def manage_application(class_name, window_title, app_path, taskEvent):
     if app_path:
         # 先停止脚本
-        logger("自动暂停脚本！@")
+        logger("自动暂停脚本！")
         taskEvent.clear()
         while True:
             if close_window(class_name, window_title):
@@ -184,7 +186,7 @@ def on_press(key):
         logger("启动融合脚本")
         try:
             input(
-                "启动融合脚本之前请确保已锁定现有的有用声骸！确定已锁定后按回车继续..."
+                "启动融合脚本之前请确保已锁定现有的有用声骸，并确认使用已适配分辨率：\n  1920*1080分辨率1.0缩放\n  1600*900分辨率1.0缩放\n  1280*720分辨率1.5缩放\n 1280*720分辨率1.0缩放"
             )
         except Exception:
             pass
@@ -271,7 +273,7 @@ if __name__ == "__main__":
         "--------------------------------------------------------------\n"
     )
     print("请确认已经配置好了config.yaml文件\n")
-    print("使用说明：\n   F5 启动脚本\n   F6 合成声骸\n   F7 暂停运行\n   F8 锁定声骸\n   F12 停止运行")
+    print("使用说明：\n   F5  启动脚本\n   F6  合成声骸\n   F7  暂停运行\n   F8  锁定声骸\n   F12 停止运行")
     logger("开始运行")
     run_cmd_tasks_async()
     with Listener(on_press=on_press) as listener:
