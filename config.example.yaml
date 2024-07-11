@@ -8,8 +8,10 @@ LogFilePath: # 日志保存路径，留空即为项目根目录，如需设置�
 # 游戏崩溃捕获及处理
 RestartWutheringWaves: false # 定时重启游戏以避免游戏卡10%、75%等特殊进度及UE4崩溃，与DetectionUE4开启任一
 RestartWutheringWavesTime: 7200 # 单位为秒，如7200秒且RestartWutheringWaves为True即两小时重启一次
-DetectionUE4: True # 是否检测UE4崩溃窗口，推荐开启True 
+DetectionUE4: true # 是否检测UE4崩溃窗口，推荐开启True 
 UE4_POPUP: 30 # UE4崩溃窗口检测的间隔时间，默认30秒检测一次
+ISLoading: true #过进度条的时候检测,卡加载进度开关-支持显示加载进度(只适配了1920*1080  1280*720)
+ISLoadingTimeout: 8 # 卡加载进度超时时间(秒)-8秒内加载进度值不变，则自动关闭窗口，重启游戏，注意：请勿遮挡右下角加载进度值区域
 
 # 控制台信息
 EchoDebugMode: true #声骸锁定功能DEBUG显示输出的开关
