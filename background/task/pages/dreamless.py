@@ -13,7 +13,7 @@ from datetime import timedelta
 
 # 防止卡加载
 from config import config
-
+from is_loading import isNumber_isloading_disPlays
 pages = []
 
 
@@ -155,7 +155,9 @@ def start_challenge_action(positions: dict[str, Position]) -> bool:
     """
     position = positions["开启挑战"]
     click_position(position)
-    time.sleep(0.5)
+    # time.sleep(0.5)
+    if config.ISLoading:
+        isNumber_isloading_disPlays(0.01)
     info.lastFightTime = datetime.now()
     return True
 
@@ -217,7 +219,9 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     click_position(positions["确认"])
-    time.sleep(0.5)
+    # time.sleep(0.5)
+    if config.ISLoading:
+        isNumber_isloading_disPlays(0.01)
     wait_home()
     logger(f"{info.lastBossName}副本结束")
     time.sleep(2)
