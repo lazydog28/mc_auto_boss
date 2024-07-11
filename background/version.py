@@ -1,7 +1,13 @@
-__version__ = "1.2.3"
-release_date = "2024-07-09"
+__version__ = "1.2.4"
+release_date = "2024-07-11"
 description = "更新"
 
+# ver1.2.4
+# update:2024-07-11
+# updated by wangll5t
+# 1.新增过地图与进入游戏时显示过地图加载进度
+# 2.新增过地图与进入游戏的时,检测进度值是否超时(请在config.yaml中进行配置)
+# 3.修复了安装依赖报错的问题 注意:请勿在requirement.txt文件中设置中文注释-否则在安装依赖的时候会报错
 
 # ver1.2.3
 # update:2024-07-08
