@@ -26,6 +26,7 @@ from schema import Position
 from datetime import datetime
 from yolo import search_echoes
 from echo import echo
+from is_loading import isNumber_isloading_disPlays
 
 
 def interactive():
@@ -324,6 +325,8 @@ def transfer_to_boss(bossName):
         click_position(transfer.position)
         logger("等待传送完成")
         # time.sleep(0.1)
+        if config.ISLoading:
+            isNumber_isloading_disPlays(0.01)
         wait_home()  # 等待回到主界面
         logger("传送完成")
         now = datetime.now()
@@ -363,7 +366,9 @@ def transfer_to_dreamless():
     if transfer := wait_text("快速旅行"):
         click_position(transfer.position)
         logger("等待传送完成")
-        time.sleep(0.2)
+        # time.sleep(0.2)
+        if config.ISLoading:
+            isNumber_isloading_disPlays(0.01)
         wait_home()  # 等待回到主界面
         logger("传送完成")
         time.sleep(2)
@@ -798,7 +803,9 @@ def transfer_to_heal(healBossName: str = "朔雷之鳞"):
     if transfer := wait_text("快速旅行"):
         click_position(transfer.position)
         logger("治疗_等待传送完成")
-        time.sleep(3)
+        # time.sleep(3)
+        if config.ISLoading:
+            isNumber_isloading_disPlays(0.01)
         wait_home()  # 等待回到主界面
         logger("治疗_传送完成")
         now = datetime.now()
