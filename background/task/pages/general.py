@@ -255,7 +255,8 @@ def receive_rewards(positions: dict[str, Position]) -> bool:
     :return:
     """
     control.esc()  # 退出
-    time.sleep(2)
+    time.sleep(1)
+    control.esc()  # 修复了领取奖励与点击离开无法退出的问题-与打完boss后，当角色在领取奖励的地方搜索声骸准备离开时候，会卡在这无法点击离开(by wang115t)
     return True
 
 
