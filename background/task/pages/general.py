@@ -7,7 +7,7 @@
 """
 import hwnd_util
 from . import *
-
+from is_loading import isNumber_isloading_disPlays
 pages = []
 
 
@@ -331,6 +331,8 @@ def login_action(positions: dict[str, Position]) -> bool:
                 click_position(result.position)
                 # 暂停0.4秒
                 time.sleep(0.4)
+            if config.ISLoading: #进入游戏的时候，检测卡加载
+                isNumber_isloading_disPlays(0.01)            
     # 如果在try语句块中发生异常，执行except语句块中的代码
     except Exception as e:
         # 打印异常信息
@@ -344,6 +346,8 @@ def login_action(positions: dict[str, Position]) -> bool:
                 click_position(result.position)
                 # 暂停0.4秒
                 time.sleep(0.4)
+            if config.ISLoading: #进入游戏的时候，检测卡加载
+                isNumber_isloading_disPlays(0.01)     
             # 返回False
         return False
     # 如果没有发生异常，返回True
