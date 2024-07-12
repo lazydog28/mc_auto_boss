@@ -7,3 +7,11 @@
 不看README的别用。
 
 此版本不保证持续更新，倒卖的自重，后续自己维护。
+
+【重要】
+
+从主仓库更新的别直接把config.yaml复制过来，
+
+自己把config.example.yaml复制一份改名为config.yaml，
+
+然后更改其中的内容。
