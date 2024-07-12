@@ -14,8 +14,9 @@ import numpy as np
 from re import Pattern, template
 from PIL import Image
 import cv2
+import re
 from constant import width_ratio, height_ratio
-from status import logger, info
+from status import Status, logger, info
 
 
 class Position(BaseModel):
@@ -71,7 +72,8 @@ class ImageMatch(BaseModel):
 
 
 def match_template(
-        img: np.ndarray, template_img: np.ndarray, region: tuple = None, threshold: float = 0.8, need_resize: bool = True
+        img: np.ndarray, template_img: np.ndarray, region: tuple = None, threshold: float = 0.8, need_resize: bool = True,
+        tmp_is_transparent_background: bool = False
 ) -> None | ImgPosition:
     """
     使用 opencv matchTemplate 方法在指定区域内进行模板匹配并返回匹配结果
@@ -80,13 +82,16 @@ def match_template(
     :param region: 区域（x1, y1, x2, y2），默认为 None 表示全图搜索
     :param threshold:  阈值
     :param need_resize: 图片是否需要缩放
+    :param tmp_is_transparent_background: 是否是有透明背景的template图片
     :return: ImgPosition 或 None
     """
     # 判断是否为灰度图，如果不是转换为灰度图
     if len(img.shape) == 3:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    if len(template_img.shape) == 3:
-        template_img = cv2.cvtColor(template_img, cv2.COLOR_BGR2GRAY)
+    if not tmp_is_transparent_background:
+        if len(template_img.shape) == 3:
+            template_img = cv2.cvtColor(template_img, cv2.COLOR_BGR2GRAY)
+
     # 如果提供了region参数，则裁剪出指定区域，否则使用整幅图像
     if region:
         x1, y1, x2, y2 = region
@@ -94,21 +99,55 @@ def match_template(
     else:
         cropped_img = img
         x1, y1 = 0, 0
-    if need_resize:
+
+    if not tmp_is_transparent_background and need_resize:
         template_img = cv2.resize(template_img, (0, 0), fx=width_ratio, fy=height_ratio)
-    res = cv2.matchTemplate(cropped_img, template_img, cv2.TM_CCOEFF_NORMED)
+
+    if tmp_is_transparent_background:  # 此模式需要图片有alpha通道，且alpha通道为透明背景，置信度在0.6左右
+        if template_img.shape[0] == 256 and template_img.shape[1] == 256:     # 如果是256*256，则裁剪为128*128
+            template_img = cv2.resize(template_img, (128, 128))
+        if need_resize:
+            template_img = cv2.resize(template_img, (0, 0), fx=width_ratio, fy=height_ratio)
+        if len(template_img.shape) == 3 and template_img.shape[2] == 4:
+            bgr_template = template_img[:, :, :3]
+            alpha_template = template_img[:, :, 3]
+            gray_template = cv2.cvtColor(bgr_template, cv2.COLOR_BGR2GRAY)
+            _, mask = cv2.threshold(alpha_template, 1, 255, cv2.THRESH_BINARY)
+        else:
+            # print("目标图片没有Alpha通道")
+            gray_template = cv2.cvtColor(template_img, cv2.COLOR_BGR2GRAY)
+            mask = None
+        cropped_img = cv2.equalizeHist(cropped_img)
+        gray_template = cv2.equalizeHist(gray_template)
+        res = cv2.matchTemplate(cropped_img, gray_template, cv2.TM_CCOEFF_NORMED, mask=mask)
+    else:
+        res = cv2.matchTemplate(cropped_img, template_img, cv2.TM_CCOEFF_NORMED)
+
     confidence = np.max(res)
     if confidence < threshold:
         return None
-    max_loc = np.where(res == confidence)
 
-    return ImgPosition(
-        x1=max_loc[1][0] + x1,
-        y1=max_loc[0][0] + y1,
-        x2=max_loc[1][0] + x1 + template_img.shape[1],
-        y2=max_loc[0][0] + y1 + template_img.shape[0],
-        confidence=confidence,
-    )
+    if tmp_is_transparent_background:
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    else:
+        max_loc = np.where(res == confidence)
+
+    if tmp_is_transparent_background:
+        return ImgPosition(
+            x1=max_loc[0] + x1,
+            y1=max_loc[1] + y1,
+            x2=max_loc[0] + x1 + template_img.shape[1],
+            y2=max_loc[1] + y1 + template_img.shape[0],
+            confidence=confidence,
+        )
+    else:
+        return ImgPosition(
+            x1=max_loc[1][0] + x1,
+            y1=max_loc[0][0] + y1,
+            x2=max_loc[1][0] + x1 + template_img.shape[1],
+            y2=max_loc[0][0] + y1 + template_img.shape[0],
+            confidence=confidence,
+        )
 
 
 def is_position_contained(container: Position, contained: Position) -> bool:
@@ -274,6 +313,39 @@ class Task(BaseModel):
 
     # 被调用时执行任务
     def __call__(self, img: np.ndarray, ocrResults: List[OcrResult]):
+        if info.status == Status.fight:
+            self.handle_fight_status(img, ocrResults)
+        else:
+            self.handle_other_status(img, ocrResults)
+        for conditionalAction in self.conditionalActions:
+            match_conditional_action = conditionalAction()
+            if match_conditional_action:
+                logger(f"当前条件操作：{conditionalAction.name}")
+                conditionalAction.action()
+
+    def handle_fight_status(self, img: np.ndarray, ocrResults: List[OcrResult]):
+        from utils import set_region, wait_text_designated_area, check_in_animation
+        from task.pages.general import fight_action
+        region = set_region(50, 255, 500, 425)
+        text_result = wait_text_designated_area(r"(击败|对战)", timeout=3, region=region, full_text_return=True, img=img)
+        if text_result and text_result[0].text != "":
+            result = re.sub(r'[^\u4e00-\u9fff]', '', text_result[0].text)
+            if re.search(r"击败|对战", result):
+                fight_action(text_result)
+            else:
+                if check_in_animation(img=img) == "is animation":
+                    self.process_pages(img, ocrResults)
+                else:
+                    if info.fightEndFlag:
+                        info.status = Status.idle
+                    info.fightEndFlag = True
+                    info.fightEndTime = datetime.now()
+                    self.process_pages(img, ocrResults)
+
+    def handle_other_status(self, img: np.ndarray, ocrResults: List[OcrResult]):
+        self.process_pages(img, ocrResults)
+
+    def process_pages(self, img: np.ndarray, ocrResults: List[OcrResult]):
         for page in self.pages:
             match_page = page(img, ocrResults)
             if match_page:
@@ -281,8 +353,3 @@ class Task(BaseModel):
                 if page.name != "声骸":
                     logger(f"当前页面：{page.name}")
                 page.action(page.matchPositions)
-        for conditionalAction in self.conditionalActions:
-            match_conditional_action = conditionalAction()
-            if match_conditional_action:
-                logger(f"当前条件操作：{conditionalAction.name}")
-                conditionalAction.action()

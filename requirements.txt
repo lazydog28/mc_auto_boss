@@ -10,3 +10,5 @@ onnxruntime-gpu
 paddlepaddle-gpu
 paddleocr
 colorama
+psutil
+future

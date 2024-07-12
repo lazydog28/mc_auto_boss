@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 import yaml
 import os
 import winreg
-from cmd_line import get_config_path
 from constant import wait_exit, root_path
 from typing import Optional, Dict, List
 
@@ -17,6 +16,7 @@ from typing import Optional, Dict, List
 class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
     MaxIdleTime: int = Field(10, title="最大空闲时间", ge=5)
+    MaxEchoAbsorptionTime: int = Field(10, title="最大空闲时间", ge=5)
     TargetBoss: list[str] = Field([], title="目标关键字")
     SelectRoleInterval: int = Field(2, title="选择角色间隔时间", ge=2)
     FightTactics: list[str] = Field(
@@ -35,6 +35,15 @@ class Config(BaseModel):
         ],
         title="大招释放成功时的技能释放顺序",
     )
+    FightTacticsConcerto: list[str] = Field(
+        [
+            "",
+            "",
+            "",
+        ],
+        title="大招释放成功时的技能释放顺序",
+    )
+
     DungeonWeeklyBossLevel: int = Field(40, title="周本(副本)boss等级")
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
@@ -47,6 +56,9 @@ class Config(BaseModel):
     GameMonitorTime: int = Field(5, title="游戏窗口检测间隔时间")
     EchoDebugMode: bool = Field(True, title="声骸锁定功能DEBUG显示输出的开关")
     EchoSynthesisDebugMode: bool = Field(True, title="声骸合成锁定功能DEBUG显示输出的开关")
+    UseConsumables: bool = Field(False, title="是否使用消耗品")
+    ConsumablesName: str = Field(None, title="使用的料理或药水名称")
+    UseSpecialCode: bool = Field(False, title="是否使用分boss的进图前的特殊代码")
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     LogFilePath: Optional[str] = Field(None, title="日志文件路径")
@@ -62,61 +74,47 @@ class Config(BaseModel):
 
 
 # 获取鸣潮游戏路径
-def open_registry_key(key_path):
-    try:
-        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
-        return key
-    except FileNotFoundError:
-        # print(f"未找到注册表路径'{key_path}'")
-        pass
-    except Exception as e:
-        print(f"访问注册表错误: {e}")  
-    return None
-
 def get_wuthering_waves_path():
     key = None
-    # 打开注册表项
-    # key_path = r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves"
-        
-    key_paths = [
-        r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves",
-        r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves Overseas"
-        ]
+    try:
+        # 打开注册表项
+        key_path = r"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\KRInstall Wuthering Waves"
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path)
 
-    for key_path in key_paths:
-        key = open_registry_key(key_path)
-        
-        if key:
-            try:
-                # 读取安装路径
-                install_path, _ = winreg.QueryValueEx(key, "InstallPath")
-                if install_path:
-                    # 构造完整的程序路径
-                    program_path = os.path.join(install_path, "Wuthering Waves Game", "Wuthering Waves.exe")
-                    # print(f"从注册表中加载到游戏目录：{program_path}")
-                    return program_path
-            except Exception as e:
-                    # print(f"构建安装路径错误: {e}")
-                    pass
-            finally:
-                if 'key' in locals():
-                    key.Close()        
-        
+        try:
+            # 读取安装路径
+            install_path, _ = winreg.QueryValueEx(key, "InstallPath")
+            if install_path:
+                # 构造完整的程序路径
+                program_path = os.path.join(install_path, "Wuthering Waves Game", "Wuthering Waves.exe")
+                # print(f"从注册表中加载到游戏目录：{program_path}")
+                return program_path
+        except FileNotFoundError:
+            # print("无法在注册表中找到游戏路径.")
+            pass
+    except Exception as e:
+        # print(f"访问注册表错误: {e}")
+        pass
+    finally:
+        if 'key' in locals():
+            key.Close()
     return None
 
 
-config_path = get_config_path()
+project_root = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(project_root, "config.yaml")
+
 # 判断是否存在配置文件
-if os.path.exists(config_path):
-    with open(config_path, "r", encoding="utf-8") as f:
+if os.path.exists(os.path.join(root_path, "config.yaml")):
+    with open(os.path.join(root_path, "config.yaml"), "r", encoding="utf-8") as f:
         config = Config(**yaml.safe_load(f))
 else:
     config = Config()
-    with open(config_path, "w", encoding="utf-8") as f:
+    with open(os.path.join(root_path, "config.yaml"), "w", encoding="utf-8") as f:
         yaml.safe_dump(config.dict(), f)
 
 if len(config.TargetBoss) == 0:
-    print("请在配置文件中填写目标BOSS全名，配置文件路径: %s" % config_path)
+    print("请在项目根目录下的config.yaml中填写目标BOSS全名")
     wait_exit()
 
 # 加载声骸锁定配置文件

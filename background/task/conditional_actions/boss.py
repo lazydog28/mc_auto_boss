@@ -5,8 +5,9 @@
 @time: 2024/6/5 下午1:46
 @author SuperLazyDog
 """
+import time
 
-from status import Status
+from status import Status, logger
 from schema import ConditionalAction
 from . import *
 
@@ -14,53 +15,73 @@ conditional_actions = []
 
 
 def judgment_absorption_action():
-    if config.SearchEchoes:
-        absorption_action()
-    else:
-        forward()
+    if info.fightEndFlag:
+        info.echoSearchTimesCount += 1
+        if info.echoSearchTimesCount == 1:
+            info.echoSearchStartTime = datetime.now()
+            info.searchTimes = 0
+        if config.SearchEchoes:
+            absorption_action()
+        else:
+            forward()
 
 
 # 战斗完成 吸收
 def judgment_absorption() -> bool:
     return (
-        config.MaxIdleTime / 2
-        < (datetime.now() - info.lastFightTime).seconds
-        < config.MaxIdleTime  # 空闲时间未超过最大空闲时间 且 空闲时间超过最大空闲时间的一半
+        (datetime.now() - info.lastFightTime).seconds
+        < config.MaxEchoAbsorptionTime
         and info.needAbsorption  # 未吸收
+        and info.status != Status.fight
     )
 
 
-judgment_absorption_condition_action = ConditionalAction(
-    name="搜索声骸", condition=judgment_absorption, action=judgment_absorption_action
-)
-conditional_actions.append(judgment_absorption_condition_action)
+def add_judgment_absorption_condition_action():
+    judgment_absorption_condition_action = ConditionalAction(
+        name="搜索声骸", condition=judgment_absorption, action=judgment_absorption_action
+    )
+    conditional_actions.append(judgment_absorption_condition_action)
 
 
 # 超过最大空闲时间
 def judgment_idle() -> bool:
     return (
         datetime.now() - info.lastFightTime
-    ).seconds > config.MaxIdleTime and not info.inDreamless
+    ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
 
 
 def judgment_idle_action() -> bool:
     info.status = Status.idle
+    if not info.inGame:
+        logger("正在确认游戏状态...", "WARN")
+        if check_in_animation(in_game=True) == "is available":
+            logger("已成功进入游戏", "WARN")
+            check_game_restarting(del_file=True)
+            time.sleep(1)
+    if check_game_restarting():
+        logger("等待游戏重启中...", "WARN")
+        time.sleep(3)
+        return False
+    if not info.inGame:
+        logger("未确认到游戏状态，重试", "WARN")
+        time.sleep(1)
     return transfer()
 
 
-judgment_idle_conditional_action = ConditionalAction(
-    name="超过最大空闲时间,前往boss",
-    condition=judgment_idle,
-    action=judgment_idle_action,
-)
-conditional_actions.append(judgment_idle_conditional_action)
+def add_judgment_idle_conditional_action():
+    judgment_idle_conditional_action = ConditionalAction(
+        name="超过最大空闲时间,前往boss",
+        condition=judgment_idle,
+        action=judgment_idle_action,
+    )
+    conditional_actions.append(judgment_idle_conditional_action)
 
 
 # 超过最大战斗时间
 def judgment_fight() -> bool:
     return (
         datetime.now() - info.fightTime
-    ).seconds > config.MaxFightTime and not info.inDreamless
+    ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue
 
 
 def judgment_fight_action() -> bool:
@@ -69,10 +90,19 @@ def judgment_fight_action() -> bool:
     return transfer()
 
 
-judgment_fight_conditional_action = ConditionalAction(
-    name="超过最大战斗时间,前往boss",
-    condition=judgment_fight,
-    action=judgment_fight_action,
-)
+def add_judgment_fight_conditional_action():
+    judgment_fight_conditional_action = ConditionalAction(
+        name="超过最大战斗时间,前往boss",
+        condition=judgment_fight,
+        action=judgment_fight_action,
+    )
+    conditional_actions.append(judgment_fight_conditional_action)
 
-conditional_actions.append(judgment_fight_conditional_action)
+
+if info.status != Status.fight:  # 非战斗状态判断全部页面
+    add_judgment_absorption_condition_action()  # 搜索声骸
+    add_judgment_idle_conditional_action()  # 超过最大空闲时间
+    add_judgment_fight_conditional_action()  # 超过最大战斗时间
+else:  # 战斗状态只添加部分战斗相关页面 以提高战斗代码执行效率
+    add_judgment_absorption_condition_action()  # 搜索声骸
+    add_judgment_fight_conditional_action()  # 超过最大战斗时间

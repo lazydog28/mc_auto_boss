@@ -6,17 +6,21 @@
 @author SuperLazyDog
 """
 from constant import root_path
+from status import info
 import onnxruntime as rt
 import os
 import numpy as np
 import cv2
 
-model_path = os.path.join(root_path, "models/yolo.onnx")
+model_path = os.path.join(root_path, "models/" + info.echoSearchModel)
+# spare_model_path = os.path.join(root_path, "models/0610.onnx")
 # 判断能否使用GPU
 if "CUDAExecutionProvider" in rt.get_available_providers():
     provider = ["CUDAExecutionProvider"]
 else:
     provider = ["CPUExecutionProvider"]
+
+# 加载模型
 
 model = rt.InferenceSession(model_path, providers=provider)
 input_name = model.get_inputs()[0].name

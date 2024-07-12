@@ -12,14 +12,17 @@ from multiprocessing import current_process
 import numpy as np
 from schema import OcrResult, Position
 from config import config
+from status import info, logger
 import logging
 
 
 ocrIns: PaddleOCR = None
 
 if paddle.is_compiled_with_cuda() and paddle.get_device().startswith('gpu'):  # 判断是否调用GPU
+    logger("PaddleOCR 使用GPU", "WARN")
     use_gpu = True
 else:
+    logger("PaddleOCR 使用CPU", "WARN")
     use_gpu = False
 
 if current_process().name == "task":

@@ -81,7 +81,7 @@ def tips(positions: dict[str, Position]) -> bool:
     control.activate()
     click_position(positions.get("登录"))
     time.sleep(1)
-    click_position(positions.get("确认"))
+    random_click(1285,680)
     time.sleep(1)
     return True
 
