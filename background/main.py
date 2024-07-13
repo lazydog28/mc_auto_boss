@@ -192,7 +192,6 @@ def on_press(key):
     return None
 
 
-
 def end_thread(thread_name, thread):
     thread_name.set()
     time.sleep(1)

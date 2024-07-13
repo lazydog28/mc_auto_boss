@@ -222,10 +222,9 @@ def click_receive_monthly_card_rewards(positions: dict[str, Position]) -> bool:
     position = positions.get("月卡奖励", None)
     if position is None:
         return False
-    time.sleep(0.5)
-    control.click(960 * width_ratio, 540 * height_ratio)
-    time.sleep(0.5)
-    control.click(960 * width_ratio, 540 * height_ratio)  # 两次点击保证退出月卡界面
+    for _ in range(5):
+        control.click(600 * width_ratio, 600 * height_ratio)
+        time.sleep(0.3)
     return True
 
 
