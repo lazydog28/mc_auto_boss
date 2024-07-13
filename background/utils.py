@@ -1930,7 +1930,7 @@ def check_game_restarting(del_file: bool = False):
 
 def check_fight_time(lastBossName):
     # 本次声骸搜索计数(防止一次战斗多次计数)
-    info.lastAbsorptionCount = info.AbsorptionCount
+    info.lastAbsorptionCount = info.absorptionCount
     # 总战斗时间(包括加载和搜索声骸)
     all_time = datetime.now() - info.fightTime
     hours, remainder = divmod(all_time.total_seconds(), 3600)
