@@ -327,7 +327,7 @@ class Task(BaseModel):
         from utils import set_region, wait_text_designated_area, check_in_animation
         from task.pages.general import fight_action
         region = set_region(50, 255, 500, 425)
-        text_result = wait_text_designated_area(r"(击败|对战)", timeout=3, region=region, full_text_return=True, img=img)
+        text_result = wait_text_designated_area("", timeout=3, region=region, full_text_return=True, img=img)
         if text_result and text_result[0].text != "":
             result = re.sub(r'[^\u4e00-\u9fff]', '', text_result[0].text)
             if re.search(r"击败|对战", result):
@@ -341,6 +341,15 @@ class Task(BaseModel):
                     info.fightEndFlag = True
                     info.fightEndTime = datetime.now()
                     self.process_pages(img, ocrResults)
+        else:
+            if check_in_animation(img=img) == "is animation":
+                self.process_pages(img, ocrResults)
+            else:
+                if info.fightEndFlag:
+                    info.status = Status.idle
+                info.fightEndFlag = True
+                info.fightEndTime = datetime.now()
+                self.process_pages(img, ocrResults)
 
     def handle_other_status(self, img: np.ndarray, ocrResults: List[OcrResult]):
         self.process_pages(img, ocrResults)
