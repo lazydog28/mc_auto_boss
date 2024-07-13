@@ -16,6 +16,38 @@ import time
 
 pages = []
 
+
+# 游戏更新完成后，通过点击退出按钮来重新启动游戏。
+def update_game_exit(positions: dict[str, Position]) -> bool:
+    """
+    更新完成，请重新启动游戏。
+    :param positions: 位置信息
+    :return:
+    """
+    position = positions["退出"]
+    click_position(position)
+    time.sleep(2)
+    return True
+
+
+def add_update_game_exit_page():
+    update_game_exit_page = Page(
+        name="更新完成，请重新启动游戏。",
+        targetTexts=[
+            TextMatch(
+                name="更新完成，请重新启动游戏。",
+                text="更新完成，请重新启动游戏。",
+            ),
+            TextMatch(
+                name="退出",
+                text=template("^退出$"),
+            ),
+        ],
+        action=update_game_exit,
+    )
+    pages.append(update_game_exit_page)
+
+
 # 吸收声骸
 def absorption_action(positions: dict[str, Position]) -> bool:
     """
@@ -32,7 +64,8 @@ def absorption_action(positions: dict[str, Position]) -> bool:
                 control.tap("w")
                 interactive()
                 time.sleep(0.1)
-            info.absorptionCount += 1
+            if info.absorptionCount == info.lastAbsorptionCount:
+                info.absorptionCount += 1
             info.needAbsorption = False
             info.lastFightTime = info.lastFightTime - timedelta(seconds=(config.MaxIdleTime + 5))  # 吸收完成后立即结束等待
             break
@@ -189,9 +222,12 @@ def click_receive_monthly_card_rewards(positions: dict[str, Position]) -> bool:
     position = positions.get("月卡奖励", None)
     if position is None:
         return False
-    click_position(position)
+    time.sleep(0.5)
     control.click(960 * width_ratio, 540 * height_ratio)
+    time.sleep(0.5)
+    control.click(960 * width_ratio, 540 * height_ratio)  # 两次点击保证退出月卡界面
     return True
+
 
 def add_receive_monthly_card_rewards_page():
     receive_monthly_card_rewards_page = Page(
@@ -241,8 +277,10 @@ def receive_rewards(positions: dict[str, Position]) -> bool:
     :return:
     """
     control.esc()  # 退出
-    time.sleep(2)
+    time.sleep(1)
+    control.esc()
     return True
+
 
 def add_receive_rewards_page():
     receive_rewards_page = Page(
@@ -261,22 +299,23 @@ def add_receive_rewards_page():
     )
     pages.append(receive_rewards_page)
 
-# 只定义未使用，可能是被弃用
-# def add_absorption_and_receive_rewards_page():
-#     absorption_and_receive_rewards_page = Page(
-#         name="吸收和领取奖励重合",
-#         targetTexts=[
-#             TextMatch(
-#                 name="领取奖励",
-#                 text="领取奖励",
-#             ),
-#             TextMatch(
-#                 name="吸收",
-#                 text="吸收",
-#             ),
-#         ],
-#         action=absorption_and_receive_rewards,
-#     )
+
+# 吸收和领取奖励重合
+def add_absorption_and_receive_rewards_page():
+    absorption_and_receive_rewards_page = Page(
+        name="吸收和领取奖励重合",
+        targetTexts=[
+            TextMatch(
+                name="领取奖励",
+                text="领取奖励",
+            ),
+            TextMatch(
+                name="吸收",
+                text="吸收",
+            ),
+        ],
+        action=absorption_and_receive_rewards,
+    )
 
 
 def blank_area(positions: dict[str, Position]) -> bool:
@@ -291,6 +330,7 @@ def blank_area(positions: dict[str, Position]) -> bool:
     control.esc()  # 退出
     time.sleep(1)
     return True
+
 
 def add_blank_area_page():
     blank_area_page = Page(
@@ -336,6 +376,7 @@ def link_action(positions: dict[str, Position]) -> bool:
     check_game_restarting(del_file=True)
     return True
 
+
 def add_link_page():
     # 创建一个名为login_page的Page对象
     login_page = Page(
@@ -353,6 +394,7 @@ def add_link_page():
 
 
 if info.status != Status.fight:  # 非战斗状态判断全部页面
+    add_update_game_exit_page()  # 游戏更新完成
     add_absorption_page()  # 吸收和领取奖励
     add_select_recovery_items_page()  # 选择复苏道具
     add_exit_instance_page()  # 退出副本
@@ -363,6 +405,7 @@ if info.status != Status.fight:  # 非战斗状态判断全部页面
     add_receive_rewards_page()  # 领取奖励和确认
     add_blank_area_page()  # 空白区域
     add_link_page()  # 点击链接
+    add_absorption_and_receive_rewards_page()  # 吸收和领取奖励重合
 else:  # 战斗状态只添加部分战斗相关页面 以提高战斗代码执行效率
     add_fight_page()  # 战斗画面
     add_select_recovery_items_page()  # 选择复苏道具

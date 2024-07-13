@@ -38,6 +38,7 @@ class StatusInfo(BaseModel):
     fightTime: datetime = Field(datetime.now(), title="战斗开始时间")
     fightCount: int = Field(battle_count, title="战斗次数")
     absorptionCount: int = Field(absorb_count, title="吸收次数")
+    lastAbsorptionCount: int = Field(absorb_count, title="吸收次数")
     absorptionSuccess: bool = Field(False, title="吸收成功")
     needAbsorption: bool = Field(False, title="需要吸收")
     lastFightTime: datetime = Field(
