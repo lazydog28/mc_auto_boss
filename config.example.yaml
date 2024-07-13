@@ -46,17 +46,17 @@ TargetBoss: # 目标BOSS 必须保证目标BOSS的位置是有借位信标的，
 UseSpecialCode: True # 是否使用特殊代码
 SpecialCode:  # 分Boss的进图前特殊代码，需要代码准确，否则会报错，此部分代码动态加载，调整后不需要重启脚本
   SpecialCodeBossName:
-    无妄者: |
-      for _ in range(3):
-        control.tap("1")
-        time.sleep(0.1)
-      control.tap("e")
-      time.sleep(0.1)
-      control.mouse_press()
-      time.sleep(1)
-      control.mouse_release()
-    角: |
-      time.sleep(0.3)
-      control.key_press(win32con.VK_LSHIFT)
-      time.sleep(0.5)
-      control.key_release(win32con.VK_LSHIFT)
+    无妄者: |  #维里奈进图代码，实现放E之后重击进图以提高进图时维里奈的协奏能量条
+      for _ in range(3):  # 循环3次for里面的代码
+        control.tap("1")   # 按1（切换到1号角色，维里奈）
+        time.sleep(0.1)   # 等待0.1秒
+      control.tap("e")   # 按E
+      time.sleep(0.1)  # 等待0.1秒
+      control.mouse_press()  # 按鼠标左键
+      time.sleep(1)  # 等待1秒
+      control.mouse_release()  # 松开鼠标左键
+    角: |  # 不转身直接后跳进图代码
+      time.sleep(0.3)  # 等待0.3秒
+      control.key_press(win32con.VK_LSHIFT)  # 按下左Shift键
+      time.sleep(0.5)  # 等待0.5秒
+      control.key_release(win32con.VK_LSHIFT)  # 松开左Shift键
