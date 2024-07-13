@@ -41,7 +41,7 @@ class Config(BaseModel):
             "",
             "",
         ],
-        title="变奏入场时的技能释放顺序",
+        title="大招释放成功时的技能释放顺序",
     )
 
     DungeonWeeklyBossLevel: int = Field(40, title="周本(副本)boss等级")
