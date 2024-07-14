@@ -599,7 +599,6 @@ def turn_to_search(turn_times) -> int | None:
         control.mouse_middle()  # 重置视角
         for _ in range(5):
             if absorption_and_receive_rewards({}):
-                logger("吸收结束1")
                 info.needAbsorption = False
                 info.searchTimes = 0
                 break
@@ -638,7 +637,6 @@ def absorption_action():
         x = turn_to_search(info.searchTimes)
         if x is None:
             if absorption_and_receive_rewards({}):
-                logger("吸收结束2")
                 info.needAbsorption = False
                 info.searchTimes = 0
             return
@@ -667,7 +665,6 @@ def absorption_action():
                 logger("发现声骸 向前移动")
                 control.tap("w")
             if absorption_and_receive_rewards({}):
-                logger("吸收结束3")
                 info.needAbsorption = False
                 info.searchTimes = 0
                 break

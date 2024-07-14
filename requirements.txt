@@ -8,7 +8,8 @@ pyyaml
 pydantic
 onnxruntime-gpu
 paddlepaddle-gpu
-paddleocr
+paddleocr==2.7.3
 colorama
 psutil
 future
+requests
