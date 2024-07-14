@@ -399,9 +399,7 @@ def transfer() -> bool:
 
     if info.lastBossName == "无妄者" and bossName == "无妄者":
         logger("前往无妄者 且 刚才已经前往过")
-        for i in range(15):
-            forward()
-            time.sleep(0.1)
+        find_naima_position() # 如果队伍中有奶妈，则使用滑铲进入副本(1920 * 1080 有效)
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
         info.lastFightTime = now  # 重置最近检测到战斗时间
@@ -439,7 +437,52 @@ def transfer() -> bool:
     else:
         info.bossIndex += 1
         return transfer_to_boss(bossName)
+    
 
+def find_naima_position():
+    global template
+    img = screenshot()
+    if real_w == 1920 and real_h == 1080:
+        template = Image.open(
+            os.path.join(root_path, r"template/维里奈_1920_1080.png")
+        )
+        template = np.array(template)
+        result = match_template(img, template)
+        if result is not None:
+            x1 = result.x1
+            x2 = result.x2
+            y1 = result.y1
+            y2 = result.y2
+            error = 20  # 坐标误差
+            # 1765 226 1818 287
+            if abs(x1 - 1765) <= error and abs(y1 - 226) <= error and abs(x2 - 1818) <= error and abs(
+                    y2 - 287) <= error:
+                logger(f"【维里奈】切换到1号位。使用滑铲进入副本", "DEBUG")
+                control.tap('1')  # 切换到1号位置
+                time.sleep(0.5)
+                # 指定要按下的鼠标按钮，此处为左键
+                control.left_long_press(x=100, y=200, duration=2.0)
+            # 1765 358 1818 419
+            elif abs(x1 - 1765) <= error and abs(y1 - 358) <= error and abs(x2 - 1818) <= error and abs(
+                    y2 - 419) <= error:
+                logger(f"【维里奈】切换到2号位。使用滑铲进入副本", "DEBUG")
+                control.tap('2')  # 切换到2号位置
+                time.sleep(0.5)
+                # 指定要按下的鼠标按钮，此处为左键
+                control.left_long_press(x=100, y=200, duration=2.0)
+            #  1765 490 1818 551
+            elif abs(x1 - 1765) <= error and abs(y1 - 490) <= error and abs(x2 - 1818) <= error and abs(
+                    y2 - 551) <= error:
+                logger(f"【维里奈】切换到3号位。使用滑铲进入副本", "DEBUG")
+                control.tap('3')  # 切换到3号位置
+                time.sleep(0.5)
+                # 指定要按下的鼠标按钮，此处为左键
+                control.left_long_press(x=100, y=200, duration=2.0)
+        else:
+            logger("默认方式进入副本")
+            for i in range(15):
+                forward()
+                time.sleep(0.1)
 
 def screenshot() -> np.ndarray | None:
     """

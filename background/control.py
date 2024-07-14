@@ -56,6 +56,20 @@ class Control:
             self.hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position
         )  # 鼠标左键抬起
 
+        
+    # 鼠标左键长按后松开
+    def left_long_press(self, x: int | float = 0, y: int | float = 0, duration: float = 1.0):
+        x = x if isinstance(x, int) else int(x)
+        y = y if isinstance(y, int) else int(y)
+        long_position = win32api.MAKELONG(x, y)
+        win32gui.PostMessage(
+            self.hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, long_position
+        )  # 鼠标左键按下
+        time.sleep(duration)  # 持续时间
+        win32gui.PostMessage(
+            self.hwnd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position
+        )  # 鼠标左键抬起
+
     def mouse_middle(self, x: int = 0, y: int = 0):
         x = x if isinstance(x, int) else int(x)
         y = y if isinstance(y, int) else int(y)
