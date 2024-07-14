@@ -34,6 +34,7 @@ def enter_action(positions: dict[str, Position]) -> bool:
         info.lastBossName = "角"
         return True
 
+
 def add_enter_page():
     enter_page = Page(
         name="进入",
@@ -152,7 +153,9 @@ def leave_action(positions: dict[str, Position]) -> bool:
     #    add_judgment_absorption_condition_action()
     # else:
     #     absorption_and_receive_rewards({})
-    if not ((datetime.now() - info.lastFightTime).seconds < config.MaxIdleTime) or not info.needAbsorption or not config.SearchDreamlessEchoes:  # 未吸收
+    if (not ((datetime.now() - info.lastFightTime).seconds < config.MaxIdleTime)
+        or not info.needAbsorption
+        or not config.SearchDreamlessEchoes):
         control.esc()
         time.sleep(1)
         return True

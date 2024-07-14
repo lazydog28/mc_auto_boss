@@ -35,7 +35,8 @@ def judgment_absorption_action():
 # 战斗完成 吸收
 def judgment_absorption() -> bool:
     return (
-        (datetime.now() - info.lastFightTime).seconds
+        (datetime.now() - info.fightTime).seconds > 5  # 战斗开始至少5秒后再判断吸收
+        and (datetime.now() - info.lastFightTime).seconds
         < config.MaxEchoAbsorptionTime + 5  # 给5秒去判断是否超时，设置吸收Flag为False，否则有概率卡在吸收
         and info.needAbsorption  # 未吸收
         and info.status != Status.fight
