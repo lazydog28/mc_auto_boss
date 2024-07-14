@@ -80,6 +80,7 @@ class StatusInfo(BaseModel):
     searchTimes: int = Field(0, title="声骸搜索次数")
     fKeyWaitTime: datetime = Field(datetime.now(), title="按F后的等待时间")
     fightEndFlag: bool = Field(False, title="战斗结束标志")
+    fightEndFlagCount: int = Field(False, title="用于判断战斗结束标志的计数")
     actionErrorTimes: int = Field(0, title="动作错误次数")
     lastActionErrorTime: datetime = Field(datetime.now(), title="最后一次动作错误时间")
     lastStatus: Status = Field(Status.idle, title="最后状态")

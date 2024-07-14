@@ -2,18 +2,27 @@
 
 1.	Q:如何重新安装环境（如何从CPU环境切换到GPU环境）
 	A:
-	首先确认你是N卡 然后打开requirements.txt
-	把paddleocr改成paddleocr==2.7.3
-	再把现在的环境删了 
-	conda remove --n mc
-	然后重新创建mc环境
-	conda create -n mc python=3.10
-	之后进入mc环境
-	conda activate mc
-	安装cudatoolkit和paddle
-	conda install paddlepaddle-gpu==2.6.1 cudatoolkit=11.7 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/ -c conda-forge
-	再cd到你项目文件夹(例如你的脚本文件夹在c:\mctool的话)
-	c:
-	cd c:\mctool
-	然后再安装gpu依赖
-	pip install -r .\requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+	(1) 首先确认你是N卡 然后打开requirements.txt，把paddleocr改成paddleocr==2.7.3
+	(2) 再把现在的环境删了，打开PowerShell输入
+		conda remove --n mc (报错查看miniconda3安装教程)
+	(3) 然后重新创建mc环境
+		conda create -n mc python=3.10
+	(4)	之后进入mc环境
+		conda activate mc
+	(5)	安装cudatoolkit和paddle
+		conda install paddlepaddle-gpu==2.6.1 cudatoolkit=11.7 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/ -c conda-forge
+	(6)	再cd到你项目文件夹(例如你的脚本文件夹在c:\mctool的话)
+		c:
+		cd c:\mctool
+	(7)	然后再安装gpu依赖
+		pip install -r .\requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+2.	Q:安装miniconda3的方法（执行conda命令报错时）
+	A:
+	(1)	下载https://repo.anaconda.com/miniconda/Miniconda3-py310_24.4.0-0-Windows-x86_64.exe
+	(2)	点Next→选Just Me之后Next→安装路径不要带中文，记住你装在哪个盘的哪里的。 【重要→】之后Next→2要打勾添加环境变量【←重要】。之后Install。
+	(3)	打开PowerShell输入你安装conda的盘符（如d:）
+	(4)	跳转到你的coda目录（如cd D:\miniconda3\condabin）
+	(5)	输入./conda init后重启PowerShell
+	(6)	重启后你的输入的地方前面应该有(base)，如果没有，那么conda安装有问题，跳转到(1)。
+	

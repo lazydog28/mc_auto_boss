@@ -346,14 +346,18 @@ class Task(BaseModel):
             result = re.sub(r'[^\u4e00-\u9fff]', '', text_result[0].text)
             if re.search(r"击败|对战", result):
                 fight_action(text_result)
+                info.fightEndFlagCount = 0
             else:
                 if check_in_animation(img=img) == "is animation":
                     self.process_pages(img, ocrResults)
                 else:
                     if info.fightEndFlag:
                         info.status = Status.idle
-                    info.fightEndFlag = True
-                    info.fightEndTime = datetime.now()
+                    info.fightEndFlagCount += 1
+                    time.sleep(0.2)
+                    if info.fightEndFlagCount >= 3:
+                        info.fightEndFlag = True
+                        info.fightEndTime = datetime.now()
                     self.process_pages(img, ocrResults)
         else:
             if check_in_animation(img=img) == "is animation":
@@ -363,8 +367,13 @@ class Task(BaseModel):
                     info.status = Status.idle
                     self.process_pages(img, ocrResults)
                 else:
-                    info.fightEndFlag = True
-                    info.fightEndTime = datetime.now()
+                    if info.fightEndFlag:
+                        info.status = Status.idle
+                    info.fightEndFlagCount += 1
+                    time.sleep(0.2)
+                    if info.fightEndFlagCount >= 5:
+                        info.fightEndFlag = True
+                        info.fightEndTime = datetime.now()
                     self.process_pages(img, ocrResults)
 
     def handle_other_status(self, img: np.ndarray, ocrResults: List[OcrResult]):

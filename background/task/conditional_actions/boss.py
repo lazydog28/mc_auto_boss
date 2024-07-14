@@ -20,6 +20,7 @@ def judgment_absorption_action():
             config.MaxEchoAbsorptionTime if config.MaxEchoAbsorptionTime > 5 else 5
         )
         if (datetime.now() - info.fightEndTime).seconds < absorption_max_time:
+            logger(f"当前搜索次数：{info.echoSearchTimesCount}", "WARN")
             info.echoSearchTimesCount += 1
             if info.echoSearchTimesCount == 1:
                 info.echoSearchStartTime = datetime.now()
@@ -133,7 +134,11 @@ def add_judgment_fight_conditional_action():
 #     conditional_actions.append(judgment_leave_conditional_action)
 
 
-add_judgment_absorption_condition_action()  # 搜索声骸
-add_judgment_idle_conditional_action()  # 超过最大空闲时间
-add_judgment_fight_conditional_action()  # 超过最大战斗时间
-# add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间
+if info.status != Status.fight:
+    add_judgment_absorption_condition_action()  # 搜索声骸
+    add_judgment_idle_conditional_action()  # 超过最大空闲时间
+    add_judgment_fight_conditional_action()  # 超过最大战斗时间
+    # add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间
+else:
+    add_judgment_idle_conditional_action()  # 超过最大空闲时间
+    add_judgment_fight_conditional_action()  # 超过最大战斗时间

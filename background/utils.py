@@ -598,6 +598,10 @@ def turn_to_search(turn_times) -> int | None:
         control.activate()
         control.mouse_middle()  # 重置视角
         for _ in range(5):
+            if absorption_and_receive_rewards({}):
+                info.needAbsorption = False
+                info.searchTimes = 0
+                break
             control.key_press("w")
             time.sleep(0.2)
             control.key_release("w")
@@ -1972,6 +1976,7 @@ def check_fight_time(lastBossName):
     formatted_echo_search_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
     logger(f"搜索声骸用时：{formatted_echo_search_time}", "IMPORTANT")
     info.echoSearchTimesCount = 0
+    info.fightEndFlagCount = 0
     info.fightEndFlag = False
 
 

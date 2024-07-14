@@ -16,18 +16,23 @@ from status import info, logger
 import logging
 
 
-ocrIns: PaddleOCR = None
+class PaddleOCRSingleton:
+    _instance = None
 
-if paddle.is_compiled_with_cuda() and paddle.get_device().startswith('gpu'):  # 判断是否调用GPU
-    logger("PaddleOCR 使用GPU", "WARN")
-    use_gpu = True
-else:
-    logger("PaddleOCR 使用CPU", "WARN")
-    use_gpu = False
+    @staticmethod
+    def get_instance():
+        if PaddleOCRSingleton._instance is None:
+            if paddle.is_compiled_with_cuda() and paddle.get_device().startswith('gpu'):
+                logger("PaddleOCR 使用GPU", "WARN")
+                use_gpu = True
+            else:
+                logger("PaddleOCR 使用CPU", "WARN")
+                use_gpu = False
+            if current_process().name == "task":
+                logging.disable(logging.WARNING)  # 关闭WARNING日志的打印
+            PaddleOCRSingleton._instance = PaddleOCR(use_angle_cls=False, use_gpu=use_gpu, lang="ch", show_log=False)
+        return PaddleOCRSingleton._instance
 
-if current_process().name == "task":
-    logging.disable(logging.WARNING)  # 关闭WARNING日志的打印
-    ocrIns = PaddleOCR(use_angle_cls=False, use_gpu=use_gpu, lang="ch",show_log=False)
 
 last_time = time.time()
 
@@ -38,7 +43,8 @@ def ocr(img: np.ndarray) -> list[OcrResult]:
         if wait_time := config.OcrInterval - (time.time() - last_time) > 0:
             time.sleep(wait_time)
     last_time = time.time()
-    results = ocrIns.ocr(img)[0]
+    ocr_instance = PaddleOCRSingleton.get_instance()
+    results = ocr_instance.ocr(img)[0]
     if not results:
         return []
     res = []
