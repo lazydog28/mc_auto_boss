@@ -16,21 +16,27 @@ conditional_actions = []
 
 def judgment_absorption_action():
     if info.fightEndFlag:
-        info.echoSearchTimesCount += 1
-        if info.echoSearchTimesCount == 1:
-            info.echoSearchStartTime = datetime.now()
-            info.searchTimes = 0
-        if config.SearchEchoes:
-            absorption_action()
+        absorption_max_time = (
+            config.MaxEchoAbsorptionTime if config.MaxEchoAbsorptionTime > 5 else 5
+        )
+        if (datetime.now() - info.fightEndTime).seconds < absorption_max_time:
+            info.echoSearchTimesCount += 1
+            if info.echoSearchTimesCount == 1:
+                info.echoSearchStartTime = datetime.now()
+                info.searchTimes = 0
+            if config.SearchEchoes:
+                absorption_action()
+            else:
+                forward()
         else:
-            forward()
+            info.needAbsorption = False
 
 
 # 战斗完成 吸收
 def judgment_absorption() -> bool:
     return (
         (datetime.now() - info.lastFightTime).seconds
-        < config.MaxEchoAbsorptionTime
+        < config.MaxEchoAbsorptionTime + 5  # 给5秒去判断是否超时，设置吸收Flag为False，否则有概率卡在吸收
         and info.needAbsorption  # 未吸收
         and info.status != Status.fight
     )
@@ -126,12 +132,7 @@ def add_judgment_fight_conditional_action():
 #     conditional_actions.append(judgment_leave_conditional_action)
 
 
-if info.status != Status.fight:  # 非战斗状态判断全部页面
-    add_judgment_absorption_condition_action()  # 搜索声骸
-    add_judgment_idle_conditional_action()  # 超过最大空闲时间
-    add_judgment_fight_conditional_action()  # 超过最大战斗时间
-    # add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间
-else:  # 战斗状态只添加部分战斗相关页面 以提高战斗代码执行效率
-    add_judgment_absorption_condition_action()  # 搜索声骸
-    add_judgment_fight_conditional_action()  # 超过最大战斗时间
-    # add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间
+add_judgment_absorption_condition_action()  # 搜索声骸
+add_judgment_idle_conditional_action()  # 超过最大空闲时间
+add_judgment_fight_conditional_action()  # 超过最大战斗时间
+# add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间

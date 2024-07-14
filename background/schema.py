@@ -311,8 +311,22 @@ class Task(BaseModel):
     def add_page(self, page: Page):
         self.pages.append(page)
 
+    def update_pages_based_on_status(self):
+        from task.boss import reload_pages_and_conditional_actions
+        logger(f"战斗/空闲状态发生变化【当前状态:{info.status.value}】，重新加载页面和操作条件", "WARN")
+        self.pages.clear()
+        self.conditionalActions.clear()
+        reload_pages, reload_conditional_actions = reload_pages_and_conditional_actions()
+        self.pages.extend(reload_pages)
+        self.conditionalActions.extend(reload_conditional_actions)
+        info.lastStatus = info.status
+
     # 被调用时执行任务
     def __call__(self, img: np.ndarray, ocrResults: List[OcrResult]):
+        from config import config
+        if config.ReloadPagesAndConditional:
+            if info.status != info.lastStatus:
+                self.update_pages_based_on_status()
         if info.status == Status.fight:
             self.handle_fight_status(img, ocrResults)
         else:
@@ -347,9 +361,11 @@ class Task(BaseModel):
             else:
                 if info.fightEndFlag:
                     info.status = Status.idle
-                info.fightEndFlag = True
-                info.fightEndTime = datetime.now()
-                self.process_pages(img, ocrResults)
+                    self.process_pages(img, ocrResults)
+                else:
+                    info.fightEndFlag = True
+                    info.fightEndTime = datetime.now()
+                    self.process_pages(img, ocrResults)
 
     def handle_other_status(self, img: np.ndarray, ocrResults: List[OcrResult]):
         self.process_pages(img, ocrResults)

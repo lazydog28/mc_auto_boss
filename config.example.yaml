@@ -2,6 +2,7 @@ AppPath: # 游戏路径，如需设置，使用"\\"而不是"\" ,留空为从注
 MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目标
 MaxIdleTime: 15 # 战斗完成后的空闲时间，不能小于5
 MaxEchoAbsorptionTime: 15 # 最大吸收声骸时间，此数值必须小于上面的等待时间
+ReloadPagesAndConditional: False # 是否动态加载页面和条件，低配设备或CPU识别可尝试使用
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
 DungeonWeeklyBossLevel: 40 # 自己可以掉落的周本(副本)boss最低等级（当前索拉等级*10）
 SearchEchoes: true # 是否搜索声骸

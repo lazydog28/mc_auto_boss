@@ -222,9 +222,9 @@ def click_receive_monthly_card_rewards(positions: dict[str, Position]) -> bool:
     position = positions.get("月卡奖励", None)
     if position is None:
         return False
-    for _ in range(5):
+    while check_in_animation() != "is available":
         control.click(600 * width_ratio, 600 * height_ratio)
-        time.sleep(0.3)
+        time.sleep(0.5)
     return True
 
 
@@ -253,6 +253,7 @@ def supplement_crystal_wave(positions: dict[str, Position]) -> bool:
     control.esc()  # 退出
     time.sleep(2)
     return True
+
 
 def add_supplement_crystal_wave_page():
     supplement_crystal_wave_page = Page(

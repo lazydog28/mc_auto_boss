@@ -62,4 +62,3 @@ voice_string_interaction_page = Page(
 )
 
 pages.append(voice_string_interaction_page)
-

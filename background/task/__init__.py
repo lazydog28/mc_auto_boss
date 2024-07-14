@@ -13,6 +13,7 @@ from .conditional_actions.boss import conditional_actions
 from .pages.synthesis import pages as synthesis_pages
 from .pages.echo_bag_lock import pages as echo_bag_lock_pages
 
+
 # 合并所有页面
 boss_task = Task()
 boss_task.pages = general_pages + boss_pages + dreamless_pages  # 合并通用页面和boss页面

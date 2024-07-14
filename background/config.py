@@ -17,6 +17,7 @@ class Config(BaseModel):
     MaxFightTime: int = Field(120, title="最大战斗时间")
     MaxIdleTime: int = Field(10, title="最大空闲时间", ge=5)
     MaxEchoAbsorptionTime: int = Field(10, title="最大空闲时间", ge=5)
+    ReloadPagesAndConditional: bool = Field(False, title="是否动态加载页面和条件")
     TargetBoss: list[str] = Field([], title="目标关键字")
     SelectRoleInterval: int = Field(2, title="选择角色间隔时间", ge=2)
     FightTactics: list[str] = Field(

@@ -82,6 +82,7 @@ class StatusInfo(BaseModel):
     fightEndFlag: bool = Field(False, title="战斗结束标志")
     actionErrorTimes: int = Field(0, title="动作错误次数")
     lastActionErrorTime: datetime = Field(datetime.now(), title="最后一次动作错误时间")
+    lastStatus: Status = Field(Status.idle, title="最后状态")
 
     def resetTime(self):
         self.fightTime = datetime.now()

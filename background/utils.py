@@ -628,7 +628,7 @@ def absorption_action():
         info.checkHeal = True
     absorption_max_time = (
         config.MaxEchoAbsorptionTime if config.MaxEchoAbsorptionTime > 5 else 5
-    )  # 最大吸收时间为最大空闲时间的一半或者20秒-取最大值
+    )
     if (datetime.now() - info.searchStartTime).seconds < absorption_max_time:  # 未超过最大吸收时间
         x = turn_to_search(info.searchTimes)
         if x is None:
@@ -728,13 +728,31 @@ def transfer_to_heal(healBossName: str = "朔雷之鳞"):
         return False
     click_position(findBoss.position)
     click_position(findBoss.position)
-    time.sleep(1.5)
+    time.sleep(1)
     # control.click(1700 * width_ratio, 980 * height_ratio)
     random_click(1700, 980)
     if not wait_text("追踪"):
         logger("治疗_未找到追踪", "WARN")
         control.esc()
         return False
+    region = set_region(1625, 895, 1885, 1050)
+    if info.healCount == 0:  # 首次进行治疗的时候先进行地图缩放
+        i = 0
+        while not wait_text_designated_area("自定义标记", region=region):
+            random_click(960, 300)
+            time.sleep(0.5)
+            i += 1
+            if i > 3:
+                for _ in range(2):
+                    control.esc()
+                    time.sleep(0.5)
+                logger("地图缩放时出现问题，退出地图界面")
+                return
+        for _ in range(5):
+            control.scroll(3, 960 * width_ratio, 540 * height_ratio)
+            time.sleep(0.2)
+            logger("正在对地图进行缩放")
+        time.sleep(0.5)
     # control.click(1210 * width_ratio, 525 * height_ratio)
     random_click(1210, 525)
     if transfer := wait_text("快速旅行"):

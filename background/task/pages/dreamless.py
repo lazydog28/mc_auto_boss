@@ -271,8 +271,7 @@ if info.status != Status.fight:  # 非战斗状态判断全部页面
     add_enter_page()  # 进入和确认
     add_recommended_level_page()  # 推荐等级
     add_start_challenge_page()  # 开启挑战
-    if not info.needAbsorption:
-        add_leave_page()  # 离开和确认
+    add_leave_page()  # 离开和确认
     add_confirm_leave_page()  # 确认离开
     add_crystal_wave_page()  # 结晶波片不足
 else:  # 战斗状态只添加部分战斗相关页面 以提高战斗代码执行效率
