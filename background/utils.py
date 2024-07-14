@@ -453,7 +453,7 @@ def find_naima_position():
             x2 = result.x2
             y1 = result.y1
             y2 = result.y2
-            error = 20  # 坐标误差
+            error = 20  # 坐标的误差
             # 1765 226 1818 287
             if abs(x1 - 1765) <= error and abs(y1 - 226) <= error and abs(x2 - 1818) <= error and abs(
                     y2 - 287) <= error:
