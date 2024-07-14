@@ -6,6 +6,8 @@ description = "更新"
 # update:2024-07-15
 # updated by RoseRin0
 # 1.修复了声骸搜索偶发呆住或一直向前走的问题。
+# 2.将PaddleOcr修改为静态方法，不再多次执行初始化。
+# 3.增加部分常见问题解决文本。
 
 # ver1.1.8
 # update:2024-07-14

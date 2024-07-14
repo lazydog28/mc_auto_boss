@@ -1,4 +1,4 @@
-此处为一些常见的问题解答 不定期更新
+此处为一些常见的问题解答 不定期更新  ---- By Rin
 
 一、无法运行，报错时的问题：
 
@@ -28,7 +28,18 @@
 	(5)	输入./conda init后重启PowerShell
 	(6)	重启后你的输入的地方前面应该有(base)，如果没有，那么conda安装有问题，跳转到(1)。
 	
+3.  Q:	报错ModuleNotFoundError: No model named 'XXX'
+	A:	首先切换到你的mc环境：
+		conda activate mc
+		下载依赖模块：
+		pip install XXX
 
+4. 	Q:	报错 in "x:\xxx\xxx\config.yaml", Line XX, column YY
+	A:	Config文件的XX行YY列有问题
+
+5.	Q:	报错 ImportError: DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。
+	A:	conda install conda-forge::vs2015_runtime
+	(此条解决方法来源于Github Issues #205 By:sailikas)
 
 
 二、程序相关问题
@@ -42,5 +53,10 @@
 3.	Q:	为什么角色连招很慢、有卡顿情况？
 	A:	首先确认你是不是使用GPU进行OCR的（程序按F5启动后会以WARN输出）
 		其次确认你的连招是否和角色一一对应，1号位角色对应第一行，2号位角色对应第二行，3号位角色对应第三行。
+		最后确认连招中有没有大量的等待时间，等待时间建议用a(1)这种连续普攻进行填充。
 
-4.	Q:	
+4.	Q:	提示未找到声骸配置文件
+	A:	复制echo_config.example.yaml并命名为echo_config.yaml再修改其中的配置为你想留的声骸。
+
+
+5.	
