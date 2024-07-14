@@ -1,6 +1,8 @@
 此处为一些常见的问题解答 不定期更新
 
-1.	Q:如何重新安装环境（如何从CPU环境切换到GPU环境）
+一、无法运行，报错时的问题：
+
+1.	Q:	如何重新安装环境（如何从CPU环境切换到GPU环境）
 	A:
 	(1) 首先确认你是N卡 然后打开requirements.txt，把paddleocr改成paddleocr==2.7.3
 	(2) 再把现在的环境删了，打开PowerShell输入
@@ -17,7 +19,7 @@
 	(7)	然后再安装gpu依赖
 		pip install -r .\requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
-2.	Q:安装miniconda3的方法（执行conda命令报错时）
+2.	Q:	安装miniconda3的方法（执行conda命令报错时）
 	A:
 	(1)	下载https://repo.anaconda.com/miniconda/Miniconda3-py310_24.4.0-0-Windows-x86_64.exe
 	(2)	点Next→选Just Me之后Next→安装路径不要带中文，记住你装在哪个盘的哪里的。 【重要→】之后Next→2要打勾添加环境变量【←重要】。之后Install。
@@ -26,3 +28,19 @@
 	(5)	输入./conda init后重启PowerShell
 	(6)	重启后你的输入的地方前面应该有(base)，如果没有，那么conda安装有问题，跳转到(1)。
 	
+
+
+
+二、程序相关问题
+
+1.  Q:	为什么一直治疗传送不了
+	A:	更新至最新版或者手动将地图缩放放到最大（地图界面右边的条拉到最上面）
+
+2.	Q:	为什么搜索到了声骸但是没有走到就退出了
+	A:	增加Config中的MaxIdleTime和MaxEchoAbsorptionTime时间。
+
+3.	Q:	为什么角色连招很慢、有卡顿情况？
+	A:	首先确认你是不是使用GPU进行OCR的（程序按F5启动后会以WARN输出）
+		其次确认你的连招是否和角色一一对应，1号位角色对应第一行，2号位角色对应第二行，3号位角色对应第三行。
+
+4.	Q:	

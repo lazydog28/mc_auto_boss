@@ -599,6 +599,7 @@ def turn_to_search(turn_times) -> int | None:
         control.mouse_middle()  # 重置视角
         for _ in range(5):
             if absorption_and_receive_rewards({}):
+                logger("吸收结束1")
                 info.needAbsorption = False
                 info.searchTimes = 0
                 break
@@ -637,6 +638,7 @@ def absorption_action():
         x = turn_to_search(info.searchTimes)
         if x is None:
             if absorption_and_receive_rewards({}):
+                logger("吸收结束2")
                 info.needAbsorption = False
                 info.searchTimes = 0
             return
@@ -647,8 +649,9 @@ def absorption_action():
             img = screenshot()
             x = search_echoes(img)
             if x is None and last_x is None:
-                continue
+                break
             if x is None:
+                info.searchTimes += 1
                 temp_x = turn_to_search(info.searchTimes)
                 x = temp_x if temp_x else last_x  # 如果未发现声骸，使用上一次的x坐标
             last_x = x
@@ -664,10 +667,12 @@ def absorption_action():
                 logger("发现声骸 向前移动")
                 control.tap("w")
             if absorption_and_receive_rewards({}):
+                logger("吸收结束3")
                 info.needAbsorption = False
                 info.searchTimes = 0
                 break
     else:
+        logger("未吸收4")
         info.needAbsorption = False
         info.searchTimes = 0
         return
