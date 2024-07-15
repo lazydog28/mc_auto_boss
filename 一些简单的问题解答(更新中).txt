@@ -106,3 +106,7 @@
 
 5.	Q:	我只想打一个BOSS怎么办？
 	A:	将TargetBoss中不打的BOSS前面加上# 注释掉，例如：# - "角"
+
+6.	Q: 	我想修改某个BOSS的入场等待时间，该怎么做？
+	A:	background\utlis.py里面搜索def check_boss，找到相应的BOSS下面的wait_time，将其值进行修改并保存即可
+	
