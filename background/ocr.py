@@ -5,6 +5,7 @@
 @time: 2024/6/5 下午4:36
 @author SuperLazyDog
 """
+import os
 import time
 import paddle
 from paddleocr import PaddleOCR
@@ -28,6 +29,7 @@ class PaddleOCRSingleton:
             else:
                 logger("PaddleOCR 使用CPU", "WARN")
                 use_gpu = False
+                os.environ['FLAGS_use_mkldnn'] = '1'  # CPU启用mkldnn加速
             if current_process().name == "task":
                 logging.disable(logging.WARNING)  # 关闭WARNING日志的打印
             PaddleOCRSingleton._instance = PaddleOCR(use_angle_cls=False, use_gpu=use_gpu, lang="ch", show_log=False)

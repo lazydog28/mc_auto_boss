@@ -9,7 +9,7 @@ SearchEchoes: true # 是否搜索声骸
 SearchDreamlessEchoes: true # 是否搜索无妄者声骸
 # CharacterHeal: true #是否判断角色是否阵亡 若阵亡则返回神像复活  1.1.3版本不再使用此设置
 UseConsumables: false # 是否使用料理或药水（下面名称也需要填写）
-ConsumablesName: "今州烤串" # 使用的料理或药水名称，留空则不使用
+ConsumablesName: "今州烤串" # 使用的料理或药水名称，留空则不使用(UseConsumables为False也不会使用消耗品)
 WaitUltAnimation: false # 是否判断并等待大招动画  （实验功能，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配，欢迎测试）
 EchoLock: true #是否使用启用声骸锁定功能  （实验功能）
 EchoMaxContinuousLockQuantity: 5 # 最大连续检测到已锁定声骸的数量，超过此数量就停止

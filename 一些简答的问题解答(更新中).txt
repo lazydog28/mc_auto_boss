@@ -2,44 +2,89 @@
 
 一、无法运行，报错时的问题：
 
+0.	Q:	我是全新安装，该如何做？
+	A:	依次参考本教程第一部分的第2条和第1条进行配置，再参考第一部分的第3条启动程序。
+
 1.	Q:	如何重新安装环境（如何从CPU环境切换到GPU环境）
 	A:
-	(1) 首先确认你是N卡 然后打开requirements.txt，把paddleocr改成paddleocr==2.7.3
-	(2) 再把现在的环境删了，打开PowerShell输入
-		conda remove --name mc (报错查看miniconda3安装教程)
-	(3) 然后重新创建mc环境
-		conda create -n mc python=3.10
-	(4)	之后进入mc环境
-		conda activate mc
-	(5)	安装cudatoolkit和paddle
-		conda install paddlepaddle-gpu==2.6.1 cudatoolkit=11.7 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/ -c conda-forge
-	(6)	再cd到你项目文件夹(例如你的脚本文件夹在c:\mctool的话)
-		c:
-		cd c:\mctool
-	(7)	然后再安装gpu依赖
-		pip install -r .\requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+		(1) 首先确认你是N卡(其他显卡或者使用CPU也可运行，但不保证运行状况)
+		(2) 再把现在的环境删了，打开PowerShell输入，新安装跳过本步骤
+			conda remove --name mc (conda类报错请查看本教程 (第一部分的第2条) 里面的miniconda3安装教程)
+		(3) 然后重新创建mc环境
+			conda create -n mc python=3.10 (conda类报错请查看本教程 (第一部分的第2条) 里面的miniconda3安装教程)
+		(4)	之后进入mc环境
+			conda activate mc
+		(5)	安装cudatoolkit和paddle
+			conda install paddlepaddle-gpu==2.6.1 cudatoolkit=11.7 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/Paddle/ -c conda-forge
+		(6)	再cd到你项目文件夹(例如你的脚本文件夹在c:\mctool的话)
+			c:
+			cd c:\mctool
+		(7)	然后再安装依赖，择一安装即可，英伟达显卡用户(GTX)优先N卡GPU，如果不是N卡(AMD等)请尝试dml，如果还是不行再尝试CPU。
+			N卡GPU版本：
+			pip install -r .\requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+			DML版本：(此条来自于主仓库pr #264 by @Dryhten-tech)
+			pip install -r .\requirements_dml.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+			CPU版本：
+			pip install -r .\requirements_cpu.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
 
 2.	Q:	安装miniconda3的方法（执行conda命令报错时）
 	A:
-	(1)	下载https://repo.anaconda.com/miniconda/Miniconda3-py310_24.4.0-0-Windows-x86_64.exe
-	(2)	点Next→选Just Me之后Next→安装路径不要带中文，记住你装在哪个盘的哪里的。 【重要→】之后Next→2要打勾添加环境变量【←重要】。之后Install。
-	(3)	打开PowerShell输入你安装conda的盘符（如d:）
-	(4)	跳转到你的coda目录（如cd D:\miniconda3\condabin）
-	(5)	输入./conda init后重启PowerShell
-	(6)	重启后你的输入的地方前面应该有(base)，如果没有，那么conda安装有问题，跳转到(1)。
-	
-3.  Q:	报错ModuleNotFoundError: No model named 'XXX'
+		(1)	下载https://repo.anaconda.com/miniconda/Miniconda3-py310_24.4.0-0-Windows-x86_64.exe
+		(2)	点Next→选Just Me之后Next→安装路径不要带中文，记住你装在哪个盘的哪里的。 【重要→】之后Next→2要打勾添加环境变量【←重要】。之后Install。
+		(3)	打开PowerShell输入你安装conda的盘符（如d:）
+		(4)	跳转到你的coda目录（如cd D:\miniconda3\condabin）
+		(5)	输入./conda init后重启PowerShell
+		(6)	重启后你的输入的地方前面应该有(base)，如果没有，那么conda安装有问题，跳转到(1)。
+
+3.	Q:	依赖安装完成后如何启动程序？
+	A:
+		(0) 首先，你需要先确认你已经配置好了config.yaml和echo_config.yaml (从config.example.yaml和echo_config.yaml复制后重命名)
+		(1) 方法1：手动运行
+			Ⅰ 	管理员权限启动powershell并切换到conda的mc环境
+				conda activate mc
+			Ⅱ 	切换到程序项目目录下(例如程序目录为：E:\mc_auto_boss_Rin)
+				E:
+				cd E:\mc_auto_boss_Rin
+				如有空格需要将路径用英文引号""括起来
+			Ⅲ 	运行程序
+				python .\background\main.py
+		(2) 方法2：一键运行：
+			Ⅰ 	新建一个文本档案，将下述代码复制进去保存并改名为Start.ps1(ps1,123的1,不是l也不是i)
+					if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
+					{
+					    Write-Warning "此脚本必须以管理员身份运行。"
+					    Start-Process powershell.exe "-File $PSCommandPath" -Verb RunAs
+					    exit
+					}
+					$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+					conda activate mc
+					if ($LASTEXITCODE -ne 0) {
+					    Write-Error "激活 conda 环境 mc 失败。请检查 conda 安装和环境名称。"
+					    exit $LASTEXITCODE
+					} else {
+					    Write-Output "成功激活 conda 环境 mc。"
+					}
+					Write-Output "`n使用说明:`n快捷键	功能`nF5	开始刷BOSS`nF6	开始合成声骸`nF7	暂停运行`nF8	执行背包声骸锁定`nF12	停止运行`n"
+					python $scriptDir\background\main.py
+			Ⅱ 	以后直接右键点击Start.ps1选择以powershell运行即可运行脚本。
+				如果运行出现乱码，可能是文本编辑器的文本编码与powershell的有所不同导致，请右键该ps1文件点击编辑，再把上述代码粘贴进去即可。
+
+4.  Q:	报错ModuleNotFoundError: No model named 'XXX'
 	A:	首先切换到你的mc环境：
 		conda activate mc
 		下载依赖模块：
 		pip install XXX
 
-4. 	Q:	报错 in "x:\xxx\xxx\config.yaml", Line XX, column YY
+5. 	Q:	报错 in "x:\xxx\xxx\config.yaml", Line XX, column YY
 	A:	Config文件的XX行YY列有问题
 
-5.	Q:	报错 ImportError: DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。
+6.	Q:	报错 ImportError: DLL load failed while importing onnxruntime_pybind11_state: 动态链接库(DLL)初始化例程失败。
 	A:	conda install conda-forge::vs2015_runtime
 	(此条解决方法来源于Github Issues #205 By:sailikas)
+
+7.	Q:	A卡怎么办？
+	A:	使用CPU运算，或者尝试使用dml运算。
 
 
 二、程序相关问题
@@ -59,4 +104,5 @@
 	A:	复制echo_config.example.yaml并命名为echo_config.yaml再修改其中的配置为你想留的声骸。
 
 
-5.	
+5.	Q:	我只想打一个BOSS怎么办？
+	A:	将TargetBoss中不打的BOSS前面加上# 注释掉，例如：# - "角"

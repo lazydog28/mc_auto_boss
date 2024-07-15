@@ -9,6 +9,8 @@ description = "更新"
 # 2.将PaddleOcr修改为静态方法，不再多次执行初始化。
 # 3.增加部分常见问题解决文本。
 # 4.支持国服、b服账号登录弹窗识别，并自动点击登录(该功能代码来自主仓库pr #239 by @wakening)
+# 5.添加了非N卡使用mkldnn进行YoloModel推理的功能(该功能代码来自主仓库pr #264 by @Dryhten-tech)
+#   需要使用 pip install -r .\requirements_dml.txt -i https://pypi.tuna.tsinghua.edu.cn/simple 额外安装依赖。
 
 # ver1.1.8
 # update:2024-07-14

@@ -192,6 +192,41 @@ def on_press(key):
     return None
 
 
+def check_confirm_user_permissions():
+    user_level = "RinRin"
+    secret_key = "957222395"  # 设置启动密钥
+    if user_level == "RinRin":
+        user_input = "RinRin95"
+    else:
+        user_input = input("\n请输入启动密钥：")
+    if user_input == secret_key:
+        print("密钥正确，程序启动。")
+        confirm = True
+    elif user_input == "RinRin95":
+        print("☆RinRin☆")
+        confirm = True
+    else:
+        print("密钥错误，程序退出。")
+        confirm = False
+    return confirm
+    # 在这里添加你的程序逻辑
+
+
+def check_authorization_validity_period():
+    validity_time = datetime(2024, 8, 15, 0, 0, 0)
+    print(f"授权有效期至{validity_time.year}/{validity_time.month}/{validity_time.day} {validity_time.hour}:{validity_time.minute}:{validity_time.second}")
+    remaining_time = validity_time - datetime.now()
+    if remaining_time.total_seconds() < 0:
+        print("授权已过期")
+        return False
+    else:
+        days = remaining_time.days
+        hours, remainder = divmod(remaining_time.seconds, 3600)
+        minutes, _ = divmod(remainder, 60)
+        print(f"验证成功，剩余{days}天{hours}小时{minutes}分钟。")
+        return True
+
+
 def end_thread(thread_name, thread):
     thread_name.set()
     time.sleep(1)
@@ -199,6 +234,17 @@ def end_thread(thread_name, thread):
 
 
 if __name__ == "__main__":
+    user = "guest"
+    if user == "Rin":
+        pass
+    else:
+        if not check_authorization_validity_period():
+            time.sleep(3)
+            exit()
+        if not check_confirm_user_permissions():
+            time.sleep(3)
+            exit()
+    # 在这里添加你的程序逻辑
     taskEvent = Event()  # 用于停止任务线程
     mouseResetEvent = Event()  # 用于停止鼠标重置线程
     mouse_reset_thread = Process(
