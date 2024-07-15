@@ -2000,4 +2000,99 @@ def load_special_code(this_boss_name):
         return False
 
 
+# 账户登录窗口专用点击方法 by wakening
+def click_position_in_login_hwnd(
+        position: Position,
+        specified_hwnd,
+        range_x: int = 3,
+        range_y: int = 3,
+        need_print: bool = False
+):
+    """
+    点击位置
+    :param position: 需要点击的位置
+    :param specified_hwnd: 指定的窗口句柄
+    :param range_x: 水平方向随机偏移的范围
+    :param range_y: 垂直方向随机偏移的范围
+    :param need_print: 是否输出log，debug用
+    """
+    # 分析position的中点
+    x = (position.x1 + position.x2) // 2
+    y = (position.y1 + position.y2) // 2
+    if x is None or y is None:
+        logger("没有传入坐标，无法点击", "WARN")
+        return
+    random_x = x + np.random.uniform(-range_x, range_x)
+    random_y = y + np.random.uniform(-range_y, range_y)
+    # 不需要缩放
+    random_x = int(random_x)
+    random_y = int(random_y)
+    time.sleep(np.random.uniform(0, 0.1))  # 随机等待后点击
+    # 后台发送点击消息，窗口微闪一下没反应，可能窗口过于简陋没实现该方法
+    # 改成前台点击
+    control.click_login(random_x, random_y, specified_hwnd)
+    if need_print:
+        logger(f"点击了坐标{random_x},{random_y}", "DEBUG")
+
+
+# 使用传入的窗口句柄，从此窗口中获取窗口尺寸，重新绘制图像获取截图
+def screenshot_in_specified_hwnd(specified_hwnd) -> np.ndarray | None:
+    sp_left, sp_top, sp_right, sp_bot = win32gui.GetClientRect(specified_hwnd)
+    sp_w = sp_right - sp_left
+    sp_h = sp_bot - sp_top
+    # logger(f"sp_w, sp_h: {sp_w}, {sp_h}")
+    # 在执行方法 get_scale_factor() 前，执行 win32gui.GetClientRect()
+    # 才能拿到真实的分辨率，由于此脚本引入全局变量脚本constant.py，悄悄先一步执行了
+    # 所以这里调用 win32gui.GetClientRect() 拿到的是缩放后的坐标，坑啊，害我调式半天 by wakening
+    # 所以这里不再乘以缩放比例
+    # real_sp_w = int(sp_w * scale_factor)
+    # real_sp_h = int(sp_h * scale_factor)
+    real_sp_w = int(sp_w)
+    real_sp_h = int(sp_h)
+    hwndDC = win32gui.GetWindowDC(specified_hwnd)  # 获取窗口设备上下文（DC）
+    mfcDC = win32ui.CreateDCFromHandle(hwndDC)  # 创建MFC DC从hwndDC
+    saveDC = mfcDC.CreateCompatibleDC()  # 创建与mfcDC兼容的DC
+    saveBitMap = win32ui.CreateBitmap()  # 创建一个位图对象
+    # logger(f"int(real_sp_w), int(real_sp_h): {int(real_sp_w)}, {int(real_sp_h)}")
+    saveBitMap.CreateCompatibleBitmap(mfcDC, int(real_sp_w), int(real_sp_h))  # 创建与mfcDC兼容的位图
+    saveDC.SelectObject(saveBitMap)  # 选择saveDC的位图对象，准备绘图
+    # 尝试使用PrintWindow函数截取窗口图像
+    result = windll.user32.PrintWindow(specified_hwnd, saveDC.GetSafeHdc(), 3)
+    if result != 1:
+        return None  # 如果截取失败，则返回None
+    # 从位图中获取图像数据
+    bmp_info = saveBitMap.GetInfo()  # 获取位图信息
+    bmp_str = saveBitMap.GetBitmapBits(True)  # 获取位图数据
+    im = np.frombuffer(bmp_str, dtype="uint8")  # 将位图数据转换为numpy数组
+    im.shape = (bmp_info["bmHeight"], bmp_info["bmWidth"], 4)  # 设置数组形状
+    im = im[:, :, [2, 1, 0, 3]][:, :, :3]  # 调整颜色通道顺序为RGB 并去掉alpha通道
+
+    # 清理资源
+    try:
+        win32gui.DeleteObject(saveBitMap.GetHandle())
+        saveDC.DeleteDC()
+        mfcDC.DeleteDC()
+        win32gui.ReleaseDC(specified_hwnd, hwndDC)
+    except Exception as e:
+        logger(f"清理截图资源失败: {e}", "ERROR")
+
+    return im  # 返回截取到的图像waA
+
+
+# 账户登录专用文本查找，在传入的窗口内查找文本，而非默认的全局hwnd by wakening
+def find_text_in_login_hwnd(targets: str | list[str], login_hwnd) -> OcrResult | None:
+    if login_hwnd is None:
+        return None
+    if isinstance(targets, str):
+        targets = [targets]
+    img = screenshot_in_specified_hwnd(login_hwnd)
+    if img is None:
+        return None
+    result = ocr(img)
+    for target in targets:
+        if text_info := search_text(result, target):
+            return text_info
+    return None
+
+
 adapts()

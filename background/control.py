@@ -134,5 +134,19 @@ class Control:
         lParam = win32api.MAKELONG(x, y)
         win32gui.PostMessage(self.hwnd, win32con.WM_MOUSEMOVE, 0, lParam)
 
+    # 前台鼠标点击
+    def click_login(self, x: int | float = 0, y: int | float = 0, specified_hwnd=None):
+        current_hwnd = self.hwnd if specified_hwnd is None else specified_hwnd
+        x = x if isinstance(x, int) else int(x)
+        y = y if isinstance(y, int) else int(y)
+        # 登录窗口置顶
+        win32gui.SetWindowPos(current_hwnd, win32con.HWND_TOPMOST, 0, 0, 0, 0, win32con.SWP_NOMOVE | win32con.SWP_NOSIZE)
+        time.sleep(0.2)
+        pt = win32gui.ClientToScreen(current_hwnd, (x, y))
+        win32api.SetCursorPos([pt[0], pt[1]])
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, pt[0], pt[1], 0, 0)
+        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, pt[0], pt[1], 0, 0)
+        time.sleep(0.2)
+
 
 control = Control(hwnd)
