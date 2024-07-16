@@ -698,6 +698,12 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
             control.esc()
             time.sleep(2)
     if count == 0:
+        absorption_max_time = (
+            config.MaxEchoAbsorptionTime if config.MaxEchoAbsorptionTime > 5 else 5
+        )
+        if (datetime.now() - info.searchStartTime).seconds >= absorption_max_time:
+            info.needAbsorption = False
+            info.searchTimes = 0
         return False
     logger("吸收声骸")
     info.absorptionCount += 1

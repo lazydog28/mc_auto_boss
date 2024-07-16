@@ -31,6 +31,8 @@ def judgment_absorption_action():
                 forward()
         else:
             info.needAbsorption = False
+        if (datetime.now() - info.fightEndTime).seconds >= absorption_max_time:
+            info.needAbsorption = True
 
 
 # 战斗完成 吸收
