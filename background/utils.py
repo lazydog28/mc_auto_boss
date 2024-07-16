@@ -16,6 +16,8 @@ import numpy as np
 import itertools
 import psutil
 import yaml
+import importlib
+import yolo
 from PIL import Image, ImageGrab
 from ctypes import windll
 from typing import List, Tuple, Union
@@ -314,8 +316,7 @@ def transfer_to_boss(bossName):
     if transfer := wait_text("快速旅行"):
         click_position(transfer.position)
         logger("等待传送完成")
-        time.sleep(1)
-        check_loading()
+        check_loading(reload_search_model=True)
         while check_in_animation() != "is available":
             time.sleep(0.5)
         # wait_home()  # 等待回到主界面
@@ -1172,7 +1173,6 @@ def check_boss(bossName, is_wait: bool = False):
             logger(f"{info.bossTrueName}需要等待{wait_time}秒开始战斗！", "DEBUG")
         else:
             logger("当前BOSS不需要等待，直接开始战斗！", "DEBUG")
-        logger(f"搜索声骸将调用模型 {info.echoSearchModel}")
         info.waitBoss = False
     else:
         logger(f"即将前往{info.bossTrueName}")
@@ -1906,13 +1906,24 @@ def check_ult():
     return False
 
 
-def check_loading(leave_dungeon: bool = False):
+def check_loading(leave_dungeon: bool = False, reload_search_model: bool = False):
     region = set_region(1735, 970, 1845, 1020)
     loading_progress = "0"   # 加载进度
     # loading_wait_time = 2  # 测试超时重启用
     loading_wait_time = 300   # 等待加载时间，超过则重启游戏
     loading_start_time = datetime.now()
     logger("进入加载页面，等待加载", "DEBUG")
+    if reload_search_model:
+        if info.echoSearchModel:
+            if info.echoSearchModel == info.lastEchoSearchModel:
+                logger(f"与上次模型一致，无需加载，使用模型{info.echoSearchModel}","DEBUG")
+            else:
+                logger(f"加载yolo模型{info.echoSearchModel}", "DEBUG")
+                importlib.reload(yolo)
+        else:
+            info.echoSearchModel = "yolo.onnx"
+            logger(f"未设置模型，使用默认yolo模型", "DEBUG")
+            importlib.reload(yolo)
     i = 0
     while loading_progress != "100%" and check_in_animation() != "is available":
         text_result = wait_text_designated_area("%", 1, region, 3, full_text_return=True)

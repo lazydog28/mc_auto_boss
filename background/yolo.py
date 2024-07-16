@@ -6,27 +6,28 @@
 @author SuperLazyDog
 """
 from constant import root_path
-from status import info
+from status import info, logger
 import onnxruntime as rt
 import os
 import numpy as np
 import cv2
 
-model_path = os.path.join(root_path, "models/" + info.echoSearchModel)
-# spare_model_path = os.path.join(root_path, "models/0610.onnx")
-# 判断能否使用GPU或Dml
-if "CUDAExecutionProvider" in rt.get_available_providers():
-    provider = ["CUDAExecutionProvider"]
-elif "DmlExecutionProvider" in rt.get_available_providers():
-    provider = ["DmlExecutionProvider"]
-else:
-    provider = ["CPUExecutionProvider"]
-
+if info.echoSearchModel:
+    model_path = os.path.join(root_path, "models/" + info.echoSearchModel)
+    # spare_model_path = os.path.join(root_path, "models/0610.onnx")
+    # 判断能否使用GPU或Dml
+    if "CUDAExecutionProvider" in rt.get_available_providers():
+        provider = ["CUDAExecutionProvider"]
+    elif "DmlExecutionProvider" in rt.get_available_providers():
+        provider = ["DmlExecutionProvider"]
+    else:
+        provider = ["CPUExecutionProvider"]
 # 加载模型
-
-model = rt.InferenceSession(model_path, providers=provider)
-input_name = model.get_inputs()[0].name
-label_name = model.get_outputs()[0].name
+    model = rt.InferenceSession(model_path, providers=provider)
+    input_name = model.get_inputs()[0].name
+    label_name = model.get_outputs()[0].name
+    logger(f"加载模型{info.echoSearchModel}完成", "DEBUG")
+    info.lastEchoSearchModel = info.echoSearchModel
 
 
 class LetterBox:

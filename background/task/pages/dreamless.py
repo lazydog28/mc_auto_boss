@@ -125,7 +125,7 @@ def start_challenge_action(positions: dict[str, Position]) -> bool:
         time.sleep(0.2)
     info.lastFightTime = datetime.now()
     time.sleep(1)
-    check_loading()
+    check_loading(reload_search_model=True)
     return True
 
 

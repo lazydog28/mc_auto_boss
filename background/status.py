@@ -29,7 +29,8 @@ battle_count, absorb_count, heal_count = read_crashes_datas()
 
 
 class StatusInfo(BaseModel):
-    
+
+    initLoadComplete: bool = Field(False, title="初始化加载是否完成")
     roleIndex: int = Field(0, title="角色索引")
     lastRoleIndex: int = Field(0, title="最后一次角色索引")
     characterHealthyIndex: List[bool] = Field([True, True, True, True], title="角色存活状态")   # 实质上从[1]到[3]
@@ -55,7 +56,8 @@ class StatusInfo(BaseModel):
     lastLeaveTime: datetime = Field(datetime.now(), title="上次尝试退出副本的时间")
     lastBossName: str = Field("", title="最近BOSS名称")
     bossTrueName: str = Field("", title="当前BOSS正式名称")
-    echoSearchModel: str = Field("yolo.onnx", title="寻找声骸的模型")
+    echoSearchModel: str = Field("", title="寻找声骸的模型")
+    lastEchoSearchModel: str = Field("", title="上次寻找声骸的模型")
     healCount: int = Field(heal_count, title="治疗次数")
     needHeal: bool = Field(False, title="需要治疗")
     checkHeal: bool = Field(True, title="检查角色存活情况")

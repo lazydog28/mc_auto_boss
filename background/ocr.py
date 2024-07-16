@@ -8,13 +8,14 @@
 import os
 import time
 import paddle
-from paddleocr import PaddleOCR
 from multiprocessing import current_process
 import numpy as np
-from schema import OcrResult, Position
 from config import config
-from status import info, logger
+from status import logger
 import logging
+
+from paddleocr import PaddleOCR
+from schema import OcrResult, Position
 
 
 class PaddleOCRSingleton:

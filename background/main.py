@@ -15,7 +15,6 @@ from threading import Event as event
 from config import config
 from read_crashes_data import read_crashes_datas
 
-
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 hwnds = win32gui.FindWindow("UnrealWindow", "鸣潮")
@@ -31,7 +30,7 @@ def restart_app(e: event):
             time.sleep(config.GameMonitorTime)  # 每秒检测一次，游戏窗口      改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
             find_ue4("UnrealWindow", "UE4-Client Game已崩溃  ")
             find_game_windows("UnrealWindow", "鸣潮  ", e)
-            
+
 
 def find_ue4(class_name, window_title):
     if app_path:
@@ -58,7 +57,7 @@ def find_game_windows(class_name, window_title, taskEvent):
             # 如果重启成功，执行方法一
             time.sleep(20)
             taskEvent.clear()  # 清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
-           
+
             logger("自动启动BOSS脚本")
             thread = Process(target=run, args=(boss_task, taskEvent), name="task")
             thread.start()
@@ -214,7 +213,8 @@ def check_confirm_user_permissions():
 
 def check_authorization_validity_period():
     validity_time = datetime(2024, 8, 15, 0, 0, 0)
-    print(f"授权有效期至{validity_time.year}/{validity_time.month}/{validity_time.day} {validity_time.hour}:{validity_time.minute}:{validity_time.second}")
+    print(
+        f"授权有效期至{validity_time.year}/{validity_time.month}/{validity_time.day} {validity_time.hour}:{validity_time.minute}:{validity_time.second}")
     remaining_time = validity_time - datetime.now()
     if remaining_time.total_seconds() < 0:
         print("授权已过期")
@@ -255,6 +255,7 @@ if __name__ == "__main__":
         target=restart_app, args=(taskEvent,), name="restart_event"
     )
     restart_thread.start()
+    info.initLoadComplete = True
     if app_path:
         logger(f"游戏路径：{config.AppPath}")
     else:

@@ -113,6 +113,7 @@ def match_template(
             alpha_template = template_img[:, :, 3]
             gray_template = cv2.cvtColor(bgr_template, cv2.COLOR_BGR2GRAY)
             _, mask = cv2.threshold(alpha_template, 1, 255, cv2.THRESH_BINARY)
+            del bgr_template, alpha_template
         else:
             # print("目标图片没有Alpha通道")
             gray_template = cv2.cvtColor(template_img, cv2.COLOR_BGR2GRAY)
@@ -120,8 +121,11 @@ def match_template(
         cropped_img = cv2.equalizeHist(cropped_img)
         gray_template = cv2.equalizeHist(gray_template)
         res = cv2.matchTemplate(cropped_img, gray_template, cv2.TM_CCOEFF_NORMED, mask=mask)
+        del gray_template, mask
     else:
         res = cv2.matchTemplate(cropped_img, template_img, cv2.TM_CCOEFF_NORMED)
+
+    del cropped_img
 
     confidence = np.max(res)
     if confidence < threshold:
@@ -133,7 +137,7 @@ def match_template(
         max_loc = np.where(res == confidence)
 
     if tmp_is_transparent_background:
-        return ImgPosition(
+        position = ImgPosition(
             x1=max_loc[0] + x1,
             y1=max_loc[1] + y1,
             x2=max_loc[0] + x1 + template_img.shape[1],
@@ -141,13 +145,20 @@ def match_template(
             confidence=confidence,
         )
     else:
-        return ImgPosition(
+        position = ImgPosition(
             x1=max_loc[1][0] + x1,
             y1=max_loc[0][0] + y1,
             x2=max_loc[1][0] + x1 + template_img.shape[1],
             y2=max_loc[0][0] + y1 + template_img.shape[0],
             confidence=confidence,
         )
+
+    if tmp_is_transparent_background:
+        del min_val, max_val, min_loc, max_loc, res, template_img
+    else:
+        del max_loc, res, template_img
+
+    return position
 
 
 def is_position_contained(container: Position, contained: Position) -> bool:

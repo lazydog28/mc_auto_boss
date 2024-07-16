@@ -68,6 +68,8 @@ def absorption_action(positions: dict[str, Position]) -> bool:
                 time.sleep(0.1)
             if info.absorptionCount == info.lastAbsorptionCount:
                 info.absorptionCount += 1
+            if info.echoSearchTimesCount == 0:
+                info.echoSearchStartTime = datetime.now()
             info.needAbsorption = False
             info.lastFightTime = info.lastFightTime - timedelta(seconds=(config.MaxIdleTime + 5))  # 吸收完成后立即结束等待
             break
