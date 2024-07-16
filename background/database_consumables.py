@@ -9,12 +9,10 @@ import os
 import re
 from config import root_path
 from status import info, logger
-from memory_profiler import profile
 
 image_file_path = os.path.join(root_path, "template/")
 
 
-@profile
 class ItemDatabase:
     def __init__(self):
         self.foods = []
