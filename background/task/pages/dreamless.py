@@ -149,13 +149,13 @@ def leave_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     # if info.needAbsorption and config.SearchDreamlessEchoes:
-        # absorption_action()
+    # absorption_action()
     #    add_judgment_absorption_condition_action()
     # else:
     #     absorption_and_receive_rewards({})
     if (not ((datetime.now() - info.lastFightTime).seconds < config.MaxIdleTime)
-        or not info.needAbsorption
-        or not config.SearchDreamlessEchoes):
+            or not info.needAbsorption
+            or not config.SearchDreamlessEchoes):
         control.esc()
         time.sleep(1)
         return True

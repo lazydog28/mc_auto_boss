@@ -109,39 +109,35 @@ def add_judgment_fight_conditional_action():
     conditional_actions.append(judgment_fight_conditional_action)
 
 
-# def judgment_leave() -> bool:
-#     return (
-#             datetime.now() - info.lastFightTime
-#         ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue) and \
-#         info.fightEndFlag and info.needAbsorption
-#
-#
-# def judgment_leave_action() -> bool:
-#     # 重置最后战斗时间
-#     if info.needAbsorption and config.SearchDreamlessEchoes:
-#         absorption_action()
-#     else:
-#         absorption_and_receive_rewards({})
-#     control.esc()
-#     time.sleep(1)
-#     info.lastFightTime = datetime.now()
-#     return True
-#
-#
-# def add_judgment_leave_conditional_action():
-#     judgment_leave_conditional_action = ConditionalAction(
-#         name="副本内超过最大空闲时间,离开",
-#         condition=judgment_leave,
-#         action=judgment_leave_action,
-#     )
-#     conditional_actions.append(judgment_leave_conditional_action)
+def judgment_leave() -> bool:
+    return (
+            datetime.now() - info.lastFightTime
+        ).seconds > config.MaxIdleTime and \
+        info.fightEndFlag
+
+
+def judgment_leave_action() -> bool:
+    if (not ((datetime.now() - info.lastFightTime).seconds < config.MaxIdleTime)
+            or not info.needAbsorption):
+        control.esc()
+        time.sleep(1)
+        return True
+
+
+def add_judgment_leave_conditional_action():
+    judgment_leave_conditional_action = ConditionalAction(
+        name="副本内超过最大空闲时间,离开",
+        condition=judgment_leave,
+        action=judgment_leave_action,
+    )
+    conditional_actions.append(judgment_leave_conditional_action)
 
 
 if info.status != Status.fight:
     add_judgment_absorption_condition_action()  # 搜索声骸
     add_judgment_idle_conditional_action()  # 超过最大空闲时间
     add_judgment_fight_conditional_action()  # 超过最大战斗时间
-    # add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间
+    add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间退出(防止OCR未识别到"离开"文字)
 else:
     add_judgment_idle_conditional_action()  # 超过最大空闲时间
     add_judgment_fight_conditional_action()  # 超过最大战斗时间

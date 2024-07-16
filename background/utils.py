@@ -1964,30 +1964,39 @@ def check_fight_time(lastBossName):
     # 本次声骸搜索计数(防止一次战斗多次计数)
     info.lastAbsorptionCount = info.absorptionCount
     # 总战斗时间(包括加载和搜索声骸)
-    all_time = datetime.now() - info.fightTime
-    hours, remainder = divmod(all_time.total_seconds(), 3600)
-    minutes, seconds = divmod(remainder, 60)
-    formatted_all_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
-    logger(f"本次战斗总用时：{formatted_all_time}", "IMPORTANT")
-    # 仅战斗用时
-    fight_time = info.fightEndTime - info.fightTime
-    hours, remainder = divmod(fight_time.total_seconds(), 3600)
-    minutes, seconds = divmod(remainder, 60)
-    formatted_fight_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
-    logger(f"战斗用时：{formatted_fight_time}", "IMPORTANT")
-    # 搜索声骸用时
-    if lastBossName == "无妄者" or lastBossName == "角":
-        pass
+
+    # 战斗次数为0时，改为显示脚本启动用时
+    if info.fightCount == 0:
+        all_time = datetime.now() - info.fightTime
+        hours, remainder = divmod(all_time.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        formatted_all_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        logger(f"脚本启动用时：{formatted_all_time}", "IMPORTANT")
     else:
-        info.echoSearchEndTime = datetime.now()
-    echo_search_time = info.echoSearchEndTime - info.echoSearchStartTime
-    hours, remainder = divmod(echo_search_time.total_seconds(), 3600)
-    minutes, seconds = divmod(remainder, 60)
-    formatted_echo_search_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
-    logger(f"搜索声骸用时：{formatted_echo_search_time}", "IMPORTANT")
-    info.echoSearchTimesCount = 0
-    info.fightEndFlagCount = 0
-    info.fightEndFlag = False
+        all_time = datetime.now() - info.fightTime
+        hours, remainder = divmod(all_time.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        formatted_all_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        logger(f"本次战斗总用时：{formatted_all_time}", "IMPORTANT")
+        # 仅战斗用时
+        fight_time = info.fightEndTime - info.fightTime
+        hours, remainder = divmod(fight_time.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        formatted_fight_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        logger(f"战斗用时：{formatted_fight_time}", "IMPORTANT")
+        # 搜索声骸用时
+        if lastBossName == "无妄者" or lastBossName == "角":
+            pass
+        else:
+            info.echoSearchEndTime = datetime.now()
+        echo_search_time = info.echoSearchEndTime - info.echoSearchStartTime
+        hours, remainder = divmod(echo_search_time.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        formatted_echo_search_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        logger(f"搜索声骸用时：{formatted_echo_search_time}", "IMPORTANT")
+        info.echoSearchTimesCount = 0
+        info.fightEndFlagCount = 0
+        info.fightEndFlag = False
 
 
 def load_special_code(this_boss_name):
