@@ -36,11 +36,11 @@ def judgment_absorption_action():
 # 战斗完成 吸收
 def judgment_absorption() -> bool:
     return (
-        (datetime.now() - info.fightTime).seconds > 5  # 战斗开始至少5秒后再判断吸收
-        and (datetime.now() - info.lastFightTime).seconds
-        < config.MaxEchoAbsorptionTime + 5  # 给5秒去判断是否超时，设置吸收Flag为False，否则有概率卡在吸收
-        and info.needAbsorption  # 未吸收
-        and info.status != Status.fight
+            (datetime.now() - info.fightTime).seconds > 5  # 战斗开始至少5秒后再判断吸收
+            and (datetime.now() - info.lastFightTime).seconds
+            < config.MaxEchoAbsorptionTime + 5  # 给5秒去判断是否超时，设置吸收Flag为False，否则有概率卡在吸收
+            and info.needAbsorption  # 未吸收
+            and info.status != Status.fight
     )
 
 
@@ -54,7 +54,7 @@ def add_judgment_absorption_condition_action():
 # 超过最大空闲时间
 def judgment_idle() -> bool:
     return (
-        datetime.now() - info.lastFightTime
+            datetime.now() - info.lastFightTime
     ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
 
 
@@ -88,7 +88,7 @@ def add_judgment_idle_conditional_action():
 # 超过最大战斗时间
 def judgment_fight() -> bool:
     return (
-        datetime.now() - info.fightTime
+            datetime.now() - info.fightTime
     ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue
 
 
@@ -110,7 +110,8 @@ def add_judgment_fight_conditional_action():
 # def judgment_leave() -> bool:
 #     return (
 #             datetime.now() - info.lastFightTime
-#     ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue)
+#         ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue) and \
+#         info.fightEndFlag and info.needAbsorption
 #
 #
 # def judgment_leave_action() -> bool:

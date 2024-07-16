@@ -669,10 +669,12 @@ def absorption_action():
                 info.searchTimes = 0
                 break
     else:
-        logger("未吸收4")
         info.needAbsorption = False
         info.searchTimes = 0
         return
+    if (datetime.now() - info.searchStartTime).seconds >= absorption_max_time:
+        info.needAbsorption = False
+        info.searchTimes = 0
 
 
 def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
