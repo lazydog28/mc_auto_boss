@@ -458,15 +458,15 @@ def account_login_action(positions: dict[str, Position]) -> bool:
         try:
             ocr_text_result = find_text_in_login_hwnd("^登录$", ck_login_hwnd)
             if ocr_text_result is None:
+                logger("未找到登录按键", "DEBUG")
                 return False
             # 文本相对于登录框的位置
             # logger(f"position: {ocr_text_result.position}")
-            click_position_in_login_hwnd(ocr_text_result.position, specified_hwnd=ck_login_hwnd)
+            click_position_in_login_hwnd(ocr_text_result.position, specified_hwnd=ck_login_hwnd, need_print=True)
         except Exception as e:
             pass
         time.sleep(3)
         return True
-
     # 手机号登录窗口特殊，是遮盖在游戏上方的另一个窗口句柄，费老半天才搞明白 by wakening
     # 调用游戏窗口截图会截取到登录窗口下层的游戏窗口，点击也是点不到上层
     # 先试官服

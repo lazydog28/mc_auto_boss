@@ -2056,6 +2056,10 @@ def click_position_in_login_hwnd(
     :param range_y: 垂直方向随机偏移的范围
     :param need_print: 是否输出log，debug用
     """
+
+    def enum_child_windows_callback(child_hwnd, child_hwnds):
+        child_hwnds.append(child_hwnd)
+
     # 分析position的中点
     x = (position.x1 + position.x2) // 2
     y = (position.y1 + position.y2) // 2
@@ -2070,9 +2074,20 @@ def click_position_in_login_hwnd(
     time.sleep(np.random.uniform(0, 0.1))  # 随机等待后点击
     # 后台发送点击消息，窗口微闪一下没反应，可能窗口过于简陋没实现该方法
     # 改成前台点击
-    control.click_login(random_x, random_y, specified_hwnd)
+    control.click(specified_hwnd=specified_hwnd, x=random_x, y=random_y)
     if need_print:
-        logger(f"点击了坐标{random_x},{random_y}", "DEBUG")
+        logger(f"点击了父窗口坐标{random_x},{random_y}", "DEBUG")
+
+    child_hwnds = []
+    win32gui.EnumChildWindows(specified_hwnd, enum_child_windows_callback, child_hwnds)
+    if child_hwnds:
+        if need_print:
+            logger("子窗口信息:")
+        for child_hwnd in child_hwnds:
+            win32gui.PostMessage(child_hwnd, win32con.WM_ACTIVATE, win32con.WA_ACTIVE, 0)
+            control.click(specified_hwnd=child_hwnd, x=random_x, y=random_y)
+            if need_print:
+            logger(f"已在子窗口 '{child_hwnd}' 点击位置 ({x}, {y})","DEBUG")
 
 
 # 使用传入的窗口句柄，从此窗口中获取窗口尺寸，重新绘制图像获取截图

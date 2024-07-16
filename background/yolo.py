@@ -15,10 +15,11 @@ from config import config
 
 if info.echoSearchModel:
     if config.EchoSearchModelChange:
-        model_path = os.path.join(root_path, "models/" + info.echoSearchModel)
+        pass
     else:
+        info.echoSearchModel = "yolo.onnx"
         logger("Config配置，使用默认模型", "DEBUG")
-        model_path = os.path.join(root_path, "models/yolo.onnx")
+    model_path = os.path.join(root_path, "models/" + info.echoSearchModel)
     # 判断能否使用GPU或Dml
     if "CUDAExecutionProvider" in rt.get_available_providers():
         provider = ["CUDAExecutionProvider"]
