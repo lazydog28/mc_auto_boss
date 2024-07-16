@@ -27,11 +27,13 @@ def enter_action(positions: dict[str, Position]) -> bool:
         interactive()
         info.inDreamless = True
         info.lastBossName = "无妄者"
+        info.inDungeon = True
         return True
     if info.bossTrueName == "角":
         interactive()
         info.inJue = True
         info.lastBossName = "角"
+        info.inDungeon = True
         return True
 
 
@@ -193,7 +195,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     info.echoSearchEndTime = datetime.now()
     time.sleep(0.5)
     i = 0
-    while not check_loading():
+    while not check_loading(leave_dungeon=True):
         i += 1
         if find_text("确认"):
             click_position(positions["确认"])
@@ -212,6 +214,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     time.sleep(0.5)
     info.inJue = False
     info.inDreamless = False
+    info.inDungeon = False
     info.needAbsorption = False
     info.status = Status.idle
     now = datetime.now()

@@ -113,15 +113,17 @@ def judgment_leave() -> bool:
     return (
             datetime.now() - info.lastFightTime
         ).seconds > config.MaxIdleTime and \
-        info.fightEndFlag
+        info.fightEndFlag and info.inDungeon and (datetime.now() - info.lastLeaveTime).seconds > 3
 
 
 def judgment_leave_action() -> bool:
     if (not ((datetime.now() - info.lastFightTime).seconds < config.MaxIdleTime)
             or not info.needAbsorption):
-        control.esc()
-        time.sleep(1)
-        return True
+        if check_in_animation() == "is available":
+            control.esc()
+            time.sleep(1)
+            info.lastLeaveTime = datetime.now()
+            return True
 
 
 def add_judgment_leave_conditional_action():

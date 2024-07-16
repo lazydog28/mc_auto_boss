@@ -51,6 +51,8 @@ class StatusInfo(BaseModel):
     currentPageName: str = Field("", title="当前页面名称")
     inDreamless: bool = Field(False, title="是否在无妄者副本内")
     inJue: bool = Field(False, title="是否在角副本内")
+    inDungeon: bool = Field(False, title="是否在副本内")
+    lastLeaveTime: datetime = Field(datetime.now(), title="上次尝试退出副本的时间")
     lastBossName: str = Field("", title="最近BOSS名称")
     bossTrueName: str = Field("", title="当前BOSS正式名称")
     echoSearchModel: str = Field("yolo.onnx", title="寻找声骸的模型")

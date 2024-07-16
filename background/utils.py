@@ -1153,10 +1153,12 @@ def check_boss(bossName, is_wait: bool = False):
         info.bossTrueName = "无妄者"
         info.echoSearchModel = "heart.onnx"
         wait_time = 3
+        info.inDungeon = True
     elif contains_any_combinations(bossName, keywords_jue, min_chars=1):
         info.bossTrueName = "角"
         info.echoSearchModel = "jue.onnx"
         wait_time = 3
+        info.inDungeon = True
     else:
         info.bossTrueName = bossName
         info.echoSearchModel = "yolo.onnx"
@@ -1902,7 +1904,7 @@ def check_ult():
     return False
 
 
-def check_loading():
+def check_loading(leave_dungeon: bool = False):
     region = set_region(1735, 970, 1845, 1020)
     loading_progress = "0"   # 加载进度
     # loading_wait_time = 2  # 测试超时重启用
@@ -1915,6 +1917,9 @@ def check_loading():
         if text_result and text_result[0].text != "":
             loading_progress = re.sub(r'\D', '', text_result[0].text)  # 只提取识别出的字符的数字部分
             logger(f"当前加载：{loading_progress}%", "DEBUG")
+            if leave_dungeon:
+                info.inDungeon = False
+                info.lastFightTime = datetime.now()
         else:
             if i == 0:
                 logger("未检测到加载进度，等待", "DEBUG")
@@ -1928,6 +1933,9 @@ def check_loading():
             kill_process_by_hwnd(hwnd)
             return False
         time.sleep(0.2)
+    logger("加载完成", "DEBUG")
+    if leave_dungeon:
+        info.inDungeon = False
     return True
 
 
