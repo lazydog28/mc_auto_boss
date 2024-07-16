@@ -76,6 +76,7 @@ def select_role(reset_role: bool = False):
             info.roleIndex = 1
         while not info.characterHealthyIndex[info.roleIndex]:
             logger(f"{info.roleIndex}号角色已阵亡，跳过", "DEBUG")
+            info.needHeal = True
             info.roleIndex += 1
             if info.roleIndex > 3:
                 info.roleIndex = 1
@@ -707,6 +708,7 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
         return False
     logger("吸收声骸")
     info.absorptionCount += 1
+    info.lastFightTime = info.lastFightTime - timedelta(seconds=(config.MaxIdleTime + 5))  # 吸收完成后立即结束等待
     return True
 
 
@@ -1972,7 +1974,9 @@ def check_fight_time(lastBossName):
     # 本次声骸搜索计数(防止一次战斗多次计数)
     info.lastAbsorptionCount = info.absorptionCount
     # 总战斗时间(包括加载和搜索声骸)
-
+    # 治疗不需要打印
+    if info.needHeal:
+        return False
     # 战斗次数为0时，改为显示脚本启动用时
     if info.fightCount == 0:
         all_time = datetime.now() - info.fightTime

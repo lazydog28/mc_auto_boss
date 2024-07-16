@@ -17,6 +17,7 @@ def unconscious_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
+    info.needAbsorption = False
     position = positions.get("复苏")
     click_position(position)
     return True
