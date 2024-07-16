@@ -46,6 +46,7 @@ class Config(BaseModel):
     )
 
     DungeonWeeklyBossLevel: int = Field(40, title="周本(副本)boss等级")
+    EchoSearchModelChange: bool = Field(True, title="是否启用声骸模型切换")
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
     OcrInterval: float = Field(0.5, title="OCR间隔时间", ge=0)
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")

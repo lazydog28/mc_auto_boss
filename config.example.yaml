@@ -2,6 +2,7 @@ AppPath: # Wuthering Waves.exe的路径，如需设置，使用"\\"而不是"\" 
 MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目标
 MaxIdleTime: 15 # 战斗完成后的空闲时间，不能小于5
 MaxEchoAbsorptionTime: 15 # 最大吸收声骸时间，此数值必须小于上面的等待时间
+EchoSearchModelChange: False # 是否自动根据BOSS切换使用的搜索声骸模型
 ReloadPagesAndConditional: False # 是否动态加载页面和条件，低配设备或CPU识别可尝试使用，出现吸收声骸发呆或者一直向前走也可打开此功能观察是否改善
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
 DungeonWeeklyBossLevel: 40 # 自己可以掉落的周本(副本)boss最低等级（当前索拉等级*10）
@@ -47,9 +48,9 @@ TargetBoss: # 目标BOSS 必须保证目标BOSS的位置是有借位信标的，
 UseSpecialCode: True # 是否使用特殊代码
 SpecialCode:  # 分Boss的进图前特殊代码，需要代码准确，否则会报错，此部分代码动态加载，调整后不需要重启脚本
   SpecialCodeBossName:
-    无妄者: |  #维里奈进图代码，实现放E之后重击进图以提高进图时维里奈的协奏能量条
+    无妄者: |  # 维里奈进图代码，实现放E之后重击进图以提高进图时维里奈的协奏能量条，不用可注释从无妄者开始的整段代码,亦可自行修改成符合自己的代码
       for _ in range(3):  # 循环3次for里面的代码
-        control.tap("1")   # 按1（切换到1号角色，维里奈）
+        control.tap("1")   # 按1（切换到1号角色，此处为维里奈）
         time.sleep(0.1)   # 等待0.1秒
       control.tap("e")   # 按E
       time.sleep(0.1)  # 等待0.1秒
