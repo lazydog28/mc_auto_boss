@@ -163,9 +163,10 @@ if len(config.TargetBoss) == 0:
 
 # 加载声骸锁定配置文件
 if config.EchoLock:
+    echo_config_path = os.path.join(root_path, "echo_config.yaml")
     if os.path.exists(os.path.join(root_path, "echo_config.yaml")):
         with open(
-            os.path.join(root_path, "echo_config.yaml"), "r", encoding="utf-8"
+            echo_config_path, "r", encoding="utf-8"
         ) as f:
             echo_config_data = yaml.safe_load(f)
             config.EchoLockConfig = echo_config_data.get("EchoLockConfig", {})
@@ -184,5 +185,5 @@ if config.EchoLock:
                     echo_set_dict[cost + "COST"] = []
         # print("\n" + str(config.EchoLockConfig))
     else:
-        print("缺少声骸配置文件")
+        print("缺少声骸配置文件，请复制example文件进行配置， 目标文件路径：%s" % echo_config_path)
         wait_exit()

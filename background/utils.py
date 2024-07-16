@@ -487,9 +487,9 @@ def screenshot() -> np.ndarray | None:
             config.RebootCount = 0
             logger("正在重新启动游戏及脚本...", "INFO")
             from main import close_window
-
-            close_window("UnrealWindow", "鸣潮  ")
-            raise Exception("截取游戏窗口失败且重试次数超过上限，正在重启游戏")
+            close_window()
+            # close_window("UnrealWindow", "鸣潮  ")
+            raise Exception("截取游戏窗口失败且重试次数超过上限，正在重启游戏") from None
 
     # 从位图中获取图像数据
     bmp_info = saveBitMap.GetInfo()  # 获取位图信息
@@ -1033,8 +1033,8 @@ def boss_wait(bossName):
         logger("无妄者需要等待3秒开始战斗！", "DEBUG")
         time.sleep(3)
     elif contains_any_combinations(bossName, keywords_jue, min_chars=1):
-        logger("角需要等待3秒开始战斗！", "DEBUG")
-        time.sleep(3)
+        logger("角需要等待1.5秒开始战斗！", "DEBUG")
+        time.sleep(1.5)
     else:
         logger("当前BOSS可直接开始战斗！", "DEBUG")
 
@@ -1083,7 +1083,7 @@ def echo_bag_lock():
     """
     # 开始执行判断
     if not config.EchoLock:
-        logger("未启动该功能", "WARN")
+        logger("未启用该功能，请在config.yaml中更改EchoLock配置", "WARN")
         return False
     info.echoNumber += 1
     this_echo_row = info.echoNumber // 6 + 1
@@ -1948,19 +1948,16 @@ def close_window(class_name: str = "UnrealWindow", window_title: str = "鸣潮  
 
 # 声骇得分计算
 def role_equip_points():
-    is_echo_ebug = False  # Debug打印开关
 
     if not config.EnhancedComputing:
-        logger("未启动该功能", "WARN")
+        logger("未启用该功能，请在config.yaml中更改EnhancedComputing配置", "WARN")
         return False
 
     logger("默认按正常比例适配计算，如需计算特殊角色，请前往配置文件中配置", "WARN")
     logger("计算需要在角色声骇详情页面进行，请确保前往顺序为 按下C -> 属性详情 -> 声骇 -> 点击右侧声骇 即可。请确保处于该页面，否则可能识别失败。","WARN")
-    logger("计算需要在角色声骇详情页面进行，请确保前往顺序为 按下C -> 属性详情 -> 声骇 -> 点击右侧声骇 即可。请确保处于该页面，否则可能识别失败。","WARN")
-    logger("计算需要在角色声骇详情页面进行，请确保前往顺序为 按下C -> 属性详情 -> 声骇 -> 点击右侧声骇 即可。请确保处于该页面，否则可能识别失败。","WARN")
     time.sleep(1)
 
-    logger("目前支持特殊计算角色：\n -今夕 \n - 忌炎  ")
+    logger("目前支持特殊计算角色：\n - 今汐\n - 忌炎  ")
     role_name = config.ComputeRoleName
     max_attempts = 10
     retry_interval = 5

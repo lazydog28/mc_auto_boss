@@ -27,9 +27,9 @@ WaitUltAnimation: false # 是否判断并等待大招动画  （实验功能，�
 SearchEchoes: true # 是否搜索声骸
 SearchDreamlessEchoes: true # 是否搜索无妄者声骸
 EchoLock: false #是否启用声骸锁定功能
-EchoMaxContinuousLockQuantity: 5 # 最大连续检测到已锁定声骸的数量，超过此数量就停止
+EchoMaxContinuousLockQuantity: 25 # 最大连续检测到已锁定声骸的数量，超过此数量就停止
 EnhancedComputing: true # 是否启用声骇强化计算
-ComputeRoleName: 今夕  # 声骇计算角色名称， 目前支持今夕，忌炎 不填则只计算正常权重分值
+ComputeRoleName: 今汐  # 声骇计算角色名称， 目前支持今汐，忌炎 不填则只计算正常权重分值
 ComputeTactic: [0, 10, 36, 78] # 声骇每级计算策略 默认提供强化最优策略 [0, 10, 36, 78]可自行修改 第一位为5级声骇期望分值，第二位为10级，第三位为15级，第四位为20级 详细计算方法请参考 https://ngabbs.com/read.php?tid=40813747&_fu=62546171%2C1&rand=665
 
 # 战斗策略

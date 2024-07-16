@@ -54,7 +54,7 @@ def calculate_total_weight(paired_results, character_name=""):
   return total_weight, adjusted_total_weight if total_weight != adjusted_total_weight else None, max_total_weight, max_adjusted_total_weight
 
 class Character(Enum):
-  今夕 = "共鸣技能伤害加成"
+  今汐 = "共鸣技能伤害加成"
   忌炎 = "重击伤害加成"
 
 class AttributeMax(Enum):

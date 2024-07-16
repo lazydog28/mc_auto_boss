@@ -220,16 +220,24 @@ def on_press(key):
         thread = Process(target=run, args=(echo_bag_lock_task, taskEvent), name="task")
         thread.start()
     if key == Key.f9:
+        logger("声骇得分计算启动，请确认当前处于角色声骇详情页","WARN")
         try:
-            logger("声骇得分计算启动，请确认当前处于角色声骇详情页")
-            thread = Process(target=run, args=(compute_task, taskEvent), name="task")
-            thread.start()
+            input(
+                "\n         计算需要在角色声骇详情页面进行，否则将无法识别"
+                "\n         前往顺序为 按下C-> 属性详情-> 声骇-> 点击右侧声骇，请确保处于该页面，否则将无法识别"
+                "\n         目前仅适配1920*1080分辨率    回车确认 Enter..."
+            )
+                
+        # except:
+        #     pass
         except Exception as e:
             logger(f"发生错误: {e}", "ERROR")
             taskEvent.clear()
             mouseResetEvent.set()
             restart_thread.terminate()  # 杀死默认开启状态的检测窗口的线程
             sys.exit(1)
+        thread = Process(target=run, args=(compute_task, taskEvent), name="task")
+        thread.start()
     if key == Key.f12:
         logger("请等待程序退出后再关闭窗口...")
         taskEvent.clear()
@@ -297,9 +305,9 @@ if __name__ == "__main__":
     logger(f"version: {version.__version__}")
     logger("鼠标重置进程启动")
     print(
-        "\n --------------------------------------------------------------"
+        "\n ------------------------------------------------------------------------"
         "\n     注意：此脚本为免费的开源软件，如果你是通过购买获得的，那么你受骗了！\n "
-        "--------------------------------------------------------------\n"
+        "------------------------------------------------------------------------\n"
     )
     print("请确认已经配置好了config.yaml文件\n")
     print(

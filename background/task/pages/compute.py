@@ -21,7 +21,7 @@ def compute(positions: dict[str, Position]) -> bool:
   """
 
   if role_equip_points() is False:
-    print("分值计算结束，请按下F12退出脚本，如需继续请重新打开脚本。")
+    print("\n分值计算结束，请按下F12退出脚本，如需继续请重新打开脚本。")
     sys.exit(0)
     # 按下F12退出脚本
     control.tap(Key.F12)
