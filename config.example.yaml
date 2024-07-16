@@ -21,7 +21,8 @@ MaxIdleTime: 12 # 战斗完成后的空闲时间，不能小于5
 MaxSearchEchoesTime: 18 # 战斗完成后搜索声骸的最大时间，与MaxIdleTime/2 取较大值
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
 DungeonWeeklyBossLevel: 40 # 自己可以掉落的周本(副本)boss最低等级（当前索拉等级*10）
-DungeonWeeklyBossWaitTime: 0 # (副本)boss进入以后额外等待时间
+BossWaitTime_Dreamless: 3 # 进入-无妄者-周本等待时间，可根据连招自行调整
+BossWaitTime_Jue: 2 # 进入-角-周本等待时间，可根据连招自行调整
 CharacterHeal: true #是否判断角色是否阵亡 若阵亡则返回神像复活，请确保背包里面至少有一个复活药剂
 WaitUltAnimation: false # 是否判断并等待大招动画  （实验功能，目前4k屏，175%缩放，游戏分辨率1920*1080,测试有效，可能需要做适配，欢迎测试）
 SearchEchoes: true # 是否搜索声骸

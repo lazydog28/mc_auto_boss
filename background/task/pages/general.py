@@ -166,9 +166,10 @@ def fight_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     if info.status != Status.fight:
-        if (info.inDreamless or info.inJue) and config.DungeonWeeklyBossWaitTime > 0:
-            logger(f"周本副本战斗延迟{config.DungeonWeeklyBossWaitTime}")
-            time.sleep(config.DungeonWeeklyBossWaitTime)
+        # 已增加周本分别自定义等待时间替换该功能
+        # if (info.inDreamless or info.inJue) and config.DungeonWeeklyBossWaitTime > 0:
+        #     logger(f"周本副本战斗延迟{config.DungeonWeeklyBossWaitTime}")
+        #     time.sleep(config.DungeonWeeklyBossWaitTime)
         info.fightCount += 1
         info.needAbsorption = True
         info.fightTime = datetime.now()

@@ -1030,11 +1030,11 @@ def boss_wait(bossName):
         logger("机器人需要等待7秒开始战斗！", "DEBUG")
         time.sleep(7)
     elif contains_any_combinations(bossName, keywords_dreamless, min_chars=3):
-        logger("无妄者需要等待3秒开始战斗！", "DEBUG")
-        time.sleep(3)
+        logger(f"无妄者需要等待{config.BossWaitTime_Dreamless}秒开始战斗！", "DEBUG")
+        time.sleep(config.BossWaitTime_Dreamless)
     elif contains_any_combinations(bossName, keywords_jue, min_chars=1):
-        logger("角需要等待1.5秒开始战斗！", "DEBUG")
-        time.sleep(1.5)
+        logger(f"角需要等待{config.BossWaitTime_Jue}秒开始战斗！", "DEBUG")
+        time.sleep(config.BossWaitTime_Jue)
     else:
         logger("当前BOSS可直接开始战斗！", "DEBUG")
 

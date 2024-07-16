@@ -1,7 +1,14 @@
-__version__ = "1.2.3"
-release_date = "2024-07-09"
+__version__ = "1.2.4"
+release_date = "2024-07-16"
 description = "更新"
 
+# ver1.2.4
+# update:2024-07-08
+# updated by ArcS17
+# 1.新增指定周本Boss等待时间
+# 2.新增声骸文件配置提醒
+# 3.修复截取窗口失败TypeError，默认连续已锁声骸检测阈值过低，声骸分值计算功能角色名称错误
+# 4.重写F9后调用逻辑，重写F9功能使用提醒
 
 # ver1.2.3
 # update:2024-07-08
