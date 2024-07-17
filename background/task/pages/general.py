@@ -6,10 +6,9 @@
 @author SuperLazyDog
 """
 
-from schema import Position, ImgPosition, OcrResult, TextMatch, ImageMatch, Page
-from control import control
-from re import Pattern, template
-from status import info, Status, logger
+from schema import TextMatch, Page
+from re import template
+from status import Status
 from datetime import datetime, timedelta
 from utils import *
 import hwnd_util

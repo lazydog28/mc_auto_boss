@@ -12,7 +12,7 @@ import subprocess
 from task import boss_task, synthesis_task, echo_bag_lock_task
 from utils import *
 from threading import Event as event
-from config import config
+from config import config, wait_exit
 from read_crashes_data import read_crashes_datas
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -233,6 +233,26 @@ def end_thread(thread_name, thread):
     thread.join()
 
 
+def check_read_tutorial():
+    is_read_tutorial_file = os.path.join(config.project_root, "isReadTutorial.dat")
+    read_tutorial_file = os.path.join(config.project_root, "一些简单的问题解答(更新中).txt")
+    if not os.path.exists(is_read_tutorial_file):
+        user_input = input('是否已经阅读了【一些简单的问题解答(更新中).txt】？(y/n) ')
+        if user_input.lower() == "y":
+            print("欢迎使用本程序", "INFO")
+            with open(is_read_tutorial_file, "w") as f:
+                f.write(str("User has read"))
+        else:
+            try:
+                print("请先阅读【问题解答】\n")
+                os.startfile(read_tutorial_file)
+            except Exception:
+                print(f"未找到【问题解答】{read_tutorial_file}，请下载阅读后再运行本程序")
+                wait_exit()
+    else:
+        logger("欢迎使用本程序，有问题请先查看程序目录下的问题解答", "INFO")
+
+
 if __name__ == "__main__":
     user = "guest"
     if user == "Rin":
@@ -244,6 +264,7 @@ if __name__ == "__main__":
         if not check_confirm_user_permissions():
             time.sleep(3)
             exit()
+    check_read_tutorial()
     # 在这里添加你的程序逻辑
     taskEvent = Event()  # 用于停止任务线程
     mouseResetEvent = Event()  # 用于停止鼠标重置线程

@@ -5,11 +5,11 @@
 @time: 2024/6/1 下午9:13
 @author SuperLazyDog
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError, validator
 import yaml
 import os
 import winreg
-from constant import wait_exit, root_path
+import sys
 from typing import Optional, Dict, List
 
 
@@ -98,9 +98,21 @@ def get_wuthering_waves_path():
         # print(f"访问注册表错误: {e}")
         pass
     finally:
-        if 'key' in locals():
-            key.Close()
+        try:
+            if 'key' in locals():
+                key.Close()
+        except Exception:
+            print(f"未在注册表找到鸣潮游戏路径，请在Config第一行手动设置")
+            wait_exit()
     return None
+
+
+def wait_exit():
+    input("按任意键退出...")
+    sys.exit(0)
+
+
+root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -109,11 +121,29 @@ config_path = os.path.join(project_root, "config.yaml")
 # 判断是否存在配置文件
 if os.path.exists(os.path.join(root_path, "config.yaml")):
     with open(os.path.join(root_path, "config.yaml"), "r", encoding="utf-8") as f:
-        config = Config(**yaml.safe_load(f))
+        try:
+            print("加载配置文件中")
+            config = Config(**yaml.safe_load(f))
+        except yaml.YAMLError as e:
+            if hasattr(e, 'problem_mark'):
+                mark = e.problem_mark
+                print(f"配置文件有误，请检查config.yaml，错误位于【第{mark.line + 1}行】【第{mark.column + 1}列】，或其上下行符号错误。")
+                print("常见问题:\n① 冒号(:)后需要空格，否则会导致缩进错误。\n② 列表中存在逗号错误('，'和',')等\n③ 请全部使用半角字符，请仔细检查")
+                wait_exit()
+            else:
+                print(f"配置文件格式有误，请检查config.yaml: {e}")
+        except ValidationError as e:
+            errors = e.errors()
+            for error in errors:
+                if 'FightTacticsConcerto' in error['loc']:
+                    print("变奏入场连招设置有误，请检查config.yaml中的FightTacticsConcerto列表")
+                    break
+            else:
+                print(f"配置文件格式有误，请检查config.yaml: {e}")
+            wait_exit()
 else:
-    config = Config()
-    with open(os.path.join(root_path, "config.yaml"), "w", encoding="utf-8") as f:
-        yaml.safe_dump(config.dict(), f)
+    print("缺少配置文件，请复制config.example.yaml并重命名为config.yaml进行修改")
+    wait_exit()
 
 if len(config.TargetBoss) == 0:
     print("请在项目根目录下的config.yaml中填写目标BOSS全名")
@@ -123,8 +153,19 @@ if len(config.TargetBoss) == 0:
 if config.EchoLock:
     if os.path.exists(os.path.join(root_path, "echo_config.yaml")):
         with open(os.path.join(root_path, "echo_config.yaml"), "r", encoding="utf-8") as f:
-            echo_config_data = yaml.safe_load(f)
-            config.EchoLockConfig = echo_config_data.get("EchoLockConfig", {})
+            try:
+                echo_config_data = yaml.safe_load(f)
+                config.EchoLockConfig = echo_config_data.get("EchoLockConfig", {})
+            except yaml.YAMLError as e:
+                if hasattr(e, 'problem_mark'):
+                    mark = e.problem_mark
+                    print(f"配置文件有误，请检查echo_config.yaml，错误位于【第{mark.line + 1}行】【第{mark.column + 1}列】，或其上下行符号错误。")
+                    print("常见问题:\n① 冒号(:)后需要空格，否则会导致缩进错误。\n② 列表中存在逗号错误('，'和',')等\n③ 请全部使用半角字符，请仔细检查")
+                    wait_exit()
+                else:
+                    print(e)
+                    print(f"声骸配置文件有误，请检查echo_config.yaml：{e}")
+                    wait_exit()
     else:
-        print("缺少声骸配置文件")
+        print("缺少声骸配置文件，请复制echo_config.example.yaml并重命名为请复制echo_config.yaml进行修改")
         wait_exit()

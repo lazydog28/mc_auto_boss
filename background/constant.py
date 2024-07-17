@@ -5,8 +5,11 @@
 @time: 2024/6/5 上午8:24
 @author SuperLazyDog
 """
+import time
+
 import win32gui
 import sys
+import subprocess
 from ctypes import windll
 import os
 import re
@@ -29,10 +32,25 @@ def wait_exit():
     sys.exit(0)
 
 
+def game_start():
+    from config import config
+    app_path = config.AppPath
+    if app_path:
+        try:
+            process = subprocess.Popen(app_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+            print("未检测到游戏窗口，尝试启动游戏")
+        except Exception:
+            print("游戏路径设置错误，无法启动游戏")
+
+
 hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
 if hwnd == 0:
-    print("未找到游戏窗口")
-    wait_exit()
+    game_start()
+    time.sleep(10)
+    hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
+    if hwnd == 0:
+        print("启动游戏失败，按任意键退出")
+        wait_exit()
 left, top, right, bot = win32gui.GetClientRect(hwnd)
 w = right - left
 h = bot - top
