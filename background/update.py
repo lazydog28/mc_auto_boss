@@ -129,10 +129,10 @@ def check_for_updates():
                 except Exception as e:
                     input(f"尝试下载文件时发生了错误: {str(e)}。{msg}")
             else:
-                input("用户取消更新。{msg}")
+                input(f"用户取消更新。{msg}")
         elif local_version > github_version:
             input(f"您正在使用的版本高于Github上的版本，可能不是{branch}分支的版本。{msg}")
         else:
-            input("已经是最新版本。{msg}")
+            input(f"已经是最新版本。{msg}")
     else:
-        input("网络问题无法获取版本信息。{msg}")
+        input(f"网络问题无法获取版本信息。{msg}")
