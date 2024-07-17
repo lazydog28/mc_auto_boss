@@ -68,12 +68,12 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     if info.DungeonWeeklyBossLevel != 0:
         dungeon_weekly_boss_level = info.DungeonWeeklyBossLevel  # 如果已有自动搜索结果，那么直接使用自动搜索的结果值
     elif config.DungeonWeeklyBossLevel is None or config.DungeonWeeklyBossLevel < 40 or config.DungeonWeeklyBossLevel % 10 != 0:
-        dungeon_weekly_boss_level = 40  # 如果没有自动搜索的结果，且没有Config值或为值异常，则从40开始判断
+        dungeon_weekly_boss_level = 40  # 如果没有自动搜索的结果，或者没有Config值或为值异常，则从40开始判断
     else:
         dungeon_weekly_boss_level = config.DungeonWeeklyBossLevel  # 如果没有自动搜索的结果，但有Config值且不为默认值，则使用Config值
     result = wait_text("推荐等级" + str(dungeon_weekly_boss_level))
     if not result:
-        for i in range(1, 5):
+        for i in range(1, 6):
             control.esc()
             result = wait_text("推荐等级" + str(dungeon_weekly_boss_level + (10 * i)))
             if result:

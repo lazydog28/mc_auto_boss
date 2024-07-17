@@ -55,9 +55,16 @@ def add_judgment_absorption_condition_action():
 
 # 超过最大空闲时间
 def judgment_idle() -> bool:
-    return (
-            datetime.now() - info.lastFightTime
-    ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
+    if not info.inGame:
+        if (datetime.now() - info.lastCheckGameRestartTime).seconds > 5:
+            info.lastCheckGameRestartTime = datetime.now()
+            return False
+        else:
+            return True
+    else:
+        return (
+                datetime.now() - info.lastFightTime
+        ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
 
 
 def judgment_idle_action() -> bool:

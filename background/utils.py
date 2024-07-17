@@ -2087,7 +2087,7 @@ def click_position_in_login_hwnd(
             win32gui.PostMessage(child_hwnd, win32con.WM_ACTIVATE, win32con.WA_ACTIVE, 0)
             control.click(specified_hwnd=child_hwnd, x=random_x, y=random_y)
             if need_print:
-            logger(f"已在子窗口 '{child_hwnd}' 点击位置 ({x}, {y})","DEBUG")
+                logger(f"已在子窗口 '{child_hwnd}' 点击位置 ({x}, {y})","DEBUG")
 
 
 # 使用传入的窗口句柄，从此窗口中获取窗口尺寸，重新绘制图像获取截图

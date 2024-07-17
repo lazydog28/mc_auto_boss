@@ -69,6 +69,7 @@ class StatusInfo(BaseModel):
     consumablesInfo: List = Field([], title="消耗品信息")
     consumablesEndTime: datetime = Field(datetime.now(), title="消耗品结束时间")
     inGame: bool = Field(False, title="是否在游戏中")
+    lastCheckGameRestartTime: datetime = Field(datetime.now(), title="最近检查游戏是否处于重启中的时间")
     fightEndTime: datetime = Field(datetime.now(), title="战斗结束时间")
     echoSearchStartTime: datetime = Field(datetime.now(), title="搜索声骸开始时间")
     echoSearchEndTime: datetime = Field(datetime.now(), title="搜索声骸结束时间")
