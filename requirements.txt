@@ -13,3 +13,4 @@ colorama
 psutil
 future
 requests
+pydantic

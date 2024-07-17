@@ -14,6 +14,8 @@ from utils import *
 from threading import Event as event
 from config import config, wait_exit
 from read_crashes_data import read_crashes_datas
+from update import check_for_updates
+from constant import game_start
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -78,11 +80,11 @@ def close_window(class_name, window_title):
 def restart_application(app_path):
     if app_path:
         time.sleep(5)
-        is_crashes_file = os.path.join(config.project_root, "isCrashes.txt")
-        is_game_restarting_file = os.path.join(config.project_root, "isRestarting.dat")
+        is_crashes_file = os.path.join(config.user_data_root, "isCrashes.txt")
+        is_game_restarting_file = os.path.join(config.user_data_root, "isRestarting.dat")
         # 尝试启动应用程序，如果成功返回 True，否则返回 False
         try:
-            subprocess.Popen(app_path)
+            game_start(none_log=True)
             logger("游戏疑似发生崩溃，尝试重启游戏......")
             # 判断文件是否存在，如果存在则删除
             if os.path.exists(is_crashes_file):
@@ -96,6 +98,26 @@ def restart_application(app_path):
         except Exception as e:
             logger(f"启动应用失败: {e}")
             return False
+
+
+def end_small_game_process(game_process_name=None, memory_threshold_mb=100):
+    if game_process_name is None:
+        game_process_name = ["Client-Win64-Shipping.exe", "Wuthering Waves.exe"]
+    game_process_names_set = set(game_process_name)
+    for proc in psutil.process_iter(['pid', 'name', 'memory_info']):
+        try:
+            with proc.oneshot():
+                pid = proc.pid
+                name = proc.name()
+                memory_info = proc.memory_info()
+                memory_usage_mb = memory_info.rss / (1024 * 1024)  # 转换为MB
+
+            if name in game_process_names_set and memory_usage_mb < memory_threshold_mb:
+                print(f"找到游戏进程： {name} (PID: {pid})，使用内存: {memory_usage_mb:.2f} MB，内存占用过小，可能是崩溃遗留进程，终止该进程")
+                psutil.Process(pid).terminate()
+
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            continue
 
 
 def manage_application(class_name, window_title, app_path, taskEvent):
@@ -112,6 +134,7 @@ def manage_application(class_name, window_title, app_path, taskEvent):
                 # 运行方法一需要有前提条件
                 # 如果重启成功，执行方法一
                 time.sleep(20)
+                end_small_game_process()
                 logger("自动启动BOSS脚本")
                 thread = Process(target=run, args=(boss_task, taskEvent), name="task")
                 thread.start()
@@ -234,7 +257,7 @@ def end_thread(thread_name, thread):
 
 
 def check_read_tutorial():
-    is_read_tutorial_file = os.path.join(config.project_root, "isReadTutorial.dat")
+    is_read_tutorial_file = os.path.join(config.user_data_root, "isReadTutorial.dat")
     read_tutorial_file = os.path.join(config.project_root, "一些简单的问题解答(更新中).txt")
     if not os.path.exists(is_read_tutorial_file):
         user_input = input('是否已经阅读了【一些简单的问题解答(更新中).txt】？(y/n) ')
@@ -254,6 +277,7 @@ def check_read_tutorial():
 
 
 if __name__ == "__main__":
+    check_for_updates()
     user = "guest"
     if user == "Rin":
         pass

@@ -485,7 +485,13 @@ def screenshot() -> np.ndarray | None:
     # 尝试使用PrintWindow函数截取窗口图像
     result = windll.user32.PrintWindow(hwnd, saveDC.GetSafeHdc(), 3)
     if result != 1:
-        logger("截取屏幕失败", "ERROR")
+        config.RebootCount += 1
+        logger(
+            "截取游戏窗口失败，请勿最小化窗口，已重试："
+            + str(config.RebootCount)
+            + "次",
+            "ERROR",
+        )
         # 释放所有资源
         try:
             win32gui.DeleteObject(saveBitMap.GetHandle())
@@ -495,7 +501,17 @@ def screenshot() -> np.ndarray | None:
             del hwndDC, mfcDC, saveDC, saveBitMap
         except Exception as e:
             logger(f"清理截图资源失败: {e}", "ERROR")
-        return screenshot()  # 如果截取失败，则重试
+        # 重试，若失败多次重新启动游戏以唤醒至前台
+        if config.RebootCount < 5:
+            time.sleep(1)
+            return screenshot()  # 截取失败，重试
+        else:
+            config.RebootCount = 0
+            logger("正在重新启动游戏及脚本...", "INFO")
+            from main import close_window
+            close_window()
+            # close_window("UnrealWindow", "鸣潮  ")
+            raise Exception("截取游戏窗口失败且重试次数超过上限，正在重启游戏") from None
 
     # 从位图中获取图像数据
     bmp_info = saveBitMap.GetInfo()  # 获取位图信息
@@ -512,7 +528,7 @@ def screenshot() -> np.ndarray | None:
         mfcDC.DeleteDC()
         win32gui.ReleaseDC(hwnd, hwndDC)
     except Exception as e:
-        logger(f"清理截图资源失败: {e}","ERROR")
+        logger(f"清理截图资源失败: {e}", "ERROR")
     return im  # 返回截取到的图像
 
 
@@ -1970,7 +1986,7 @@ def kill_process_by_hwnd(hwnd):
 
 
 def check_game_restarting(del_file: bool = False):
-    is_game_restarting_file = os.path.join(config.project_root, "isRestarting.dat")
+    is_game_restarting_file = os.path.join(config.user_data_root, "isRestarting.dat")
     if del_file:
         if os.path.exists(is_game_restarting_file):
             os.remove(is_game_restarting_file)

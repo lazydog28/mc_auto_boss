@@ -61,8 +61,11 @@ class Config(BaseModel):
     UseConsumables: bool = Field(False, title="是否使用消耗品")
     ConsumablesName: str = Field(None, title="使用的料理或药水名称")
     UseSpecialCode: bool = Field(False, title="是否使用分boss的进图前的特殊代码")
+    RebootCount: int = Field(0, title="截取窗口失败次数")
+    GameResolution: List = Field(None, title="游戏分辨率")
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    user_data_root: str = os.path.join(project_root, "user_data")
     LogFilePath: Optional[str] = Field(None, title="日志文件路径")
 
     AppPath: Optional[str] = Field(None, title="游戏路径")

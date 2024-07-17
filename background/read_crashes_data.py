@@ -33,7 +33,7 @@ def get_crashes_value():
 
 # 读取isCrashes文本文件，判断游戏是否发生崩溃
 def is_app_crashes():
-    is_crashes_file = os.path.join(config.project_root, "isCrashes.txt")
+    is_crashes_file = os.path.join(config.user_data_root, "isCrashes.dat")
     if os.path.exists(is_crashes_file):
         with open(is_crashes_file, "r") as f:
             content = f.read().strip()  # 读取文件内容并去除首尾空格
@@ -45,7 +45,8 @@ def is_app_crashes():
             #     print("文件内容不是True或False")
         return value
     elif not os.path.exists(is_crashes_file):
-        # 如果isCrashes.txt不存在， 创建并写入False，表示游戏无崩溃-一般在启动脚本时创建
+        # 如果isCrashes.dat不存在， 创建并写入False，表示游戏无崩溃-一般在启动脚本时创建
+        os.makedirs(os.path.dirname(is_crashes_file), exist_ok=True)
         with open(is_crashes_file, "w") as f:
             f.write(str(False))
         return False
@@ -62,7 +63,7 @@ def read_crashes_datas():
     is_crashes = is_app_crashes()
     if is_crashes:  # 游戏发生了崩溃-读取文本-True
         battle_count, absorb_count, heal_count = get_crashes_value()  # 读取崩溃后日志中保存的数据，作为日志输出
-        is_crashes_file = os.path.join(config.project_root, "isCrashes.txt")
+        is_crashes_file = os.path.join(config.user_data_root, "isCrashes.dat")
         with open(is_crashes_file, "w") as f:
             f.write(str(False))
         return battle_count, absorb_count, heal_count

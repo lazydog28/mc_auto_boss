@@ -18,7 +18,7 @@ class Status(Enum):
     idle = "空闲"
     fight = "战斗"
 
-# 如果游戏发生了崩溃则会创建文本文件isCrashes.txt，写入布尔值True
+# 如果游戏发生了崩溃则会创建文本文件isCrashes.dat，写入布尔值True
 # F5重启脚本后，会触发readCrashesDatas函数
 # 通过IO读取布尔值判断是否处于崩溃状态
 # 如果为True  则读取日志中的崩溃的值作为当前的数据，包含：战斗次数,吸收次数，治疗次数，作为当前日志的记录
