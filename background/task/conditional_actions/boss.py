@@ -82,6 +82,7 @@ def judgment_idle_action() -> bool:
     if not info.inGame:
         logger("未确认到游戏状态，重试", "WARN")
         time.sleep(1)
+        return False
     return transfer()
 
 

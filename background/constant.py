@@ -84,6 +84,7 @@ def game_start(none_log: bool = False):
     from config import config
     app_path = config.AppPath
     game_path = get_game_path()
+    print("\n")
     if app_path:
         try:
             if not none_log:
