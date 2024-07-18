@@ -1,6 +1,23 @@
-__version__ = "1.2.0_1"
-release_date = "2024-07-17"
+__version__ = "1.2.0.4"
+release_date = "2024-07-18"
 description = "更新"
+
+# ver1.2.0.4
+# update:2024-07-18
+# updated by RoseRin0
+# 1.将执行更新检查提前到运行游戏之前。
+# 2.使用Git更新时，更新前先检查Git是否安装，如未安装，则先尝试安装。
+
+# ver1.2.0.3
+# update:2024-07-18
+# updated by RoseRin0
+# 1.(test)自动更新。
+
+# ver1.2.0.2
+# update:2024-07-18
+# updated by RoseRin0
+# 1.增加了Git方式更新。
+# 2.更新仓库从Github改为Gitee。
 
 # ver1.2.0.1
 # update:2024-07-18

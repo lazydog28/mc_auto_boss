@@ -14,3 +14,4 @@ colorama
 requests
 pyautogui
 psutil
+gitpython

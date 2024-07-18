@@ -13,18 +13,6 @@ import win32gui
 from multiprocessing import current_process
 
 
-# 判断当前是否为管理员权限
-def is_admin():
-    try:
-        return os.getuid() == 0
-    except AttributeError:
-        return ctypes.windll.shell32.IsUserAnAdmin() != 0
-
-
-if not is_admin():
-    print("请以管理员权限运行此程序")
-    wait_exit()
-
 if current_process().name == "task":
     logger("开源代码仓库地址：https://github.com/lazydog28/mc_auto_boss")
     logger("初始化中")

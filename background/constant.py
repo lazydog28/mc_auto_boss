@@ -5,14 +5,22 @@
 @time: 2024/6/5 上午8:24
 @author SuperLazyDog
 """
+import ctypes
 import time
-
 import win32gui
 import sys
 import subprocess
-from ctypes import windll
 import os
 import re
+from ctypes import windll
+from update import check_for_updates
+
+
+def is_admin():
+    try:
+        return os.getuid() == 0
+    except AttributeError:
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
 
 
 def get_scale_factor():
@@ -103,6 +111,10 @@ def game_start(none_log: bool = False):
                 print("游戏路径设置错误，无法启动游戏")
 
 
+if not is_admin():
+    print("请以管理员权限运行此程序")
+    wait_exit()
+check_for_updates()
 hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
 if hwnd == 0:
     game_start()

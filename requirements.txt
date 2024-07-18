@@ -14,3 +14,4 @@ psutil
 future
 requests
 pydantic
+gitpython

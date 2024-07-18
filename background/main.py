@@ -14,7 +14,6 @@ from utils import *
 from threading import Event as event
 from config import config, wait_exit
 from read_crashes_data import read_crashes_datas
-from update import check_for_updates
 from constant import game_start
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -277,7 +276,6 @@ def check_read_tutorial():
 
 
 if __name__ == "__main__":
-    check_for_updates()
     user = "guest"
     if user == "Rin":
         pass

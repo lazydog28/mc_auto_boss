@@ -1,10 +1,11 @@
 AppPath: # Wuthering Waves.exe的路径，如需设置，使用"\\"而不是"\" ,留空为从注册表读取游戏运行目录，无法读取注册表，且此值为空时无法在崩溃时自动重启游戏。
 GameResolution: [] # 游戏启动或重启时的分辨率，例如:"[1280, 720]"，需要中括号[]，且使用","而不是"，"，留空时不使用游戏启动参数。
+UpdateType: Git  # 自动更新方式，"Download"或者"Git"，默认Download，下载项目包到本地，需要手动解压覆盖，git为直接拉取覆盖，需要安装git依赖。
 MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目标
 MaxIdleTime: 15 # 战斗完成后的空闲时间，不能小于5
 MaxEchoAbsorptionTime: 15 # 最大吸收声骸时间，此数值必须小于上面的等待时间
 EchoSearchModelChange: False # 是否自动根据BOSS切换使用的搜索声骸模型
-ReloadPagesAndConditional: False # 是否动态加载页面和条件，低配设备或CPU识别可尝试使用，出现吸收声骸发呆或者一直向前走也可打开此功能观察是否改善
+ReloadPagesAndConditional: True # 是否动态加载页面和条件，低配设备或CPU识别可尝试使用，出现吸收声骸发呆或者一直向前走也可打开此功能观察是否改善
 SelectRoleInterval: 2 # 选择角色的时间间隔 最小为2 避免无法选择角色
 DungeonWeeklyBossLevel: 40 # 自己可以掉落的周本(副本)boss最低等级（当前索拉等级*10）
 SearchEchoes: true # 是否搜索声骸
