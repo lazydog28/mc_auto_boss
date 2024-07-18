@@ -6,7 +6,7 @@ import version
 import ctypes
 from mouse_reset import mouse_reset
 from multiprocessing import Event, Process
-from pynput.keyboard import Key, Listener
+from pynput.keyboard import Key, Listener, KeyCode
 from schema import Task
 import subprocess
 from task import boss_task, synthesis_task, echo_bag_lock_task
@@ -177,8 +177,18 @@ def run(task: Task, e: Event):
     logger("进程停止运行")
 
 
+def get_key_from_string(key_str):
+    try:
+        # 尝试从 Key 中获取特殊键
+        return getattr(Key, key_str)
+    except AttributeError:
+        # 如果不是特殊键，返回普通字符键
+        return KeyCode.from_char(key_str)
+
+
 def on_press(key):
     """
+    默认：
     F5 启动BOSS脚本
     F6 启动融合脚本
     F7 暂停脚本
@@ -187,25 +197,25 @@ def on_press(key):
     :param key:
     :return:
     """
-    if key == Key.f5:
-        logger("启动BOSS脚本")
+    if key == get_key_from_string(config.ShortcutBossTaskStart):
+        logger(f"{config.ShortcutBossTaskStart.title}")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
-    if key == Key.f6:
-        logger("启动融合脚本")
+    if key == get_key_from_string(config.ShortcutSynthesisEchoes):
+        logger(f"{config.ShortcutSynthesisEchoes.title}")
         thread = Process(target=run, args=(synthesis_task, taskEvent), name="task")
         end_thread(mouseResetEvent, mouse_reset_thread)
         thread.start()
-    if key == Key.f7:
-        logger("暂停脚本")
+    if key == get_key_from_string(config.ShortcutTaskStop):
+        logger(f"{config.ShortcutTaskStop.title}")
         taskEvent.clear()
-    if key == Key.f8:
-        logger("启动锁定脚本")
+    if key == get_key_from_string(config.ShortcutLockEchoes):
+        logger(f"{config.ShortcutLockEchoes.title}")
         thread = Process(target=run, args=(echo_bag_lock_task, taskEvent), name="task")
         thread.start()
         end_thread(mouseResetEvent, mouse_reset_thread)
-    if key == Key.f12:
-        logger("请等待程序退出后再关闭窗口...")
+    if key == get_key_from_string(config.ShortcutAllStop):
+        logger(f"{config.ShortcutAllStop.title}")
         taskEvent.clear()
         mouseResetEvent.set()
         restart_thread.terminate()
@@ -312,7 +322,15 @@ if __name__ == "__main__":
         "--------------------------------------------------------------\n"
     )
     print("请确认已经配置好了config.yaml文件\n")
-    print("使用说明：\n   F5 启动脚本\n   F6 合成声骸\n   F7 暂停运行\n   F8 锁定声骸\n   F12 停止运行")
+    content = f"""
+使用说明：
+    {config.ShortcutBossTaskStart.upper()}\t{config.__fields__['ShortcutBossTaskStart'].title}
+    {config.ShortcutSynthesisEchoes.upper()}\t{config.__fields__['ShortcutSynthesisEchoes'].title}
+    {config.ShortcutTaskStop.upper()}\t{config.__fields__['ShortcutTaskStop'].title}
+    {config.ShortcutLockEchoes.upper()}\t{config.__fields__['ShortcutLockEchoes'].title}
+    {config.ShortcutAllStop.upper()}\t{config.__fields__['ShortcutAllStop'].title}
+    """
+    print(content)
     logger("开始运行")
     with Listener(on_press=on_press) as listener:
         listener.join()

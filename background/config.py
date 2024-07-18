@@ -72,6 +72,12 @@ class Config(BaseModel):
 
     AppPath: Optional[str] = Field(None, title="游戏路径")
 
+    ShortcutBossTaskStart: Optional[str] = Field("f5", title="启动刷Boss脚本")
+    ShortcutSynthesisEchoes: Optional[str] = Field("f6", title="启动声骸合成脚本")
+    ShortcutTaskStop: Optional[str] = Field("f7", title="停止当前任务")
+    ShortcutLockEchoes: Optional[str] = Field("f8", title="启动声骸背包锁定脚本")
+    ShortcutAllStop: Optional[str] = Field("f12", title="完全停止程序")
+
     def __init__(self, **data):
         super().__init__(**data)
         if not self.LogFilePath:

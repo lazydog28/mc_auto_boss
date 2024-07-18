@@ -22,6 +22,11 @@ GameMonitorTime: 5 # 游戏窗口检测间隔时间
 EchoDebugMode: true #声骸锁定功能DEBUG显示输出的开关
 EchoSynthesisDebugMode: true # 声骸合成锁定功能DEBUG显示输出的开关
 LogFilePath: # 日志保存路径，留空即为项目根目录，如需设置，则需为"c:\\mc_log.txt"格式，使用"\\"而不是"\"
+ShortcutBossTaskStart: "f5" # 快捷键修改：启动刷Boss脚本，默认F5
+ShortcutSynthesisEchoes: "f6" # 快捷键修改：启动声骸合成脚本，默认F6
+ShortcutTaskStop: "f7" # 快捷键修改：停止当前任务，默认F7
+ShortcutLockEchoes: "f8" # 快捷键修改：启动声骸背包锁定脚本，默认F8
+ShortcutAllStop: "f12" # 快捷键修改：完全停止程序，默认F12
 FightTactics: # 战斗策略 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能, a为普攻(默认连点0.3秒), 数字为间隔时间,a~0.5为普攻按下0.5秒,a(0.5)为连续普攻0.5秒，摩托车短按请用q~0.1
     - "a,r,q,a(2),f,e,a(1),e,a(1),e,a(1),0.05,f,a~0.8"   # 卡卡罗
     - "a,r,q~0.1,a(2),f,e,0.05,a~0.7"   #安可

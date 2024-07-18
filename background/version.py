@@ -1,6 +1,11 @@
-__version__ = "1.2.0.7"
-release_date = "2024-07-18"
+__version__ = "1.2.0.8"
+release_date = "2024-07-19"
 description = "更新"
+
+# ver1.2.0.8
+# update:2024-07-19
+# updated by RoseRin0
+# 1.增加各项功能启动的按键修改。(此idea来自 群友 @河原木桃香)
 
 # ver1.2.0.7
 # update:2024-07-18
