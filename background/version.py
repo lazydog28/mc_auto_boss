@@ -1,6 +1,11 @@
-__version__ = "1.2.0.4"
+__version__ = "1.2.0.5"
 release_date = "2024-07-18"
 description = "更新"
+
+# ver1.2.0.5
+# update:2024-07-18
+# updated by RoseRin0
+# 1.(test)自动更新
 
 # ver1.2.0.4
 # update:2024-07-18

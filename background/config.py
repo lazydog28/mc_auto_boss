@@ -63,7 +63,7 @@ class Config(BaseModel):
     UseSpecialCode: bool = Field(False, title="是否使用分boss的进图前的特殊代码")
     RebootCount: int = Field(0, title="截取窗口失败次数")
     GameResolution: List = Field(None, title="游戏分辨率")
-    UpdateType: str = Field("Download", title="更新方式")
+    UpdateType: str = Field("Git", title="更新方式")
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     user_data_root: str = os.path.join(project_root, "user_data")

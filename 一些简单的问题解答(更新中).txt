@@ -86,6 +86,11 @@
 7.	Q:	A卡怎么办？
 	A:	使用CPU运算，或者尝试使用dml运算。
 
+8.  Q:	自动更新时老是报错怎么办？
+	A:  手动下载Git并安装，安装时记得勾选添加环境变量。
+		Git下载地址：https://github.com/git-for-windows/git/releases/download/v2.45.2.windows.1/Git-2.45.2-64-bit.exe
+
+
 
 二、程序相关问题
 
@@ -117,3 +122,9 @@
 
 8.	Q:	脚本提示某某功能未启用是为什么？
 	A:	Config里查找该功能。
+
+9.  Q:  为什么某个BOSS声骸识别不到？
+	A:  尝试关闭Config中的EchoSearchModelChange。
+
+10. Q:	自动更新下载下来的zip提示已损坏怎么办？
+	A:	将Config中的UpdateType从Download改为Git后重试

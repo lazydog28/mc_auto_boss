@@ -10,7 +10,6 @@ import requests
 import base64
 import re
 import os
-import git
 from config import config, root_path, wait_exit
 from version import __version__, release_date, description
 
@@ -21,6 +20,7 @@ repo = 'mc_tool'
 version_file_path = 'background/version.py'
 branch = 'master'  # 指定分支名称
 msg = "请按任意键继续运行脚本"
+function_executed = False
 
 
 # 读取本地版本号和更新内容
@@ -98,6 +98,7 @@ def get_github_version_info():
 
 
 def is_git_repo():
+    import git
     # 检查本地文件夹是否是一个Git仓库
     try:
         _ = git.Repo(root_path).git_dir
@@ -111,7 +112,7 @@ def check_git_installed():
         # 尝试运行 `git --version` 来检查 Git 是否已安装
         result = subprocess.run(['git', '--version'], capture_output=True, text=True)
         if result.returncode == 0:
-            print("Git 已安装: " + result.stdout.strip())
+            print("Git版本: " + result.stdout.strip())
             return True
         else:
             return False
@@ -119,21 +120,48 @@ def check_git_installed():
         return False
 
 
-def install_git():
+def install_chocolatey():
     try:
-        # 安装 Chocolatey（如果没有安装）
-        subprocess.run(['powershell', '-Command', 'Set-ExecutionPolicy Bypass -Scope Process -Force; ' +
-                        '[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; ' +
+        powershell_path = r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+        # 安装 Chocolatey
+        print("正在安装 Chocolatey...")
+        subprocess.run([powershell_path, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
                         'iex ((New-Object System.Net.WebClient).DownloadString(\'https://chocolatey.org/install.ps1\'))'],
                        check=True)
-        # 使用 Chocolatey 安装 Git
-        subprocess.run(['choco', 'install', 'git', '-y'], check=True)
+        print("Chocolatey 安装完成。")
+    except subprocess.CalledProcessError as e:
+        print(f"安装 Chocolatey 时出错: {e}")
+
+
+def reload_env_vars():
+    try:
+        powershell_path = r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+        print("重新加载环境变量...")
+        subprocess.run(
+            [powershell_path, '-NoProfile', '-ExecutionPolicy', 'Bypass',
+             '-Command',
+             '[System.Environment]::SetEnvironmentVariable("PATH", $Env:Path, [System.EnvironmentVariableTarget]::Machine)'],
+            check=True)
+        print("环境变量重新加载完成。")
+    except subprocess.CalledProcessError as e:
+        print(f"重新加载环境变量时出错: {e}")
+
+
+def install_git():
+    install_chocolatey()
+    reload_env_vars()
+    try:
+        powershell_path = r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
+        print("正在安装 Git...")
+        subprocess.run([powershell_path, '-NoProfile', '-ExecutionPolicy', 'Bypass',
+                        '-Command',
+                        'choco install git -y'], check=True)
         # 验证 Git 是否安装成功
         result = subprocess.run(['git', '--version'], capture_output=True, text=True)
         if result.returncode == 0:
-            print("Git 安装成功: " + result.stdout)
+            print("Git 安装成功: " + result.stdout.strip())
         else:
-            print("Git 安装失败: " + result.stderr)
+            print("Git 安装失败: " + result.stderr.strip())
         # 检查 Git 是否在环境变量中
         if any('git' in path.lower() for path in os.environ['PATH'].split(';')):
             print("Git 已正确添加到环境变量中")
@@ -157,12 +185,15 @@ def git_clone(repo_url, repo_path):
             print("设置安全目录成功")
         else:
             print(f"设置安全目录失败: {result.stderr}")
+        input("首次更新成功，将打开本地仓库目录，以后请在此处运行脚本，或者复制全部文件到其他位置，按任意键继续。")
+        os.startfile(repo_path)
         wait_exit()
     except subprocess.CalledProcessError as e:
         input(f"下载时发生了一个问题: {e.stderr}。{msg}")
 
 
 def update_git_pull():
+    import git
     try:
         repo = git.Repo(root_path)
         repo.remotes.origin.pull()
@@ -199,10 +230,14 @@ def update_download_file(download_version):
 
 # 比较版本号并提示更新
 def check_for_updates():
+    global function_executed
+    if function_executed:
+        return
     # 检查是否游戏处于重启中，如果没有在重启中，则检查更新，防止崩溃重启脚本时卡在此步骤
     is_game_restarting_file = os.path.join(config.user_data_root, "isRestarting.dat")
     os.makedirs(os.path.dirname(is_game_restarting_file), exist_ok=True)
     if os.path.exists(is_game_restarting_file):
+        function_executed = True
         return
     local_version_info = get_local_version_info()
     github_version_info = get_github_version_info()
@@ -232,6 +267,8 @@ def check_for_updates():
                         install_result = install_git()
                         if not install_result:
                             print(f"安装Git失败，请手动安装Git后重试更新。{msg}")
+                        else:
+                            reload_env_vars()
                     if is_git_repo():
                         update_git_pull()
                     else:
@@ -241,6 +278,7 @@ def check_for_updates():
                             repo_url = f"https://gitee.com/{owner}/{repo}.git"
                         else:
                             print(f"使用仓库设置不正确。{msg}")
+                            function_executed = True
                             return
                         repo_path = root_path
                         git_clone(repo_url, repo_path)
@@ -254,3 +292,4 @@ def check_for_updates():
             input(f"已经是最新版本({github_version})。{msg}")
     else:
         input(f"网络问题无法获取版本信息。{msg}")
+    function_executed = True
