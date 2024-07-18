@@ -59,7 +59,10 @@ def get_github_version_info():
         response = requests.get(url, headers=headers)
     elif repo_type == "Gitee":
         url = f'https://gitee.com/api/v5/repos/{gitee_owner}/{gitee_repo}/contents/{version_file_path}?ref={gitee_branch}'
-        headers = {'Authorization': f'token {access_token}', 'Accept': 'application/json'}
+        if access_token:
+            headers = {'Authorization': f'token {access_token}', 'Accept': 'application/json'}
+        else:
+            headers = {'Accept': 'application/json'}
         response = requests.get(url, headers=headers)
     else:
         print(f"使用仓库设置不正确。{msg}")
