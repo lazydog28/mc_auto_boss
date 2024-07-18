@@ -128,3 +128,7 @@
 
 10. Q:	自动更新下载下来的zip提示已损坏怎么办？
 	A:	将Config中的UpdateType从Download改为Git后重试
+
+11.	Q:	自动更新老是网络错误怎么办？
+	A:	Gitee注册一个账号，然后在个人中心的私人令牌里面生成新令牌，输入描述，选择projects，点击提交，
+		之后在弹框中复制个人令牌，输入到Config的GiteeAccessToken里面即可

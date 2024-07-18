@@ -13,7 +13,6 @@ import subprocess
 import os
 import re
 from ctypes import windll
-from update import check_for_updates
 
 
 def is_admin():
@@ -114,7 +113,6 @@ def game_start(none_log: bool = False):
 if not is_admin():
     print("请以管理员权限运行此程序")
     wait_exit()
-check_for_updates()
 hwnd = win32gui.FindWindow("UnrealWindow", "鸣潮  ")
 if hwnd == 0:
     game_start()

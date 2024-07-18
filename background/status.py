@@ -30,7 +30,6 @@ battle_count, absorb_count, heal_count = read_crashes_datas()
 
 class StatusInfo(BaseModel):
 
-    initLoadComplete: bool = Field(False, title="初始化加载是否完成")
     roleIndex: int = Field(0, title="角色索引")
     lastRoleIndex: int = Field(0, title="最后一次角色索引")
     characterHealthyIndex: List[bool] = Field([True, True, True, True], title="角色存活状态")   # 实质上从[1]到[3]

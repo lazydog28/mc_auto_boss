@@ -15,10 +15,10 @@ from threading import Event as event
 from config import config, wait_exit
 from read_crashes_data import read_crashes_datas
 from constant import game_start
+from update import check_for_updates
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-hwnds = win32gui.FindWindow("UnrealWindow", "鸣潮")
 app_path = config.AppPath
 
 
@@ -286,6 +286,7 @@ if __name__ == "__main__":
         if not check_confirm_user_permissions():
             time.sleep(3)
             exit()
+    check_for_updates()
     check_read_tutorial()
     # 在这里添加你的程序逻辑
     taskEvent = Event()  # 用于停止任务线程
@@ -298,7 +299,6 @@ if __name__ == "__main__":
         target=restart_app, args=(taskEvent,), name="restart_event"
     )
     restart_thread.start()
-    info.initLoadComplete = True
     if app_path:
         logger(f"游戏路径：{config.AppPath}")
     else:

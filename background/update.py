@@ -15,12 +15,14 @@ from version import __version__, release_date, description
 
 # 项目信息
 repo_type = "Gitee"  # repo_type = "Github"
-owner = 'roseliarin'
-repo = 'mc_tool'
+github_owner = 'RoseRin0'
+gitee_owner = 'roseliarin'
+github_repo = 'mc_auto_boss'
+gitee_repo = 'mc_tool'
 version_file_path = 'background/version.py'
-branch = 'master'  # 指定分支名称
+github_branch = 'RoseRin'
+gitee_branch = 'master'  # 指定分支名称
 msg = "请按任意键继续运行脚本"
-function_executed = False
 
 
 # 读取本地版本号和更新内容
@@ -50,13 +52,15 @@ def get_local_version_info():
 
 # 获取GitHub上的版本号和更新内容
 def get_github_version_info():
+    access_token = config.GiteeAccessToken
     if repo_type == "Github":
-        url = f'https://api.github.com/repos/{owner}/{repo}/contents/{version_file_path}?ref={branch}'
+        url = f'https://api.github.com/repos/{github_owner}/{github_repo}/contents/{version_file_path}?ref={github_branch}'
         headers = {'Accept': 'application/vnd.github+json'}
         response = requests.get(url, headers=headers)
     elif repo_type == "Gitee":
-        url = f'https://gitee.com/api/v5/repos/{owner}/{repo}/contents/{version_file_path}?ref={branch}'
-        response = requests.get(url)
+        url = f'https://gitee.com/api/v5/repos/{gitee_owner}/{gitee_repo}/contents/{version_file_path}?ref={gitee_branch}'
+        headers = {'Authorization': f'token {access_token}', 'Accept': 'application/json'}
+        response = requests.get(url, headers=headers)
     else:
         print(f"使用仓库设置不正确。{msg}")
         return
@@ -176,7 +180,10 @@ def install_git():
 
 def git_clone(repo_url, repo_path):
     try:
-        repo_path = os.path.join(root_path, repo)
+        if repo_type == "Github":
+            repo_path = os.path.join(root_path, github_repo)
+        elif repo_type == "Gitee":
+            repo_path = os.path.join(root_path, gitee_repo)
         subprocess.run(["git", "clone", repo_url, repo_path], check=True)
         print(f"下载完毕，创建本地仓库成功\n本地仓库位置：{repo_path}\n以后请在此位置运行程序(或自行复制到其他文件夹)。")
         command = ['git', 'config', '--global', '--add', 'safe.directory', repo_path]
@@ -204,11 +211,12 @@ def update_git_pull():
 
 
 def update_download_file(download_version):
-    new_version_file_name = f"{repo}_v{download_version}.zip"
     if repo_type == "Github":
-        file_url = f'https://github.com/{owner}/{repo}/archive/refs/heads/{branch}.zip'
+        new_version_file_name = f"{github_repo}_v{download_version}.zip"
+        file_url = f'https://github.com/{github_owner}/{github_repo}/archive/refs/heads/{github_branch}.zip'
     elif repo_type == "Gitee":
-        file_url = f'https://gitee.com/{owner}/{repo}/repository/archive/{branch}.zip'
+        new_version_file_name = f"{gitee_repo}_v{download_version}.zip"
+        file_url = f'https://gitee.com/{gitee_owner}/{gitee_repo}/repository/archive/{gitee_branch}.zip'
     else:
         input(f"未知的仓库类型: {repo_type}。{msg}")
         return
@@ -230,14 +238,11 @@ def update_download_file(download_version):
 
 # 比较版本号并提示更新
 def check_for_updates():
-    global function_executed
-    if function_executed:
-        return
+    global repo_type
     # 检查是否游戏处于重启中，如果没有在重启中，则检查更新，防止崩溃重启脚本时卡在此步骤
     is_game_restarting_file = os.path.join(config.user_data_root, "isRestarting.dat")
     os.makedirs(os.path.dirname(is_game_restarting_file), exist_ok=True)
     if os.path.exists(is_game_restarting_file):
-        function_executed = True
         return
     local_version_info = get_local_version_info()
     github_version_info = get_github_version_info()
@@ -252,6 +257,9 @@ def check_for_updates():
             print("更新内容:")
             print(github_version_info['更新内容'])
             # 提示用户是否更新
+            if config.UpdateType == "Download":
+                print("下载目前只支持Github仓库，需要魔法才能正常下载。")
+                repo_type = "Github"
             user_input = input(f"需要从{repo_type}下载最新版本吗? (y/n): ").strip().lower()
             if user_input == 'y':
                 print(f"使用{config.UpdateType}更新中...\n")
@@ -273,12 +281,11 @@ def check_for_updates():
                         update_git_pull()
                     else:
                         if repo_type == "Github":
-                            repo_url = f"https://github.com/{owner}/{repo}/tree/{branch}.git"
+                            repo_url = f"https://github.com/{github_owner}/{github_repo}/tree/{github_branch}.git"
                         elif repo_type == "Gitee":
-                            repo_url = f"https://gitee.com/{owner}/{repo}.git"
+                            repo_url = f"https://gitee.com/{gitee_owner}/{gitee_repo}.git"
                         else:
                             print(f"使用仓库设置不正确。{msg}")
-                            function_executed = True
                             return
                         repo_path = root_path
                         git_clone(repo_url, repo_path)
@@ -287,9 +294,12 @@ def check_for_updates():
             else:
                 input(f"用户取消更新。{msg}")
         elif local_version > github_version:
-            input(f"您正在使用的版本高于{repo_type}上的版本，可能不是{branch}分支的版本。{msg}")
+            if repo_type == "Github":
+                input(f"您正在使用的版本高于{repo_type}上的版本，可能不是{github_branch}分支的版本。{msg}")
+            elif repo_type == "Gitee":
+                input(f"您正在使用的版本高于{repo_type}上的版本，可能不是{gitee_branch}分支的版本。{msg}")
         else:
             input(f"已经是最新版本({github_version})。{msg}")
     else:
         input(f"网络问题无法获取版本信息。{msg}")
-    function_executed = True
+    return

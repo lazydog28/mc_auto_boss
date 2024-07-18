@@ -1,6 +1,17 @@
-__version__ = "1.2.0.5"
+__version__ = "1.2.0.7"
 release_date = "2024-07-18"
 description = "更新"
+
+# ver1.2.0.7
+# update:2024-07-18
+# updated by RoseRin0
+# 1.将Download更新固定为从Github下载项目包。
+# 2.添加了Gitee个人令牌的Config，用于防止获取版本信息超频导致无法更新。
+
+# ver1.2.0.6
+# update:2024-07-18
+# updated by RoseRin0
+# 1.修复了自动更新函数被多次异常调用的问题。
 
 # ver1.2.0.5
 # update:2024-07-18
