@@ -457,9 +457,11 @@ def transfer() -> bool:
     if info.needHeal:
         transfer_to_heal()
     elif bossName == "无妄者":
+        info.lastBossIndex = info.bossIndex
         info.bossIndex += 1
         return transfer_to_dreamless()
     else:
+        info.lastBossIndex = info.bossIndex
         info.bossIndex += 1
         return transfer_to_boss(bossName)
 
@@ -615,13 +617,13 @@ def turn_to_search(turn_times) -> int | None:
     if turn_times == 1:
         control.activate()
         control.mouse_middle()  # 重置视角
-        for _ in range(5):
+        for _ in range(3):
             if absorption_and_receive_rewards({}):
                 info.needAbsorption = False
                 info.searchTimes = 0
                 break
             control.key_press("w")
-            time.sleep(0.2)
+            time.sleep(0.1)
             control.key_release("w")
             img = screenshot()
             x = search_echoes(img)
@@ -725,6 +727,8 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
         return False
     logger("吸收声骸")
     info.absorptionCount += 1
+    boss_index = info.lastBossIndex % len(config.TargetBoss)
+    info.BossAllEchoAbsorptionTimes[boss_index] += 1
     info.lastFightTime = info.lastFightTime - timedelta(seconds=(config.MaxIdleTime + 5))  # 吸收完成后立即结束等待
     return True
 
@@ -1997,6 +2001,14 @@ def check_game_restarting(del_file: bool = False):
             return False
 
 
+def format_time(calculated_time):
+    hours, remainder = divmod(calculated_time.total_seconds(), 3600)
+    minutes, seconds = divmod(remainder, 60)
+    formatted_all_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+    return formatted_all_time
+
+
+# 战斗结束后的战斗时间/吸收时间计算 以及 动态更改每个BOSS的吸收时间提高稳定性和效率
 def check_fight_time(lastBossName):
     # 本次声骸搜索计数(防止一次战斗多次计数)
     info.lastAbsorptionCount = info.absorptionCount
@@ -2013,26 +2025,64 @@ def check_fight_time(lastBossName):
         logger(f"脚本启动用时：{formatted_all_time}", "IMPORTANT")
     else:
         all_time = datetime.now() - info.fightTime
-        hours, remainder = divmod(all_time.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        formatted_all_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        formatted_all_time = format_time(all_time)
         logger(f"本次战斗总用时：{formatted_all_time}", "IMPORTANT")
         # 仅战斗用时
         fight_time = info.fightEndTime - info.fightTime
-        hours, remainder = divmod(fight_time.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        formatted_fight_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        formatted_fight_time = format_time(fight_time)
         logger(f"战斗用时：{formatted_fight_time}", "IMPORTANT")
+        # 添加本次战斗用时到当前BOSS战斗时间列表，为了防止异常数值混入，只添加<5分钟的数值
+        boss_index = info.lastBossIndex % len(config.TargetBoss)
+        next_boss_index = (info.lastBossIndex + 1) % len(config.TargetBoss)
+        this_boss_name = config.TargetBoss[boss_index % len(config.TargetBoss)]
+        next_boss_name = config.TargetBoss[(boss_index + 1) % len(config.TargetBoss)]
+        logger(f"当前BOSS索引：{boss_index}，当前BOSS名称：{this_boss_name}，战斗次数：{info.BossAllFightTimes[boss_index]}，吸收次数：{info.BossAllEchoAbsorptionTimes[boss_index]}", "IMPORTANT")
+        this_boss_fight_times = info.BossAllFightTime[boss_index]
+        if 0 <= fight_time.total_seconds() <= 300:
+            this_boss_fight_times.append(fight_time.total_seconds())
+        # 计算当前BOSS的战斗平均时间(为了使其有意义，当战斗次数 > 5次以上时开始计算，保存最新的100条时间)
+        try:
+            if len(this_boss_fight_times) > 5:
+                this_boss_average_fight_time = round(sum(this_boss_fight_times) / len(this_boss_fight_times), 2)
+                logger(f"【{lastBossName}】的平均战斗时间为:{this_boss_average_fight_time}秒，已记录最近{len(this_boss_fight_times)}条战斗时间", "IMPORTANT")
+        except Exception:
+                pass
         # 搜索声骸用时
         if lastBossName == "无妄者" or lastBossName == "角":
             pass
         else:
             info.echoSearchEndTime = datetime.now()
         echo_search_time = info.echoSearchEndTime - info.echoSearchStartTime
-        hours, remainder = divmod(echo_search_time.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        formatted_echo_search_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        formatted_echo_search_time = format_time(echo_search_time)
         logger(f"搜索声骸用时：{formatted_echo_search_time}", "IMPORTANT")
+        # 添加本次吸收用时到当前BOSS吸收时间列表，为了防止异常数值混入，只添加<60秒的吸收成功时的数值
+        this_boss_echo_absorption_time = info.BossAllEchoAbsorptionTime[boss_index]
+        if info.BossAllEchoAbsorptionTimes[boss_index] != info.LastBossAllEchoAbsorptionTimes[boss_index]:
+            if 0 <= echo_search_time.total_seconds() <= 60:
+                this_boss_echo_absorption_time.append(echo_search_time.total_seconds())
+                info.LastBossAllEchoAbsorptionTimes[boss_index] = info.BossAllEchoAbsorptionTimes[boss_index]
+            # 计算当前BOSS的吸收平均时间(为了使其有意义，当吸收次数 > 5次以上时开始计算，保存最新的100条时间)
+        try:
+            if len(this_boss_echo_absorption_time) > 5:
+                this_boss_average_echo_absorption_times = round(sum(this_boss_echo_absorption_time) / len(this_boss_echo_absorption_time), 2)
+                logger(f"【{lastBossName}】的平均吸收时间为:{this_boss_average_echo_absorption_times}秒，已记录最近{len(this_boss_echo_absorption_time)}条吸收时间", "IMPORTANT")
+        except Exception:
+                pass
+        if config.EchoAbsorptionDynamicAdjustingStrategy:
+            # 更改最大空闲时间和最大吸收时间到下一个BOSS吸收平均时间 + 20% 秒，以实现动态调整每个BOSS的吸收时间，并且在下一个Boss吸收率吸收率小于50%时，使其额外增加20%
+            try:
+                next_boss_echo_absorption_times = info.BossAllEchoAbsorptionTime[next_boss_index]
+                # 下一个BOSS吸收次数 > 5次时开始使用动态吸收时间
+                if len(next_boss_echo_absorption_times) > 5:
+                    next_boss_average_echo_absorption_times = round(sum(next_boss_echo_absorption_times) / len(next_boss_echo_absorption_times), 2)
+                    config.MaxIdleTime = next_boss_average_echo_absorption_times * 1.2
+                    config.MaxEchoAbsorptionTime = next_boss_average_echo_absorption_times * 1.2
+                    if info.BossAllEchoAbsorptionTimes[next_boss_index] / info.BossAllFightTimes[next_boss_index] < 0.5:
+                        config.MaxIdleTime = config.MaxIdleTime * 1.2
+                        config.MaxEchoAbsorptionTime = config.MaxEchoAbsorptionTime * 1.2
+                    logger(f"下一个BOSS【{next_boss_name}】的最大空闲时间和最大吸收时间已调整为：{config.MaxIdleTime}秒，{config.MaxEchoAbsorptionTime}秒", "IMPORTANT")
+            except Exception:
+                pass
         info.echoSearchTimesCount = 0
         info.fightEndFlagCount = 0
         info.fightEndFlag = False

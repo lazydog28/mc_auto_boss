@@ -143,11 +143,33 @@ def add_judgment_leave_conditional_action():
     conditional_actions.append(judgment_leave_conditional_action)
 
 
+def judgment_game_stop() -> bool:
+    return (datetime.now() - info.lastFightTime).total_seconds() > 300
+
+
+def judgment_game_stop_action() -> bool:
+    logger("终止游戏进程", "WARN")
+    info.lastFightTime = datetime.now()
+    kill_process_by_hwnd(hwnd)
+    return True
+
+
+def add_judgment_game_stop_action():
+    judgment_game_stop_conditional_action = ConditionalAction(
+        name="游戏长时间无动作",
+        condition=judgment_game_stop,
+        action=judgment_game_stop_action,
+    )
+    conditional_actions.append(judgment_game_stop_conditional_action)
+
+
 if info.status != Status.fight:
     add_judgment_absorption_condition_action()  # 搜索声骸
     add_judgment_idle_conditional_action()  # 超过最大空闲时间
     add_judgment_fight_conditional_action()  # 超过最大战斗时间
     add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间退出(防止OCR未识别到"离开"文字)
+    add_judgment_game_stop_action()  # 游戏长时间无动作
 else:
     add_judgment_idle_conditional_action()  # 超过最大空闲时间
     add_judgment_fight_conditional_action()  # 超过最大战斗时间
+    add_judgment_game_stop_action()  # 游戏长时间无动作

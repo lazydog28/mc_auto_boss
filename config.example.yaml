@@ -1,6 +1,7 @@
 AppPath: # Wuthering Waves.exe的路径，如需设置，使用"\\"而不是"\" ,留空为从注册表读取游戏运行目录，无法读取注册表，且此值为空时无法在崩溃时自动重启游戏。
 GameResolution: [] # 游戏启动或重启时的分辨率，例如:"[1280, 720]"，需要中括号[]，且使用","而不是"，"，留空时不使用游戏启动参数。
 GiteeAccessToken: "" # Gitee自己的令牌，出现网络问题无法更新等错误时可尝试填写，防止更新限速或者限制频率。
+EchoAbsorptionDynamicAdjustingStrategy: False # 声骸吸收时间动态调整策略
 UpdateType: Git  # 自动更新方式，"Download"或者"Git"，Download:从Github下载项目包到本地，需要手动解压覆盖，git为从Gitee直接拉取覆盖，需要安装git依赖。
 MaxFightTime: 120 # 单次战斗最大时间 超过时间会进行下一个目标
 MaxIdleTime: 15 # 战斗完成后的空闲时间，不能小于5

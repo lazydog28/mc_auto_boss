@@ -61,12 +61,14 @@ def absorption_action(positions: dict[str, Position]) -> bool:
         if not find_text("吸收"):
             return False
         else:
-            for _ in range(5):
-                control.tap("w")
+            for _ in range(3):
                 interactive()
+                control.tap("w")
                 time.sleep(0.1)
             if info.absorptionCount == info.lastAbsorptionCount:
                 info.absorptionCount += 1
+                boss_index = info.lastBossIndex % len(config.TargetBoss)
+                info.BossAllEchoAbsorptionTimes[boss_index] += 1
             if info.echoSearchTimesCount == 0:
                 info.echoSearchStartTime = datetime.now()
             info.needAbsorption = False
@@ -191,6 +193,8 @@ def fight_action(positions: dict[str, Position]) -> bool:
         #    logger(f"无妄者副本战斗延迟{config.DreamlessWaitTime}")
         #    time.sleep(config.DreamlessWaitTime)
         # 转自BOSS延迟统一调用
+        boss_index = info.lastBossIndex % len(config.TargetBoss)
+        info.BossAllFightTimes[boss_index] += 1
         info.fightCount += 1
         info.needAbsorption = True
         info.fightTime = datetime.now()

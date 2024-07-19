@@ -44,7 +44,6 @@ class Config(BaseModel):
         ],
         title="变奏入场时的技能释放顺序",
     )
-
     DungeonWeeklyBossLevel: int = Field(40, title="周本(副本)boss等级")
     EchoSearchModelChange: bool = Field(True, title="是否启用声骸模型切换")
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
@@ -65,6 +64,7 @@ class Config(BaseModel):
     GameResolution: List = Field(None, title="游戏分辨率")
     UpdateType: str = Field("Git", title="更新方式")
     GiteeAccessToken: str = Field(None, title="Gitee AccessToken")
+    EchoAbsorptionDynamicAdjustingStrategy: bool = Field(False, title="声骸吸收时间动态调整策略")
     # 获取项目根目录
     project_root: str = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     user_data_root: str = os.path.join(project_root, "user_data")
@@ -125,7 +125,6 @@ def wait_exit():
 
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 project_root = os.path.dirname(os.path.abspath(__file__))
 config_path = os.path.join(project_root, "config.yaml")
 
@@ -138,8 +137,10 @@ if os.path.exists(os.path.join(root_path, "config.yaml")):
         except yaml.YAMLError as e:
             if hasattr(e, 'problem_mark'):
                 mark = e.problem_mark
-                print(f"配置文件有误，请检查config.yaml，错误位于【第{mark.line + 1}行】【第{mark.column + 1}列】，或其上下行符号错误。")
-                print("常见问题:\n① 冒号(:)后需要空格，否则会导致缩进错误。\n② 列表中存在逗号错误('，'和',')等\n③ 请全部使用半角字符，请仔细检查")
+                print(
+                    f"配置文件有误，请检查config.yaml，错误位于【第{mark.line + 1}行】【第{mark.column + 1}列】，或其上下行符号错误。")
+                print(
+                    "常见问题:\n① 冒号(:)后需要空格，否则会导致缩进错误。\n② 列表中存在逗号错误('，'和',')等\n③ 请全部使用半角字符，请仔细检查")
                 wait_exit()
             else:
                 print(f"配置文件格式有误，请检查config.yaml: {e}")
@@ -170,8 +171,10 @@ if config.EchoLock:
             except yaml.YAMLError as e:
                 if hasattr(e, 'problem_mark'):
                     mark = e.problem_mark
-                    print(f"配置文件有误，请检查echo_config.yaml，错误位于【第{mark.line + 1}行】【第{mark.column + 1}列】，或其上下行符号错误。")
-                    print("常见问题:\n① 冒号(:)后需要空格，否则会导致缩进错误。\n② 列表中存在逗号错误('，'和',')等\n③ 请全部使用半角字符，请仔细检查")
+                    print(
+                        f"配置文件有误，请检查echo_config.yaml，错误位于【第{mark.line + 1}行】【第{mark.column + 1}列】，或其上下行符号错误。")
+                    print(
+                        "常见问题:\n① 冒号(:)后需要空格，否则会导致缩进错误。\n② 列表中存在逗号错误('，'和',')等\n③ 请全部使用半角字符，请仔细检查")
                     wait_exit()
                 else:
                     print(e)

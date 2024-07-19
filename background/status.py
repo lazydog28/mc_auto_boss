@@ -12,6 +12,7 @@ from config import config
 from colorama import init, Fore, Style
 from read_crashes_data import read_crashes_datas
 from typing import Tuple, List
+from collections import deque
 
 
 class Status(Enum):
@@ -33,6 +34,7 @@ class StatusInfo(BaseModel):
     roleIndex: int = Field(0, title="角色索引")
     lastRoleIndex: int = Field(0, title="最后一次角色索引")
     characterHealthyIndex: List[bool] = Field([True, True, True, True], title="角色存活状态")   # 实质上从[1]到[3]
+    lastBossIndex: int = Field(0, title="上一个boss索引")
     bossIndex: int = Field(0, title="boss索引")
     status: Status = Field(Status.idle, title="状态")
     fightTime: datetime = Field(datetime.now(), title="战斗开始时间")
@@ -88,6 +90,13 @@ class StatusInfo(BaseModel):
     actionErrorTimes: int = Field(0, title="动作错误次数")
     lastActionErrorTime: datetime = Field(datetime.now(), title="最后一次动作错误时间")
     lastStatus: Status = Field(Status.idle, title="最后状态")
+    BossAllFightTime: list = Field([deque(maxlen=100) for _ in range(len(config.TargetBoss))],
+                                   title="所有BOSS战斗时间")
+    BossAllEchoAbsorptionTime: list = Field([deque(maxlen=100) for _ in range(len(config.TargetBoss))],
+                                            title="所有BOSS声骸吸收时间")
+    BossAllFightTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="所有BOSS战斗次数")
+    BossAllEchoAbsorptionTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="所有BOSS声骸吸收次数")
+    LastBossAllEchoAbsorptionTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="上一次的所有BOSS声骸吸收次数")
 
     def resetTime(self):
         self.fightTime = datetime.now()

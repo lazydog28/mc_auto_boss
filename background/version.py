@@ -1,6 +1,12 @@
-__version__ = "1.2.0.9"
+__version__ = "1.2.1.0"
 release_date = "2024-07-19"
 description = "更新"
+
+# ver1.2.1.0
+# update:2024-07-19
+# updated by RoseRin0
+# 1.添加长时间未进入战斗时重启游戏的条件操作。
+# 2.添加动态调整吸收时间的功能，可在config中开启。
 
 # ver1.2.0.9
 # update:2024-07-19
