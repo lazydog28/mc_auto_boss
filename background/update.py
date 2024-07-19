@@ -162,7 +162,8 @@ def install_git():
         print("正在安装 Git...")
         subprocess.run([powershell_path, '-NoProfile', '-ExecutionPolicy', 'Bypass',
                         '-Command',
-                        'choco install git -y'], check=True)
+                        'choco install git -y --force'], check=True)
+        reload_env_vars()
         # 验证 Git 是否安装成功
         result = subprocess.run(['git', '--version'], capture_output=True, text=True)
         if result.returncode == 0:

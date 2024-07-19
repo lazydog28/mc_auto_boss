@@ -1,6 +1,13 @@
-__version__ = "1.2.0.8"
+__version__ = "1.2.0.9"
 release_date = "2024-07-19"
 description = "更新"
+
+# ver1.2.0.9
+# update:2024-07-19
+# updated by RoseRin0
+# 1.修复了启动脚本时显示启动进程对象名称异常的问题。
+# 2.将鼠标重置进程改为try expect方式，防止Windows弹窗时，无法获取当前鼠标位置，
+#   导致鼠标重置进程异常退出，从而开始被鸣潮抢鼠标的问题。
 
 # ver1.2.0.8
 # update:2024-07-19

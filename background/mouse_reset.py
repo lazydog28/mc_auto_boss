@@ -21,11 +21,14 @@ def mouse_reset(e: Event):
         if e.is_set():
             break
         current_position = mouse.position
-        distance = math.sqrt(
-            (current_position[0] - last_position[0]) ** 2
-            + (current_position[1] - last_position[1]) ** 2
-        )
-        if distance > 200:
-            mouse.position = last_position
-        else:
-            last_position = current_position
+        try:
+            distance = math.sqrt(
+                (current_position[0] - last_position[0]) ** 2
+                + (current_position[1] - last_position[1]) ** 2
+            )
+            if distance > 200:
+                mouse.position = last_position
+            else:
+                last_position = current_position
+        except Exception:
+            logger("鼠标重置进程异常")

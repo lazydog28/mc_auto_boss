@@ -198,24 +198,24 @@ def on_press(key):
     :return:
     """
     if key == get_key_from_string(config.ShortcutBossTaskStart):
-        logger(f"{config.ShortcutBossTaskStart.title}")
+        logger(f"{config.__fields__['ShortcutBossTaskStart'].title}")
         thread = Process(target=run, args=(boss_task, taskEvent), name="task")
         thread.start()
     if key == get_key_from_string(config.ShortcutSynthesisEchoes):
-        logger(f"{config.ShortcutSynthesisEchoes.title}")
+        logger(f"{config.__fields__['ShortcutSynthesisEchoes'].title}")
         thread = Process(target=run, args=(synthesis_task, taskEvent), name="task")
         end_thread(mouseResetEvent, mouse_reset_thread)
         thread.start()
     if key == get_key_from_string(config.ShortcutTaskStop):
-        logger(f"{config.ShortcutTaskStop.title}")
+        logger(f"{config.__fields__['ShortcutTaskStop'].title}")
         taskEvent.clear()
     if key == get_key_from_string(config.ShortcutLockEchoes):
-        logger(f"{config.ShortcutLockEchoes.title}")
+        logger(f"{config.__fields__['ShortcutLockEchoes'].title}")
         thread = Process(target=run, args=(echo_bag_lock_task, taskEvent), name="task")
         thread.start()
         end_thread(mouseResetEvent, mouse_reset_thread)
     if key == get_key_from_string(config.ShortcutAllStop):
-        logger(f"{config.ShortcutAllStop.title}")
+        logger(f"{config.__fields__['ShortcutAllStop'].title}")
         taskEvent.clear()
         mouseResetEvent.set()
         restart_thread.terminate()
