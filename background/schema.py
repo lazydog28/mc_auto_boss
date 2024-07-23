@@ -19,6 +19,11 @@ from constant import width_ratio, height_ratio
 from status import Status, logger, info
 
 
+shared_switch_task_flag_run = None
+event_run = None
+log_queue_run = None
+
+
 class Position(BaseModel):
     x1: int = Field(None, title="x1")
     y1: int = Field(None, title="y1")
@@ -322,6 +327,10 @@ class Task(BaseModel):
     def add_page(self, page: Page):
         self.pages.append(page)
 
+    # def clear_all_pages_and_conditional_actions(self):
+    #     self.pages.clear()
+    #     self.conditionalActions.clear()
+
     def update_pages_based_on_status(self):
         from task.boss import reload_pages_and_conditional_actions
         logger(f"战斗/空闲状态发生变化【当前状态:{info.status.value}】，重新加载页面和操作条件", "WARN")
@@ -333,8 +342,15 @@ class Task(BaseModel):
         info.lastStatus = info.status
 
     # 被调用时执行任务
-    def __call__(self, img: np.ndarray, ocrResults: List[OcrResult]):
+    def __call__(self, img: np.ndarray, ocrResults: List[OcrResult], shared_switch_task_flag, e, log_queue):
         from config import config
+        global shared_switch_task_flag_run, event_run, log_queue_run
+        shared_switch_task_flag_run = shared_switch_task_flag
+        event_run = e
+        log_queue_run = log_queue
+        # if info.needPagesClear:
+        #     self.clear_all_pages_and_conditional_actions()
+        #     info.needPagesClear = False
         if config.ReloadPagesAndConditional:
             if info.status != info.lastStatus:
                 self.update_pages_based_on_status()

@@ -7,6 +7,7 @@
 """
 import importlib
 from schema import Task
+import status
 from status import Status, info
 from .pages import general as general_pages
 from .pages import boss as boss_pages

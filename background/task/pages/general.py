@@ -68,7 +68,8 @@ def absorption_action(positions: dict[str, Position]) -> bool:
             if info.absorptionCount == info.lastAbsorptionCount:
                 info.absorptionCount += 1
                 boss_index = info.lastBossIndex % len(config.TargetBoss)
-                info.BossAllEchoAbsorptionTimes[boss_index] += 1
+                info.bossAllEchoAbsorptionTimes[boss_index] += 1
+                check_echo_is_over()
             if info.echoSearchTimesCount == 0:
                 info.echoSearchStartTime = datetime.now()
             info.needAbsorption = False
@@ -194,7 +195,7 @@ def fight_action(positions: dict[str, Position]) -> bool:
         #    time.sleep(config.DreamlessWaitTime)
         # 转自BOSS延迟统一调用
         boss_index = info.lastBossIndex % len(config.TargetBoss)
-        info.BossAllFightTimes[boss_index] += 1
+        info.bossAllFightTimes[boss_index] += 1
         info.fightCount += 1
         info.needAbsorption = True
         info.fightTime = datetime.now()

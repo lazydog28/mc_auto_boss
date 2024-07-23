@@ -20,7 +20,10 @@ def automatically_placed_in(positions: dict[str, Position]) -> bool:
     """
     control.activate()
     click_position(positions.get("自动放入"))
-    time.sleep(0.5)
+    info.automaticallyFailedTimes += 1
+    if info.automaticallyFailedTimes > 5:
+        time.sleep(0.5)
+        check_synthesis_end()
     return True
 
 
@@ -116,6 +119,7 @@ def get_echoes(positions: dict[str, Position]) -> bool:
     """
     control.activate()
     echo_synthesis()
+    info.automaticallyFailedTimes = 0
     time.sleep(1)
     return True
 

@@ -385,6 +385,8 @@ def transfer() -> bool:
         time.sleep(1)
         info.actionErrorTimes = 0
     check_heal()
+    if change_task_to_synthesis():
+        return True
     if info.fightTime:
         check_fight_time(info.lastBossName)
     if config.UseConsumables and config.ConsumablesName:
@@ -419,6 +421,8 @@ def transfer() -> bool:
         info.lastFightTime = now  # 重置最近检测到战斗时间
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = ""
+        info.lastBossIndex = info.bossIndex
+        info.bossIndex += 1
         return True
     if info.lastBossName == "角" and bossName == "角":
         logger("前往角 且 刚才已经前往过")
@@ -441,6 +445,8 @@ def transfer() -> bool:
         info.lastFightTime = now  # 重置最近检测到战斗时间
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = ""
+        info.lastBossIndex = info.bossIndex
+        info.bossIndex += 1
         return True
     control.activate()
     time.sleep(0.5)
@@ -728,7 +734,8 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
     logger("吸收声骸")
     info.absorptionCount += 1
     boss_index = info.lastBossIndex % len(config.TargetBoss)
-    info.BossAllEchoAbsorptionTimes[boss_index] += 1
+    info.bossAllEchoAbsorptionTimes[boss_index] += 1
+    check_echo_is_over()
     info.lastFightTime = info.lastFightTime - timedelta(seconds=(config.MaxIdleTime + 5))  # 吸收完成后立即结束等待
     return True
 
@@ -1796,6 +1803,7 @@ def adapts():
             else:
                 info.adaptsType = 2
                 info.adaptsResolution = "_1280_720"
+        info.processStartTime = datetime.now()
 
 
 def remove_non_chinese(text):
@@ -2014,17 +2022,18 @@ def check_fight_time(lastBossName):
     info.lastAbsorptionCount = info.absorptionCount
     # 总战斗时间(包括加载和搜索声骸)
     # 治疗不需要打印
+    all_time = datetime.now() - info.fightTime
     if info.needHeal:
         return False
     # 战斗次数为0时，改为显示脚本启动用时
     if info.fightCount == 0:
-        all_time = datetime.now() - info.fightTime
-        hours, remainder = divmod(all_time.total_seconds(), 3600)
-        minutes, seconds = divmod(remainder, 60)
-        formatted_all_time = f'{int(minutes):02}分钟{int(seconds):02}秒'
+        formatted_all_time = format_time(all_time)
         logger(f"脚本启动用时：{formatted_all_time}", "IMPORTANT")
+    elif info.fightCount == 1 and all_time.total_seconds() > 3000:
+        formatted_all_time = format_time(all_time)
+        logger(f"脚本重启用时：{formatted_all_time}", "IMPORTANT")
+        info.fightCount = 0
     else:
-        all_time = datetime.now() - info.fightTime
         formatted_all_time = format_time(all_time)
         logger(f"本次战斗总用时：{formatted_all_time}", "IMPORTANT")
         # 仅战斗用时
@@ -2036,8 +2045,8 @@ def check_fight_time(lastBossName):
         next_boss_index = (info.lastBossIndex + 1) % len(config.TargetBoss)
         this_boss_name = config.TargetBoss[boss_index % len(config.TargetBoss)]
         next_boss_name = config.TargetBoss[(boss_index + 1) % len(config.TargetBoss)]
-        logger(f"当前BOSS索引：{boss_index}，当前BOSS名称：{this_boss_name}，战斗次数：{info.BossAllFightTimes[boss_index]}，吸收次数：{info.BossAllEchoAbsorptionTimes[boss_index]}", "IMPORTANT")
-        this_boss_fight_times = info.BossAllFightTime[boss_index]
+        logger(f"当前BOSS索引：{boss_index}，当前BOSS名称：{this_boss_name}，战斗次数：{info.bossAllFightTimes[boss_index]}，吸收次数：{info.bossAllEchoAbsorptionTimes[boss_index]}", "IMPORTANT")
+        this_boss_fight_times = info.bossAllFightTime[boss_index]
         if 0 <= fight_time.total_seconds() <= 300:
             this_boss_fight_times.append(fight_time.total_seconds())
         # 计算当前BOSS的战斗平均时间(为了使其有意义，当战斗次数 > 5次以上时开始计算，保存最新的100条时间)
@@ -2056,33 +2065,68 @@ def check_fight_time(lastBossName):
         formatted_echo_search_time = format_time(echo_search_time)
         logger(f"搜索声骸用时：{formatted_echo_search_time}", "IMPORTANT")
         # 添加本次吸收用时到当前BOSS吸收时间列表，为了防止异常数值混入，只添加<60秒的吸收成功时的数值
-        this_boss_echo_absorption_time = info.BossAllEchoAbsorptionTime[boss_index]
-        if info.BossAllEchoAbsorptionTimes[boss_index] != info.LastBossAllEchoAbsorptionTimes[boss_index]:
+        this_boss_echo_absorption_time = info.bossAllEchoAbsorptionTime[boss_index]
+        if info.bossAllEchoAbsorptionTimes[boss_index] != info.lastBossAllEchoAbsorptionTimes[boss_index]:
             if 0 <= echo_search_time.total_seconds() <= 60:
                 this_boss_echo_absorption_time.append(echo_search_time.total_seconds())
-                info.LastBossAllEchoAbsorptionTimes[boss_index] = info.BossAllEchoAbsorptionTimes[boss_index]
-            # 计算当前BOSS的吸收平均时间(为了使其有意义，当吸收次数 > 5次以上时开始计算，保存最新的100条时间)
-        try:
-            if len(this_boss_echo_absorption_time) > 5:
-                this_boss_average_echo_absorption_times = round(sum(this_boss_echo_absorption_time) / len(this_boss_echo_absorption_time), 2)
-                logger(f"【{lastBossName}】的平均吸收时间为:{this_boss_average_echo_absorption_times}秒，已记录最近{len(this_boss_echo_absorption_time)}条吸收时间", "IMPORTANT")
-        except Exception:
-                pass
+                info.lastBossAllEchoAbsorptionTimes[boss_index] = info.bossAllEchoAbsorptionTimes[boss_index]
+        # 计算当前BOSS的吸收平均时间(为了使其有意义，当吸收次数 > 5次以上时开始计算，保存最新的100条时间)
+        if len(this_boss_echo_absorption_time) > 5:
+            this_boss_average_echo_absorption_time = round(sum(this_boss_echo_absorption_time) / len(this_boss_echo_absorption_time), 2)
+            logger(f"【{lastBossName}】的平均吸收时间为:{this_boss_average_echo_absorption_time}秒，已记录最近{len(this_boss_echo_absorption_time)}条吸收时间", "IMPORTANT")
         if config.EchoAbsorptionDynamicAdjustingStrategy:
-            # 更改最大空闲时间和最大吸收时间到下一个BOSS吸收平均时间 + 20% 秒，以实现动态调整每个BOSS的吸收时间，并且在下一个Boss吸收率吸收率小于50%时，使其额外增加20%
-            try:
-                next_boss_echo_absorption_times = info.BossAllEchoAbsorptionTime[next_boss_index]
-                # 下一个BOSS吸收次数 > 5次时开始使用动态吸收时间
-                if len(next_boss_echo_absorption_times) > 5:
-                    next_boss_average_echo_absorption_times = round(sum(next_boss_echo_absorption_times) / len(next_boss_echo_absorption_times), 2)
-                    config.MaxIdleTime = next_boss_average_echo_absorption_times * 1.2
-                    config.MaxEchoAbsorptionTime = next_boss_average_echo_absorption_times * 1.2
-                    if info.BossAllEchoAbsorptionTimes[next_boss_index] / info.BossAllFightTimes[next_boss_index] < 0.5:
-                        config.MaxIdleTime = config.MaxIdleTime * 1.2
-                        config.MaxEchoAbsorptionTime = config.MaxEchoAbsorptionTime * 1.2
-                    logger(f"下一个BOSS【{next_boss_name}】的最大空闲时间和最大吸收时间已调整为：{config.MaxIdleTime}秒，{config.MaxEchoAbsorptionTime}秒", "IMPORTANT")
-            except Exception:
-                pass
+            # 更改最大空闲时间和最大吸收时间到下一个BOSS吸收平均时间 + 20% 秒，以实现动态调整每个BOSS的吸收时间，并且在下一个Boss吸收率吸收率小于50%时，使其额外增加50%(最小不能低于5秒)
+            next_boss_echo_absorption_time = info.bossAllEchoAbsorptionTime[next_boss_index]
+            next_boss_echo_absorption_times = info.bossAllEchoAbsorptionTimes[next_boss_index]
+            next_boss_echo_absorption_time_offset = info.bossAllEchoAbsorptionTimeOffset[next_boss_index]
+            # 下一个BOSS吸收次数 > 5次时开始使用动态吸收时间
+            if next_boss_echo_absorption_times > 5:
+                next_boss_average_echo_absorption_time = round(sum(next_boss_echo_absorption_time) / next_boss_echo_absorption_times, 2)
+                # 当总吸收率小于52%时，开始动态调整最大空闲时间和最大吸收时间
+                if next_boss_echo_absorption_times / info.bossAllFightTimes[next_boss_index] < 0.52:
+                    if info.bossAllFightTimes[next_boss_index] - info.lastAllEchoAbsorptionTimeOffsetFightCount[next_boss_index] > 5:
+                        absorption_rate_last_6_fight = (next_boss_echo_absorption_times - info.lastBossAllEchoAbsorptionTimesOffsetAbsorptionCount[next_boss_index]) / 6
+                        logger(f"下一个BOSS【{next_boss_name}】的近6次吸收率为:{round(absorption_rate_last_6_fight * 100, 2)}%", "IMPORTANT")
+                        # 近6次战斗吸收率小于50%，则使加算offset时间增加1秒，最大不超过5秒
+                        if absorption_rate_last_6_fight < 0.5:
+                            next_boss_echo_absorption_time_offset += 1 if next_boss_echo_absorption_time_offset + 1 <= 5 else 5
+                            info.lastAllEchoAbsorptionTimeOffsetFlag[next_boss_index] = "Increased"
+                            logger(f"下一个BOSS【{next_boss_name}】近6次吸收率低于50%，增加固定时间", "IMPORTANT")
+                        else:
+                            # 连续两次近6次战斗吸收率大于等于50%，则使加算offset时间减少0.5秒，最小不低于0秒
+                            if info.lastAllEchoAbsorptionTimeOffsetFlag[next_boss_index] == "Unchanged":
+                                next_boss_echo_absorption_time_offset -= 0.5 if next_boss_echo_absorption_time_offset - 0.5 >= 0 else 0
+                                info.lastAllEchoAbsorptionTimeOffsetFlag[next_boss_index] = "Decreased"
+                                logger(f"下一个BOSS【{next_boss_name}】的连续两次近6次吸收率高于50%，减少固定时间", "IMPORTANT")
+                            # 如果上次调整过加算Offset时间，那么等6次战斗后再根据吸收率进行判断是否将offset时间减少
+                            else:
+                                info.lastAllEchoAbsorptionTimeOffsetFlag[next_boss_index] = "Unchanged"
+                        info.lastAllEchoAbsorptionTimeOffsetFightCount[next_boss_index] = info.bossAllFightTimes[next_boss_index]
+                        info.lastBossAllEchoAbsorptionTimesOffsetAbsorptionCount[next_boss_index] = next_boss_echo_absorption_times
+                if next_boss_echo_absorption_times / info.bossAllFightTimes[next_boss_index] < 0.5:
+                    if config.MaxIdleTime * 1.5 > 5:
+                        config.MaxIdleTime = next_boss_average_echo_absorption_time * 1.2 * 1.5 + next_boss_echo_absorption_time_offset
+                    else:
+                        config.MaxIdleTime = 5 * 1.2 * 1.5 + next_boss_echo_absorption_time_offset
+                    if config.MaxEchoAbsorptionTime * 1.5 > 5:
+                        config.MaxEchoAbsorptionTime = next_boss_average_echo_absorption_time * 1.2 * 1.5 + next_boss_echo_absorption_time_offset
+                    else:
+                        config.MaxEchoAbsorptionTime = 5 * 1.2 * 1.5 + next_boss_echo_absorption_time_offset
+                    logger(f"下一个BOSS【{next_boss_name}】吸收率低于50%，调整方式：平均吸收时间:{next_boss_average_echo_absorption_time}秒*1.2*1.5+固定时间:{next_boss_echo_absorption_time_offset}秒","IMPORTANT")
+                else:
+                    if config.MaxIdleTime * 1.5 > 5:
+                        config.MaxIdleTime = next_boss_average_echo_absorption_time * 1.2 + next_boss_echo_absorption_time_offset
+                    else:
+                        config.MaxIdleTime = 5 * 1.2 + next_boss_echo_absorption_time_offset
+                    if config.MaxEchoAbsorptionTime * 1.5 > 5:
+                        config.MaxEchoAbsorptionTime = next_boss_average_echo_absorption_time * 1.2 + next_boss_echo_absorption_time_offset
+                    else:
+                        config.MaxEchoAbsorptionTime = 5 * 1.2 + next_boss_echo_absorption_time_offset
+                    logger( f"下一个BOSS吸收率正常，调整方式：平均吸收时间:{next_boss_average_echo_absorption_time}秒*1.2+固定时间:{next_boss_echo_absorption_time_offset}秒", "IMPORTANT")
+            else:
+                config.MaxIdleTime = 15
+                config.MaxEchoAbsorptionTime = 15
+            logger(f"下一个BOSS【{next_boss_name}】的最大空闲时间和最大吸收时间已调整为：{config.MaxIdleTime}秒，{config.MaxEchoAbsorptionTime}秒","IMPORTANT")
         info.echoSearchTimesCount = 0
         info.fightEndFlagCount = 0
         info.fightEndFlag = False
@@ -2214,6 +2258,93 @@ def find_text_in_login_hwnd(targets: str | list[str], login_hwnd) -> OcrResult |
         if text_info := search_text(result, target):
             return text_info
     return None
+
+
+def check_echo_is_over():
+    if (info.lastEchoOverCheckTime - datetime.now()).total_seconds() > 60:
+        for _ in range(3):
+            logger("正在检查声骸是否已达背包上限", "DEBUG")
+            region = set_region(660, 150, 1280, 290)
+            if wait_text_designated_area("邮件", 2, region):
+                logger("背包已满，即将前往合成", "DEBUG")
+                info.lastEchoOverCheckTime = datetime.now()
+                info.needSynthesis = True
+                return
+        logger("背包未满，继续执行Boss任务", "DEBUG")
+        info.lastEchoOverCheckTime = datetime.now()
+
+
+def change_task(target_task):
+    import schema
+    from main import start_task_change
+    from task import boss_task, synthesis_task, echo_bag_lock_task
+    if target_task == "合成":
+        target_task = synthesis_task
+        target_task_name = "合成任务"
+    elif target_task == "BOSS":
+        target_task = boss_task
+        target_task_name = "BOSS任务"
+    elif target_task == "背包声骸锁定":
+        target_task = echo_bag_lock_task
+        target_task_name = "背包声骸锁定任务"
+    else:
+        logger(f"未知的任务类型: {target_task}", "ERROR")
+        return
+    shared_switch_task_flag = schema.shared_switch_task_flag_run
+    shared_switch_event = schema.event_run
+    start_task_change(target_task, shared_switch_task_flag, shared_switch_event, schema.log_queue_run, task_name=target_task_name)
+
+
+def change_task_to_synthesis():
+    if info.needSynthesis:
+        time.sleep(2)
+        control.esc()
+        time.sleep(2)
+        region = set_region(0, 0, 260, 120)
+        if wait_text_designated_area("终端", 2, region):
+            random_click(1440, 500)
+            time.sleep(2)
+        else:
+            logger("未找到终端，停止切换到合成任务", "DEBUG")
+            info.needSynthesis = False
+            return False
+        if wait_text_designated_area("数据坞", 2, region):
+            random_click(75, 595)
+            time.sleep(2)
+        else:
+            logger("未找到数据坞，停止切换到合成任务", "DEBUG")
+            info.needSynthesis = False
+            return False
+        if wait_text_designated_area("数据融合", 2, region):
+            info.needSynthesis = False
+            info.lastFightTime = datetime.now()
+            change_task("合成")
+            return True
+        else:
+            logger("未找到数据融合，停止切换到合成任务", "DEBUG")
+            info.needSynthesis = False
+            return False
+    else:
+        return False
+
+
+def change_task_to_boss():
+    for _ in range(2):
+        control.esc()
+        time.sleep(1)
+    while check_in_animation() != "is available":
+        control.esc()
+        time.sleep(2)
+    change_task("BOSS")
+
+
+def check_synthesis_end():
+    for _ in range(3):
+        region = set_region(660, 150, 1280, 290)
+        if wait_text_designated_area("材料不足", 2, region):
+            control.activate()
+            change_task_to_boss()
+        return True
 
 
 adapts()

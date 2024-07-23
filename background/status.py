@@ -15,6 +15,7 @@ from typing import Tuple, List
 from collections import deque
 
 
+
 class Status(Enum):
     idle = "空闲"
     fight = "战斗"
@@ -32,6 +33,7 @@ battle_count, absorb_count, heal_count = read_crashes_datas()
 class StatusInfo(BaseModel):
 
     roleIndex: int = Field(0, title="角色索引")
+    processStartTime: datetime = Field(datetime.now(), title="程序启动时间")
     lastRoleIndex: int = Field(0, title="最后一次角色索引")
     characterHealthyIndex: List[bool] = Field([True, True, True, True], title="角色存活状态")   # 实质上从[1]到[3]
     lastBossIndex: int = Field(0, title="上一个boss索引")
@@ -90,13 +92,21 @@ class StatusInfo(BaseModel):
     actionErrorTimes: int = Field(0, title="动作错误次数")
     lastActionErrorTime: datetime = Field(datetime.now(), title="最后一次动作错误时间")
     lastStatus: Status = Field(Status.idle, title="最后状态")
-    BossAllFightTime: list = Field([deque(maxlen=100) for _ in range(len(config.TargetBoss))],
+    bossAllFightTime: list = Field([deque(maxlen=100) for _ in range(len(config.TargetBoss))],
                                    title="所有BOSS战斗时间")
-    BossAllEchoAbsorptionTime: list = Field([deque(maxlen=100) for _ in range(len(config.TargetBoss))],
+    bossAllEchoAbsorptionTime: list = Field([deque(maxlen=100) for _ in range(len(config.TargetBoss))],
                                             title="所有BOSS声骸吸收时间")
-    BossAllFightTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="所有BOSS战斗次数")
-    BossAllEchoAbsorptionTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="所有BOSS声骸吸收次数")
-    LastBossAllEchoAbsorptionTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="上一次的所有BOSS声骸吸收次数")
+    bossAllFightTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="所有BOSS战斗次数")
+    bossAllEchoAbsorptionTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="所有BOSS声骸吸收次数")
+    lastBossAllEchoAbsorptionTimes: list = Field([0 for _ in range(len(config.TargetBoss))], title="上一次的所有BOSS声骸吸收次数")
+    bossAllEchoAbsorptionTimeOffset: list = Field([0 for _ in range(len(config.TargetBoss))], title="所有BOSS声骸吸收时间偏移")
+    lastAllEchoAbsorptionTimeOffsetFightCount: list = Field([0 for _ in range(len(config.TargetBoss))], title="上一次进行声骸吸收时间偏移的战斗次数")
+    lastBossAllEchoAbsorptionTimesOffsetAbsorptionCount: list = Field([0 for _ in range(len(config.TargetBoss))], title="上一次进行声骸吸收时间偏移的吸收次数")
+    lastAllEchoAbsorptionTimeOffsetFlag: list = Field(["Unchanged" for _ in range(len(config.TargetBoss))], title="上一次进行声骸吸收时间偏移的标志")
+    lastEchoOverCheckTime: datetime = Field(datetime.now(), title="上一次声骸超限检查时间")
+    needSynthesis: bool = Field(False, title="需要合成声骸")
+    # needPagesClear: bool = Field(False, title="需要清空页面")
+    automaticallyFailedTimes: int = Field(0, title="连续自动放入失败次数")
 
     def resetTime(self):
         self.fightTime = datetime.now()
@@ -111,6 +121,7 @@ last_echo_efficiency_print_time = datetime.now()
 
 
 def logger(msg: str, level: str = "INFO", display: bool = True):
+    import schema
     global lastMsg, last_echo_efficiency_print_time
     if (datetime.now() - last_echo_efficiency_print_time).total_seconds() > 300:  # 5分钟打印一次
         process_time = datetime.now() - info.startTime
@@ -156,6 +167,10 @@ def logger(msg: str, level: str = "INFO", display: bool = True):
     else:
         color = Fore.WHITE
     colored_content = color + content
+
+    if schema.log_queue_run is not None:
+        if msg != lastMsg:
+            schema.log_queue_run.put(content)
 
     if display:
         print(colored_content, end="")

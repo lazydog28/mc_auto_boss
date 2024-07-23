@@ -19,7 +19,6 @@ class Config(BaseModel):
     MaxEchoAbsorptionTime: int = Field(10, title="最大空闲时间", ge=5)
     ReloadPagesAndConditional: bool = Field(False, title="是否动态加载页面和条件")
     TargetBoss: list[str] = Field([], title="目标关键字")
-    SelectRoleInterval: int = Field(2, title="选择角色间隔时间", ge=2)
     FightTactics: list[str] = Field(
         [
             "e,q,r,a,0.1,a,0.1,a,0.1,a,0.1,a,0.1",
@@ -76,7 +75,13 @@ class Config(BaseModel):
     ShortcutSynthesisEchoes: Optional[str] = Field("f6", title="启动声骸合成脚本")
     ShortcutTaskStop: Optional[str] = Field("f7", title="停止当前任务")
     ShortcutLockEchoes: Optional[str] = Field("f8", title="启动声骸背包锁定脚本")
+    ShortcutMaskWindowDisplayStatusChange: Optional[str] = Field("f9", title="显示或隐藏覆盖显示窗口")
     ShortcutAllStop: Optional[str] = Field("f12", title="完全停止程序")
+    GameRunningTimeForRestart: int = Field(0, title="游戏重启时间，脚本启动后运行超过此时间将重启游戏，0为不重启，单位为分钟")
+    MaskWindowViewerDiaphanous: int = Field(100, title="覆盖显示窗口透明度")
+    MaskWindowViewerSize: str = Field("800x600", title="覆盖显示窗口大小")
+    MaskWindowViewerTextColor: str = Field("#FFFFFF", title="覆盖显示窗口文字颜色")
+    MaskWindowViewerTextSize: int = Field(12, title="覆盖显示窗口文字大小")
 
     def __init__(self, **data):
         super().__init__(**data)

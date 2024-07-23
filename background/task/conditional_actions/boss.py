@@ -163,12 +163,29 @@ def add_judgment_game_stop_action():
     conditional_actions.append(judgment_game_stop_conditional_action)
 
 
+def judgment_running_time() -> bool:
+    if config.GameRunningTimeForRestart > 0:
+        running_time_minutes = (datetime.now() - info.processStartTime).total_seconds() / 60
+        return running_time_minutes > config.GameRunningTimeForRestart
+    return False
+
+
+def add_judgment_game_running_time_action():
+    judgment_game_stop_running_time_conditional_action = ConditionalAction(
+        name="游戏已启动时间过长",
+        condition=judgment_running_time,
+        action=judgment_game_stop_action,
+    )
+    conditional_actions.append(judgment_game_stop_running_time_conditional_action)
+
+
 if info.status != Status.fight:
     add_judgment_absorption_condition_action()  # 搜索声骸
     add_judgment_idle_conditional_action()  # 超过最大空闲时间
     add_judgment_fight_conditional_action()  # 超过最大战斗时间
     add_judgment_leave_conditional_action()  # 副本内超过最大战斗时间退出(防止OCR未识别到"离开"文字)
     add_judgment_game_stop_action()  # 游戏长时间无动作
+    add_judgment_game_running_time_action()  # 游戏已启动时间过长
 else:
     add_judgment_idle_conditional_action()  # 超过最大空闲时间
     add_judgment_fight_conditional_action()  # 超过最大战斗时间

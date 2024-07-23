@@ -2,27 +2,39 @@ import os
 import time
 import init  # !!此导入删除会导致不会将游戏移动到左上角以及提示当前分辨率!!
 import sys
+import status
 import version
 import ctypes
+import subprocess
+import multiprocessing
 from mouse_reset import mouse_reset
-from multiprocessing import Event, Process
+from multiprocessing import Event, Queue
 from pynput.keyboard import Key, Listener, KeyCode
 from schema import Task
-import subprocess
 from task import boss_task, synthesis_task, echo_bag_lock_task
 from utils import *
-from threading import Event as event
 from config import config, wait_exit
 from read_crashes_data import read_crashes_datas
 from constant import game_start
 from update import check_for_updates
+from mask_window_viewer import start_log_window
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 app_path = config.AppPath
+_shared_switch_task_flag = None
+_log_window_display = None
+log_queue = Queue()
 
 
-def restart_app(e: event):
+def init_shared_variables():
+    global _shared_switch_task_flag, _log_window_display
+    manager = multiprocessing.Manager()
+    _shared_switch_task_flag = manager.Value('b', False)
+    _log_window_display = manager.Value('b', False)
+
+
+def restart_app(e: Event, restartEvent, log_queue):
     if app_path:
         while True:
             # 在这里修改重启间隔，单位为秒 time.sleep(7200)表示2个小时重启一次
@@ -30,7 +42,9 @@ def restart_app(e: event):
             # manage_application("UnrealWindow", "鸣潮  ", app_path,e)
             time.sleep(config.GameMonitorTime)  # 每秒检测一次，游戏窗口      改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
             find_ue4("UnrealWindow", "UE4-Client Game已崩溃  ")
-            find_game_windows("UnrealWindow", "鸣潮  ", e)
+            find_game_windows("UnrealWindow", "鸣潮  ", e, log_queue)
+            if restartEvent.is_set():
+                break
 
 
 def find_ue4(class_name, window_title):
@@ -47,7 +61,8 @@ def find_ue4(class_name, window_title):
             return False
 
 
-def find_game_windows(class_name, window_title, taskEvent):
+def find_game_windows(class_name, window_title, taskEvent, log_queue):
+    global _shared_switch_task_flag
     if app_path:
         gameWindows = win32gui.FindWindow(class_name, window_title)
         if gameWindows == 0:
@@ -58,10 +73,12 @@ def find_game_windows(class_name, window_title, taskEvent):
             # 如果重启成功，执行方法一
             time.sleep(20)
             taskEvent.clear()  # 清理BOSS脚本线程(防止多次重启线程占用-导致无法点击进入游戏)
-
             logger("自动启动BOSS脚本")
-            thread = Process(target=run, args=(boss_task, taskEvent), name="task")
-            thread.start()
+            init_shared_variables()
+            shared_switch_task_flag = _shared_switch_task_flag
+            shared_switch_task_flag.value = False
+            task_thread = multiprocessing.Process(target=run, args=(boss_task, taskEvent, shared_switch_task_flag, log_queue), name="task")
+            task_thread.start()
 
 
 def close_window(class_name, window_title):
@@ -110,7 +127,6 @@ def end_small_game_process(game_process_name=None, memory_threshold_mb=100):
                 name = proc.name()
                 memory_info = proc.memory_info()
                 memory_usage_mb = memory_info.rss / (1024 * 1024)  # 转换为MB
-
             if name in game_process_names_set and memory_usage_mb < memory_threshold_mb:
                 print(f"找到游戏进程： {name} (PID: {pid})，使用内存: {memory_usage_mb:.2f} MB，内存占用过小，可能是崩溃遗留进程，终止该进程")
                 psutil.Process(pid).terminate()
@@ -120,6 +136,7 @@ def end_small_game_process(game_process_name=None, memory_threshold_mb=100):
 
 
 def manage_application(class_name, window_title, app_path, taskEvent):
+    global _shared_switch_task_flag
     if app_path:
         # 先停止脚本
         logger("自动暂停脚本！@")
@@ -135,8 +152,12 @@ def manage_application(class_name, window_title, app_path, taskEvent):
                 time.sleep(20)
                 end_small_game_process()
                 logger("自动启动BOSS脚本")
-                thread = Process(target=run, args=(boss_task, taskEvent), name="task")
-                thread.start()
+                init_shared_variables()
+                shared_switch_task_flag = _shared_switch_task_flag
+                shared_switch_task_flag.value = False
+                log_queue.value = False
+                task_thread = multiprocessing.Process(target=run, args=(boss_task, taskEvent, shared_switch_task_flag, log_queue), name="task")
+                task_thread.start()
                 break
             else:
                 # 如果关闭失败，检查窗口是否还存在
@@ -159,7 +180,7 @@ def set_console_title(title: str):
 set_console_title(f"McTool ver {version.__version__}   ---RinRin自用版本")
 
 
-def run(task: Task, e: Event):
+def run(task: Task, e: Event, shared_switch_task_flag, log_queue):
     """
     运行
     :return:
@@ -173,7 +194,12 @@ def run(task: Task, e: Event):
     while e.is_set():
         img = screenshot()
         result = ocr(img)
-        task(img, result)
+        task(img, result, shared_switch_task_flag, e, log_queue)
+    # 等待task进程完全结束后 再设置切换共享的任务flag给switch_task函数进行切换，防止还未退出循环就将e又设置为True
+    try:
+        shared_switch_task_flag.value = True
+    except Exception as e:
+        pass
     logger("进程停止运行")
 
 
@@ -186,41 +212,47 @@ def get_key_from_string(key_str):
         return KeyCode.from_char(key_str)
 
 
-def on_press(key):
-    """
-    默认：
-    F5 启动BOSS脚本
-    F6 启动融合脚本
-    F7 暂停脚本
-    F8 启动锁定脚本
-    F12 停止脚本
-    :param key:
-    :return:
-    """
-    if key == get_key_from_string(config.ShortcutBossTaskStart):
-        logger(f"{config.__fields__['ShortcutBossTaskStart'].title}")
-        thread = Process(target=run, args=(boss_task, taskEvent), name="task")
-        thread.start()
-    if key == get_key_from_string(config.ShortcutSynthesisEchoes):
-        logger(f"{config.__fields__['ShortcutSynthesisEchoes'].title}")
-        thread = Process(target=run, args=(synthesis_task, taskEvent), name="task")
-        end_thread(mouseResetEvent, mouse_reset_thread)
-        thread.start()
-    if key == get_key_from_string(config.ShortcutTaskStop):
-        logger(f"{config.__fields__['ShortcutTaskStop'].title}")
-        taskEvent.clear()
-    if key == get_key_from_string(config.ShortcutLockEchoes):
-        logger(f"{config.__fields__['ShortcutLockEchoes'].title}")
-        thread = Process(target=run, args=(echo_bag_lock_task, taskEvent), name="task")
-        thread.start()
-        end_thread(mouseResetEvent, mouse_reset_thread)
-    if key == get_key_from_string(config.ShortcutAllStop):
-        logger(f"{config.__fields__['ShortcutAllStop'].title}")
-        taskEvent.clear()
-        mouseResetEvent.set()
-        restart_thread.terminate()
-        return False
-    return None
+def run_listener(shared_switch_task_flag, log_queue, taskEvent, log_window_display, mouseResetEvent, restartEvent):
+
+    def on_press(key):
+        """
+        默认：
+        F5 启动BOSS脚本
+        F6 启动融合脚本
+        F7 暂停脚本
+        F8 启动锁定脚本
+        F12 停止脚本
+        :param key:
+        :return:
+        """
+        if key == get_key_from_string(config.ShortcutBossTaskStart):
+            logger(f"{config.__fields__['ShortcutBossTaskStart'].title}")
+            task_thread = multiprocessing.Process(target=run, args=(boss_task, taskEvent, shared_switch_task_flag, log_queue), name="task")
+            task_thread.start()
+        if key == get_key_from_string(config.ShortcutSynthesisEchoes):
+            logger(f"{config.__fields__['ShortcutSynthesisEchoes'].title}")
+            task_thread = multiprocessing.Process(target=run, args=(synthesis_task, taskEvent, shared_switch_task_flag, log_queue), name="task")
+            task_thread.start()
+        if key == get_key_from_string(config.ShortcutTaskStop):
+            logger(f"{config.__fields__['ShortcutTaskStop'].title}")
+            taskEvent.clear()
+        if key == get_key_from_string(config.ShortcutLockEchoes):
+            logger(f"{config.__fields__['ShortcutLockEchoes'].title}")
+            task_thread = multiprocessing.Process(target=run, args=(echo_bag_lock_task, taskEvent, shared_switch_task_flag, log_queue), name="task")
+            task_thread.start()
+        if key == get_key_from_string(config.ShortcutMaskWindowDisplayStatusChange):
+            logger(f"{config.__fields__['ShortcutMaskWindowDisplayStatusChange'].title}")
+            log_window_display.value = True
+        if key == get_key_from_string(config.ShortcutAllStop):
+            logger(f"{config.__fields__['ShortcutAllStop'].title}")
+            log_queue.put('exit')
+            taskEvent.clear()
+            mouseResetEvent.set()
+            restartEvent.set()
+            return False
+        return None
+    with Listener(on_press=on_press) as listener:
+        listener.join()
 
 
 def check_confirm_user_permissions():
@@ -285,6 +317,42 @@ def check_read_tutorial():
         logger("欢迎使用本程序，有问题请先查看程序目录下的问题解答", "INFO")
 
 
+switch_event = multiprocessing.Event()  # 切换任务的事件
+
+
+def start_task_change(new_task, shared_switch_task_flag, task_event, log_queue, task_name: str = ""):
+    switch_event.set()  # 触发任务切换事件
+    task_change_thread = multiprocessing.Process(
+        target=task_change, args=(new_task, task_event, switch_event, task_name, shared_switch_task_flag, log_queue), name="task_change"
+    )
+    task_change_thread.start()
+
+
+def task_change(new_task, task_event, switch_event, task_name, shared_switch_task_flag,  log_queue):
+    while True:
+        if switch_event.is_set():
+            logger(
+                f"task_change: 准备切换任务到{task_name}，正在等待当前进程结束" if task_name else f"task_change: 准备切换任务，正在等待当前进程结束",
+                "IMPORTANT"
+            )
+            task_event.clear()
+            time.sleep(3)
+            if shared_switch_task_flag.value:
+                logger(
+                    f"正在切换任务到{task_name}" if task_name else "正在切换任务",
+                    "IMPORTANT"
+                )
+                shared_switch_task_flag.value = False
+                task_thread = multiprocessing.Process(target=run, args=(new_task, task_event, shared_switch_task_flag, log_queue), name="task")
+                task_thread.start()
+                switch_event.clear()
+                logger(
+                    f"已成功切换任务到{task_name}" if task_name else "切换任务成功",
+                    "IMPORTANT"
+                )
+        time.sleep(1)
+
+
 if __name__ == "__main__":
     user = "guest"
     if user == "Rin":
@@ -298,17 +366,27 @@ if __name__ == "__main__":
             exit()
     check_for_updates()
     check_read_tutorial()
-    # 在这里添加你的程序逻辑
-    taskEvent = Event()  # 用于停止任务线程
-    mouseResetEvent = Event()  # 用于停止鼠标重置线程
-    mouse_reset_thread = Process(
+    init_shared_variables()
+    shared_switch_task_flag = _shared_switch_task_flag
+    log_window_display = _log_window_display
+    log_window_process = multiprocessing.Process(target=start_log_window, args=(log_queue,log_window_display))
+    log_window_process.start()
+    taskEvent = multiprocessing.Event()
+    mouseResetEvent = multiprocessing.Event()  # 用于停止鼠标重置线程
+    mouse_reset_thread = multiprocessing.Process(
         target=mouse_reset, args=(mouseResetEvent,), name="mouse_reset"
     )
     mouse_reset_thread.start()
-    restart_thread = Process(
-        target=restart_app, args=(taskEvent,), name="restart_event"
+    restartEvent = multiprocessing.Event()  # 用于停止重启线程
+    restart_thread = multiprocessing.Process(
+        target=restart_app, args=(taskEvent, restartEvent, log_queue), name="restart_event"
     )
     restart_thread.start()
+    listenerEvent = multiprocessing.Event()  # 用于停止监听线程
+    listener_thread = multiprocessing.Process(
+        target=run_listener, args=(shared_switch_task_flag, log_queue, taskEvent, log_window_display, mouseResetEvent, restartEvent), name="listener"
+    )
+    listener_thread.start()
     if app_path:
         logger(f"游戏路径：{config.AppPath}")
     else:
@@ -332,6 +410,6 @@ if __name__ == "__main__":
     """
     print(content)
     logger("开始运行")
-    with Listener(on_press=on_press) as listener:
-        listener.join()
+    log_window_process.join()
     print("结束运行")
+
