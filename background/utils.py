@@ -2261,7 +2261,7 @@ def find_text_in_login_hwnd(targets: str | list[str], login_hwnd) -> OcrResult |
 
 
 def check_echo_is_over():
-    if (info.lastEchoOverCheckTime - datetime.now()).total_seconds() > 60:
+    if (datetime.now() - info.lastEchoOverCheckTime).total_seconds() > 60:
         for _ in range(3):
             logger("正在检查声骸是否已达背包上限", "DEBUG")
             region = set_region(660, 150, 1280, 290)

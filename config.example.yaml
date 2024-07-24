@@ -35,11 +35,11 @@ SearchDreamlessEchoes: True # 是否搜索无妄者声骸
 UseConsumables: False # 是否使用料理或药水（下面名称也需要填写）
 ConsumablesName: "今州烤串" # 使用的料理或药水名称，留空则不使用
 WaitUltAnimation: True # 是否判断并等待大招动画
-EchoLock: False #是否使用启用声骸锁定功能
-EchoMaxContinuousLockQuantity: 5 # 最大连续检测到已锁定声骸的数量，超过此数量就停止
 # CharacterHeal: true #是否判断角色是否阵亡 若阵亡则返回神像复活  1.1.3版本不再使用此设置
 
 # 声骸锁定/合成脚本设定
+EchoLock: False #是否使用启用声骸锁定功能
+EchoMaxContinuousLockQuantity: 5 # 最大连续检测到已锁定声骸的数量，超过此数量就停止
 EchoDebugMode: True #声骸锁定功能DEBUG显示输出的开关
 EchoSynthesisDebugMode: True # 声骸合成锁定功能DEBUG显示输出的开关
 

@@ -1,6 +1,12 @@
-__version__ = "1.2.1.3"
-release_date = "2024-07-23"
+__version__ = "1.2.1.4"
+release_date = "2024-07-24"
 description = "更新"
+
+# ver1.2.1.4
+# update:2024-07-24
+# updated by RoseRin0
+# 1.修复了背包满了之后不去合成的BUG(判断时间写反了)
+# 2.调整了部分cxonfig的位置
 
 # ver1.2.1.3
 # update:2024-07-23
