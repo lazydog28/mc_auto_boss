@@ -107,6 +107,7 @@ class StatusInfo(BaseModel):
     needSynthesis: bool = Field(False, title="需要合成声骸")
     # needPagesClear: bool = Field(False, title="需要清空页面")
     automaticallyFailedTimes: int = Field(0, title="连续自动放入失败次数")
+    findEchoTimeOffsetForSearch: datetime = Field(datetime.now(), title="发现声骸时的额外搜索时间")
 
     def resetTime(self):
         self.fightTime = datetime.now()

@@ -1,6 +1,11 @@
-__version__ = "1.2.1.5"
+__version__ = "1.2.1.6"
 release_date = "2024-07-25"
 description = "更新"
+
+# ver1.2.1.6
+# update:2024-07-25
+# updated by RoseRin0
+# 1.增加搜索到声骸时延长当次搜索时间，防止还没走到就退出(最大5秒)。
 
 # ver1.2.1.5
 # update:2024-07-25

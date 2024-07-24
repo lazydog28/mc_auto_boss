@@ -659,7 +659,7 @@ def absorption_action():
     absorption_max_time = (
         config.MaxEchoAbsorptionTime if config.MaxEchoAbsorptionTime > 5 else 5
     )
-    if (datetime.now() - info.searchStartTime).seconds < absorption_max_time:  # 未超过最大吸收时间
+    if (datetime.now() - info.searchStartTime).seconds < absorption_max_time + info.findEchoTimeOffsetForSearch:  # 未超过最大吸收时间
         x = turn_to_search(info.searchTimes)
         if x is None:
             if absorption_and_receive_rewards({}):
@@ -682,13 +682,25 @@ def absorption_action():
             center_x = real_w // 2
             floating = real_w // 20
             if x < center_x - floating:
-                logger("发现声骸 向左移动")
+                if info.findEchoTimeOffsetForSearch < 5:
+                    info.findEchoTimeOffsetForSearch += 0.5
+                    logger("发现声骸 向左移动，并延长本次搜索时间0.5秒")
+                else:
+                    logger("发现声骸 向左移动，本次搜索时间已延长到最大值")
                 control.tap("a")
             elif x > center_x + floating:
-                logger("发现声骸 向右移动")
+                if info.findEchoTimeOffsetForSearch < 5:
+                    info.findEchoTimeOffsetForSearch += 0.5
+                    logger("发现声骸 向右移动，并延长本次搜索时间0.5秒")
+                else:
+                    logger("发现声骸 向右移动，本次搜索时间已延长到最大值")
                 control.tap("d")
             else:
-                logger("发现声骸 向前移动")
+                if info.findEchoTimeOffsetForSearch < 5:
+                    info.findEchoTimeOffsetForSearch += 0.5
+                    logger("发现声骸 向前移动，并延长本次搜索时间0.5秒")
+                else:
+                    logger("发现声骸 向前移动，本次搜索时间已延长到最大值")
                 control.tap("w")
             if absorption_and_receive_rewards({}):
                 info.needAbsorption = False
@@ -2018,6 +2030,8 @@ def format_time(calculated_time):
 
 # 战斗结束后的战斗时间/吸收时间计算 以及 动态更改每个BOSS的吸收时间提高稳定性和效率
 def check_fight_time(lastBossName):
+    # 重置搜索到声骸的时候的延长搜索时间
+    info.findEchoTimeOffsetForSearch = 0
     # 本次声骸搜索计数(防止一次战斗多次计数)
     info.lastAbsorptionCount = info.absorptionCount
     # 总战斗时间(包括加载和搜索声骸)
