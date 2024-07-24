@@ -207,7 +207,15 @@ def update_git_pull():
     import git
     try:
         repo = git.Repo(root_path)
-        repo.remotes.origin.pull()
+        origin = repo.remotes.origin
+        origin.fetch()
+        if repo_type == "Github":
+            branch_name = github_branch
+        elif repo_type == "Gitee":
+            branch_name = gitee_branch
+        else:
+            branch_name = repo.active_branch.name
+        repo.git.reset('--hard', f'origin/{branch_name}')
         print("更新成功，请重启脚本")
         wait_exit()
     except Exception as e:
