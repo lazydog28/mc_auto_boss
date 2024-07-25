@@ -385,8 +385,10 @@ def transfer() -> bool:
         time.sleep(1)
         info.actionErrorTimes = 0
     check_heal()
-    if change_task_to_synthesis():
-        return True
+    if info.needSynthesis:
+        if change_task_to_synthesis():
+            return True
+        return False
     if info.fightTime:
         check_fight_time(info.lastBossName)
     if config.UseConsumables and config.ConsumablesName:
@@ -2310,36 +2312,11 @@ def change_task(target_task):
 
 
 def change_task_to_synthesis():
-    if info.needSynthesis:
-        time.sleep(2)
-        control.esc()
-        time.sleep(2)
-        region = set_region(0, 0, 260, 120)
-        if wait_text_designated_area("终端", 2, region):
-            random_click(1440, 500)
-            time.sleep(2)
-        else:
-            logger("未找到终端，停止切换到合成任务", "DEBUG")
-            info.needSynthesis = False
-            return False
-        if wait_text_designated_area("数据坞", 2, region):
-            random_click(75, 595)
-            time.sleep(2)
-        else:
-            logger("未找到数据坞，停止切换到合成任务", "DEBUG")
-            info.needSynthesis = False
-            return False
-        if wait_text_designated_area("数据融合", 2, region):
-            info.needSynthesis = False
-            info.lastFightTime = datetime.now()
-            change_task("合成")
-            return True
-        else:
-            logger("未找到数据融合，停止切换到合成任务", "DEBUG")
-            info.needSynthesis = False
-            return False
-    else:
-        return False
+    info.inSynthesisFrame = False
+    time.sleep(2)
+    info.lastFightTime = datetime.now()
+    change_task("合成")
+    return True
 
 
 def change_task_to_boss():

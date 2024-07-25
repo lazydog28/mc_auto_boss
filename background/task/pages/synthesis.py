@@ -47,6 +47,7 @@ def fusion(positions: dict[str, Position]) -> bool:
     :param positions:
     :return:
     """
+    info.inSynthesisFrame = True
     control.activate()
     click_position(positions.get("数据融合"))
     time.sleep(1)

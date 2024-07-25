@@ -48,7 +48,7 @@ def judgment_absorption() -> bool:
 
 def add_judgment_absorption_condition_action():
     judgment_absorption_condition_action = ConditionalAction(
-        name="搜索声骸", condition=judgment_absorption, action=judgment_absorption_action
+        name="(boss)搜索声骸", condition=judgment_absorption, action=judgment_absorption_action
     )
     conditional_actions.append(judgment_absorption_condition_action)
 
@@ -88,7 +88,7 @@ def judgment_idle_action() -> bool:
 
 def add_judgment_idle_conditional_action():
     judgment_idle_conditional_action = ConditionalAction(
-        name="超过最大空闲时间,前往boss",
+        name="(boss)超过最大空闲时间,前往boss",
         condition=judgment_idle,
         action=judgment_idle_action,
     )
@@ -110,7 +110,7 @@ def judgment_fight_action() -> bool:
 
 def add_judgment_fight_conditional_action():
     judgment_fight_conditional_action = ConditionalAction(
-        name="超过最大战斗时间,前往boss",
+        name="(boss)超过最大战斗时间,前往boss",
         condition=judgment_fight,
         action=judgment_fight_action,
     )
@@ -136,7 +136,7 @@ def judgment_leave_action() -> bool:
 
 def add_judgment_leave_conditional_action():
     judgment_leave_conditional_action = ConditionalAction(
-        name="副本内超过最大空闲时间,离开",
+        name="(boss)副本内超过最大空闲时间,离开",
         condition=judgment_leave,
         action=judgment_leave_action,
     )
@@ -156,7 +156,7 @@ def judgment_game_stop_action() -> bool:
 
 def add_judgment_game_stop_action():
     judgment_game_stop_conditional_action = ConditionalAction(
-        name="游戏长时间无动作",
+        name="(boss)游戏长时间无动作",
         condition=judgment_game_stop,
         action=judgment_game_stop_action,
     )
@@ -172,7 +172,7 @@ def judgment_running_time() -> bool:
 
 def add_judgment_game_running_time_action():
     judgment_game_stop_running_time_conditional_action = ConditionalAction(
-        name="游戏已启动时间过长",
+        name="(boss)游戏已启动时间过长",
         condition=judgment_running_time,
         action=judgment_game_stop_action,
     )
