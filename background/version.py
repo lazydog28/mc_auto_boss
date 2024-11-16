@@ -1,5 +1,11 @@
-__version__ = "1.3.3"
+__version__ = "1.4.0"
 description = "更新"
+
+# ver1.4.0
+# update:2024-11-16
+# updated by wakening
+# 1.修复大世界传送到boss战边缘不进战斗的bug
+# 2.修复角传送
 
 # ver1.3.3
 # update:2024-10-15

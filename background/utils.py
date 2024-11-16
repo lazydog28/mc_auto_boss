@@ -288,6 +288,7 @@ def forward():
 
 
 def transfer_to_boss(bossName):
+    boss_is_jue = bossName == "角"
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -318,23 +319,24 @@ def transfer_to_boss(bossName):
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
-    # random_click(1700, 980)
     detection_text = wait_text("^探测$", timeout=5)
     if not detection_text:
         control.esc()
         return False
     time.sleep(1)
     click_position(detection_text.position)
-    time.sleep(3)
-    # random_click(1750, 1010)
-    go_text = wait_text("^前往$", timeout=5)
-    if not go_text:
-        control.esc()
-        return False
+    time.sleep(2.5)
+    if not boss_is_jue:
+        random_click(960, 540)
+        time.sleep(1.5)
+        beacon = wait_text("借位信标", timeout=5)
+        if not beacon:
+            logger("未找到借位信标", "WARN")
+            control.esc()
+            return False
+        click_position(beacon.position)
     time.sleep(1)
-    click_position(go_text.position)
-    time.sleep(1)
-    if transfer := wait_text("^确认$", timeout=5):
+    if transfer := wait_text("^快速旅行$", timeout=5):
         time.sleep(0.5)
         click_position(transfer.position)
         time.sleep(0.5)
@@ -347,6 +349,10 @@ def transfer_to_boss(bossName):
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = bossName
         info.waitBoss = True
+        if boss_is_jue:
+            for i in range(3):
+                forward()
+                time.sleep(0.1)
         return True
     control.esc()
     return False
