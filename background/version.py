@@ -1,11 +1,16 @@
 __version__ = "1.4.0"
 description = "更新"
 
+# ver1.4.1
+# update:2024-11-18
+# updated by wakening
+# 1.修复角传送识别过快导致误判传送完成导致没打就走了，增加等待时间
+
 # ver1.4.0
 # update:2024-11-16
 # updated by wakening
 # 1.修复大世界传送到boss战边缘不进战斗的bug
-# 2.修复角传送
+# 2.修复角传送，无需插借位信标
 
 # ver1.3.3
 # update:2024-10-15

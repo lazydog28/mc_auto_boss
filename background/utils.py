@@ -339,8 +339,8 @@ def transfer_to_boss(bossName):
     if transfer := wait_text("^快速旅行$", timeout=5):
         time.sleep(0.5)
         click_position(transfer.position)
-        time.sleep(0.5)
         logger("等待传送完成")
+        time.sleep(1.5)
         wait_home()  # 等待回到主界面
         logger("传送完成")
         now = datetime.now()
