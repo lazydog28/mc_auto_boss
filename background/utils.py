@@ -290,9 +290,9 @@ def forward():
 
 def transfer_to_boss(bossName):
     # 不需要或没法插借位信标的boss
-    boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒" ]
-    # 传送后步行次数
-    forward_mapping = {"角": 3, "异构武装": 30}
+    boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
+    # 传送后前行次数
+    forward_mapping = {"角": 5, "异构武装": 36, "罗蕾莱": 36, "叹息古龙": 45, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 45, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -304,9 +304,17 @@ def transfer_to_boss(bossName):
         control.esc()
         return False
     logger(f"当前目标boss：{bossName}")
-    find_boss_name_reg = bossName
-    if bossName == "赫卡忒":
-        find_boss_name_reg = "赫卡忒?"
+    boss_name_reg_mapping = {
+        "赫卡忒": "赫卡忒?",
+        "梦魇飞廉之猩": "梦.*飞廉之猩",
+        "梦魇无常凶鹭": "梦.*无常凶鹭",
+        "梦魇云闪之鳞": "梦.*云闪之鳞",
+        "梦魇朔雷之鳞": "梦.*朔雷之鳞",
+        "梦魇无冠者": "梦.*无冠者",
+        "梦魇燎照之骑": "梦.*燎照之骑",
+        "梦魇哀声鸷": "梦.*哀声",
+    }
+    find_boss_name_reg = boss_name_reg_mapping.get(bossName, bossName)
     findBoss = None
     y = 133
     while y < 907:
@@ -357,9 +365,11 @@ def transfer_to_boss(bossName):
         info.lastBossName = bossName
         info.waitBoss = True
         if boss_no_waypoint:
-            for i in range(forward_mapping.get(bossName, 0)):
+            forward_times = forward_mapping.get(bossName, 0)
+            for i in range(forward_times):
+                # logger(f"调式 i: {i}", "WARN")
                 forward()
-                time.sleep(0.1)
+                time.sleep(0.05)
         return True
     control.esc()
     return False

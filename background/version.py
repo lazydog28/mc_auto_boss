@@ -1,10 +1,16 @@
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 description = "更新"
+
+# ver2.0.1
+# update:2025-01-04
+# updated by wakening
+# 1.支持所有新boss，异构武装、赫卡忒、罗蕾莱、叹息古龙、7个梦魇boss，新boss都不需要插信标, config.example.yaml内也有详细说明
+# 2.其他不重要的小功能等下个版本
 
 # ver2.0.0
 # update:2025-01-03
 # updated by wakening
-# 1.支持新boss：异构武装、赫卡忒，这两个都不需要插信标, config.yaml.example内也有详细说明，其他新boss暂不支持，等下个版本
+# 1.支持新boss：异构武装、赫卡忒，这两个都不需要插信标, config.example.yaml内也有详细说明，其他新boss暂不支持，等下个版本
 # 2.修复无妄者传送，修复角色阵亡传送
 # 3.其他不重要的小功能没写修复就是没修复，等下下个版本
 
