@@ -1,5 +1,12 @@
-__version__ = "1.4.0"
+__version__ = "2.0.0"
 description = "更新"
+
+# ver2.0.0
+# update:2025-01-03
+# updated by wakening
+# 1.支持新boss：异构武装、赫卡忒，这两个都不需要插信标, config.yaml.example内也有详细说明，其他新boss暂不支持，等下个版本
+# 2.修复无妄者传送，修复角色阵亡传送
+# 3.其他不重要的小功能没写修复就是没修复，等下下个版本
 
 # ver1.4.1
 # update:2024-11-18

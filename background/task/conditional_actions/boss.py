@@ -46,7 +46,7 @@ def judgment_idle() -> bool:
     time.sleep(0.1)
     return (
             datetime.now() - info.lastFightTime
-    ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
+    ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue and not info.inHecate
 
 
 def judgment_idle_action() -> bool:
@@ -67,7 +67,7 @@ def judgment_fight() -> bool:
     time.sleep(0.1)
     return (
             datetime.now() - info.fightTime
-    ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue
+    ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue and not info.inHecate
 
 
 def judgment_fight_action() -> bool:
@@ -89,7 +89,7 @@ def judgment_leave() -> bool:
     time.sleep(0.1)
     return (
             datetime.now() - info.lastFightTime
-    ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue)
+    ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue or info.inHecate)
 
 
 def judgment_leave_action() -> bool:

@@ -106,6 +106,7 @@ def release_skills():
     adapts()
     if info.waitBoss:
         boss_wait(info.lastBossName)
+    control.activate()
     select_role(info.resetRole)
     control.mouse_middle()
     if len(config.FightTactics) < info.roleIndex:
@@ -288,7 +289,10 @@ def forward():
 
 
 def transfer_to_boss(bossName):
-    boss_is_jue = bossName == "角"
+    # 不需要或没法插借位信标的boss
+    boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒" ]
+    # 传送后步行次数
+    forward_mapping = {"角": 3, "异构武装": 30}
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -300,13 +304,16 @@ def transfer_to_boss(bossName):
         control.esc()
         return False
     logger(f"当前目标boss：{bossName}")
+    find_boss_name_reg = bossName
+    if bossName == "赫卡忒":
+        find_boss_name_reg = "赫卡忒?"
     findBoss = None
     y = 133
     while y < 907:
         y = y + 30
         if y > 907:
             y = 907
-        findBoss = find_text(bossName)
+        findBoss = find_text(find_boss_name_reg)
         if findBoss:
             break
         # control.click(855 * width_ratio, y * height_ratio)
@@ -326,7 +333,7 @@ def transfer_to_boss(bossName):
     time.sleep(1)
     click_position(detection_text.position)
     time.sleep(2.5)
-    if not boss_is_jue:
+    if not boss_no_waypoint:
         random_click(960, 540)
         time.sleep(1.5)
         beacon = wait_text("借位信标", timeout=5)
@@ -349,8 +356,8 @@ def transfer_to_boss(bossName):
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = bossName
         info.waitBoss = True
-        if boss_is_jue:
-            for i in range(3):
+        if boss_no_waypoint:
+            for i in range(forward_mapping.get(bossName, 0)):
                 forward()
                 time.sleep(0.1)
         return True
@@ -379,7 +386,7 @@ def transfer_to_dreamless():
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
-    random_click(1720, 465)
+    random_click(1720, 625)
     time.sleep(2)
     if transfer := wait_text("快速旅行"):
         click_position(transfer.position)
@@ -422,10 +429,17 @@ def transfer() -> bool:
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = ""
         return True
-    if info.lastBossName == "角" and bossName == "角":
+    elif info.lastBossName == "角" and bossName == "角":
         logger("前往角 且 刚才已经前往过")
         time.sleep(0.5)
         control.dodge() # 闪避功能已重写为函数
+        now = datetime.now()
+        info.idleTime = now  # 重置空闲时间
+        info.lastFightTime = now  # 重置最近检测到战斗时间
+        info.fightTime = now  # 重置战斗时间
+        info.lastBossName = ""
+        return True
+    elif info.lastBossName == "赫卡忒" and bossName == "赫卡忒":
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
         info.lastFightTime = now  # 重置最近检测到战斗时间
@@ -649,6 +663,7 @@ def wait_home(timeout=120) -> bool:
     :return:
     """
     start = datetime.now()
+    control.activate()
     while True:
         # 修复部分情况下导致无法退出该循环的问题。
         if (datetime.now() - start).seconds > timeout:
@@ -663,13 +678,13 @@ def wait_home(timeout=120) -> bool:
             return True
         template = Image.open(os.path.join(root_path, r"template/背包.png"))  # 背包
         template = np.array(template)
-        if match_template(img, template, threshold=0.9):
+        if match_template(img, template, threshold=0.85):
             return True
         template = Image.open(
             os.path.join(root_path, r"template/终端按钮.png")
         )  # 终端按钮
         template = np.array(template)
-        if match_template(img, template, threshold=0.9):
+        if match_template(img, template, threshold=0.85):
             return True
         time.sleep(0.3)
 
@@ -804,7 +819,7 @@ def transfer_to_heal():
         logger("未找到切换地图")
         return False
     tmp_x = int((toggle_map.position.x1 + toggle_map.position.x2) // 2)
-    tmp_y = toggle_map.position.y1 - 5
+    tmp_y = int((toggle_map.position.y1 + toggle_map.position.y2) // 2)
     random_click(tmp_x, tmp_y, ratio=False)
     huanglong_text = wait_text("瑝?珑")
     click_position(huanglong_text.position)
@@ -1020,6 +1035,7 @@ def boss_wait(bossName):
     keywords_dreamless = ["无", "妄", "者"]
     keywords_jue = ["角"]
     keywords_fallacy = ["无", "归", "的", "谬", "误"]
+    keywords_sentry_construct = ["异", "构", "武", "装"]
 
     def contains_any_combinations(
         name, keywords, min_chars
@@ -1045,6 +1061,10 @@ def boss_wait(bossName):
     elif contains_any_combinations(bossName, keywords_fallacy, min_chars=3):
         logger(f"无归的谬误需要等待{config.BossWaitTime_fallacy}秒开始战斗！", "DEBUG")
         time.sleep(config.BossWaitTime_fallacy)
+    elif contains_any_combinations(bossName, keywords_sentry_construct, min_chars=3):
+        logger(f"异构武装需要等待{config.BossWaitTime_sentry_construct}秒开始战斗！", "DEBUG")
+        time.sleep(config.BossWaitTime_sentry_construct)
+        control.dodge()  # 闪避
     else:
         logger("当前BOSS可直接开始战斗！", "DEBUG")
 
@@ -1968,4 +1988,4 @@ def echo_bag_lock_open_bag_action():
     return True
 
 def need_retry():
-    return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角"]
+    return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒"]

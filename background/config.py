@@ -48,6 +48,7 @@ class Config(BaseModel):
     BossWaitTime_Dreamless: float = Field(3, title="进入-无妄者-周本等待时间")
     BossWaitTime_Jue: float = Field(2, title="进入-角-周本等待时间")
     BossWaitTime_fallacy: float = Field(5, title="进入-无归的谬误-等待时间")
+    BossWaitTime_sentry_construct: float = Field(8, title="进入-异构武装-等待时间")
     SearchEchoes: bool = Field(False, title="是否搜索声骸")
     SearchDreamlessEchoes: bool = Field(True, title="是否搜索无妄者")
     CharacterHeal: bool = Field(True, title="是否判断角色是否阵亡")

@@ -97,6 +97,38 @@ enter_page_jue = Page(
 pages.append(enter_page_jue)
 
 
+def enter_action_hecate(positions: dict[str, Position]) -> bool:
+    """
+    进入
+    :param positions: 位置信息
+    :return:
+    """
+    interactive()
+    info.inHecate = True
+    info.lastBossName = "赫卡忒"
+    return True
+
+
+enter_page_hecate = Page(
+    name="声之领域",
+    targetTexts=[
+        TextMatch(
+            name="声之领域",
+            text="进入声之领域",
+        ),
+    ],
+    excludeTexts=[
+        TextMatch(
+            name="确认",
+            text="确认",
+        ),
+    ],
+    action=enter_action_hecate,
+)
+
+pages.append(enter_page_hecate)
+
+
 # 推荐等级
 def recommended_level_action(positions: dict[str, Position]) -> bool:
     """
@@ -200,8 +232,10 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
         time.sleep(4)
         if info.lastBossName == "角":
             info.inJue = True
-        else:
+        elif info.lastBossName == "无妄者":
             info.inDreamless = True
+        elif info.lastBossName == "赫卡忒":
+            info.inHecate = True
         info.status = Status.idle
         now = datetime.now()
         info.lastFightTime = now
@@ -215,8 +249,10 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
         time.sleep(2)
         if info.lastBossName == "角":
             info.inJue = False
-        else:
+        elif info.lastBossName == "无妄者":
             info.inDreamless = False
+        elif info.lastBossName == "赫卡忒":
+            info.inHecate = False
         info.status = Status.idle
         now = datetime.now()
         info.lastFightTime = now + timedelta(seconds=config.MaxFightTime / 2)
