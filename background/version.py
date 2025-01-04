@@ -5,7 +5,7 @@ description = "更新"
 # update:2025-01-04
 # updated by wakening
 # 1.F6声骸合成、F8声骸锁定增加新套装识别，请参考echo_config.example.yaml内的说明重新配置echo_config.yaml
-# 2.罗蕾莱不在家时，调整时间到半夜
+# 2.罗蕾莱不在家时，调整时间到半夜；修复部分角色传送到赫卡忒处无法交互的问题
 # 3.增加关闭显卡驱动版本过旧弹窗
 
 # ver2.0.1

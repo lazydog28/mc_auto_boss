@@ -292,7 +292,7 @@ def transfer_to_boss(bossName):
     # 不需要或没法插借位信标的boss
     boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
     # 传送后前行次数
-    forward_mapping = {"角": 5, "异构武装": 36, "罗蕾莱": 36, "叹息古龙": 45, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 45, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
+    forward_mapping = {"角": 5, "异构武装": 36, "赫卡忒": 4, "罗蕾莱": 36, "叹息古龙": 45, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 45, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -367,7 +367,10 @@ def transfer_to_boss(bossName):
             for i in range(forward_times):
                 # logger(f"调式 i: {i}", "WARN")
                 forward()
-                time.sleep(0.05)
+                if bossName == "赫卡忒":
+                    time.sleep(1.2 if i == 0 else 0.1)
+                else:
+                    time.sleep(0.05)
 
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
