@@ -41,6 +41,35 @@ update_game_exit_page = Page(
 pages.append(update_game_exit_page)
 
 
+def driver_version_is_too_old_action(positions: dict[str, Position]) -> bool:
+    """
+    更新完成，请重新启动游戏。
+    :param positions: 位置信息
+    :return:
+    """
+    position = positions["确认"]
+    click_position(position)
+    time.sleep(2)
+    return True
+
+
+driver_version_is_too_old_page = Page(
+    name="检测到设备显卡驱动版本过旧",
+    targetTexts=[
+        TextMatch(
+            name="显卡驱动版本过旧",
+            text="显卡驱动版本过旧",
+        ),
+        TextMatch(
+            name="确认",
+            text=template("^确认$"),
+        ),
+    ],
+    action=driver_version_is_too_old_action,
+)
+pages.append(driver_version_is_too_old_page)
+
+
 # 吸收声骸
 def absorption_action(positions: dict[str, Position]) -> bool:
     """

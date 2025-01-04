@@ -1,5 +1,12 @@
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 description = "更新"
+
+# ver2.0.2
+# update:2025-01-04
+# updated by wakening
+# 1.F6声骸合成、F8声骸锁定增加新套装识别，请参考echo_config.example.yaml内的说明重新配置echo_config.yaml
+# 2.罗蕾莱不在家时，调整时间到半夜
+# 3.增加关闭显卡驱动版本过旧弹窗
 
 # ver2.0.1
 # update:2025-01-04

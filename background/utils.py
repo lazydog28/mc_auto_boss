@@ -358,18 +358,23 @@ def transfer_to_boss(bossName):
         time.sleep(1.5)
         wait_home()  # 等待回到主界面
         logger("传送完成")
+        if bossName == "罗蕾莱":
+            lorelei_clock_adjust()
+        # 没有插信标的boss需要走到boss前
+        if boss_no_waypoint:
+            control.activate()
+            forward_times = forward_mapping.get(bossName, 0)
+            for i in range(forward_times):
+                # logger(f"调式 i: {i}", "WARN")
+                forward()
+                time.sleep(0.05)
+
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
         info.lastFightTime = now  # 重置最近检测到战斗时间
         info.fightTime = now  # 重置战斗时间
         info.lastBossName = bossName
         info.waitBoss = True
-        if boss_no_waypoint:
-            forward_times = forward_mapping.get(bossName, 0)
-            for i in range(forward_times):
-                # logger(f"调式 i: {i}", "WARN")
-                forward()
-                time.sleep(0.05)
         return True
     control.esc()
     return False
@@ -589,7 +594,7 @@ def screenshot_in_specified_hwnd(specified_hwnd) -> np.ndarray | None:
     return im  # 返回截取到的图像waA
 
 
-rare_chars = "鸷"
+rare_chars = "鸷|帷"
 
 
 def search_text(results: List[OcrResult], target: str) -> OcrResult | None:
@@ -1233,14 +1238,29 @@ def echo_bag_lock():
         x2=int(real_w * 0.875),
         y2=int(real_h * 0.1763889)
     )
-    # cost4_name_array = ["辉萤军势", "燎照之骑", "云闪之鳞", "朔雷之鳞", "飞廉之猩", "角", "哀声鸷", "无妄者", "无冠者", "无归的谬误", "鸣钟之龟", "无常凶鹭", "聚械机偶" ]
-    cost4_name_mapping = {"哀声": "哀声鸷"}
     echo_name_ocr_result = find_text([".*"], echo_name_position, True)
     this_echo_name_temp = None if echo_name_ocr_result is None else echo_name_ocr_result.text
     if this_echo_name_temp is None:
         logger("未能识别到声骸名称", "ERROR")
         return False
-    this_echo_name = cost4_name_mapping.get(this_echo_name_temp, this_echo_name_temp)
+    this_echo_name = this_echo_name_temp
+    boss_name_reg_mapping = [
+        ("^哀声鸷?$", "哀声鸷"),
+        ("^赫卡忒?", "赫卡忒"),
+        ("^梦.*飞廉之猩", "梦魇飞廉之猩"),
+        ("^梦.*无常凶鹭", "梦魇无常凶鹭"),
+        ("^梦.*云闪之鳞", "梦魇云闪之鳞"),
+        ("^梦.*朔雷之鳞", "梦魇朔雷之鳞"),
+        ("^梦.*无冠者", "梦魇无冠者"),
+        ("^梦.*燎照之骑", "梦魇燎照之骑"),
+        ("^梦.*哀声", "梦魇哀声鸷"),
+    ]
+    # 生僻字识别不准，用正则定位真正的名称
+    for boss_name_reg, real_boss_name in boss_name_reg_mapping:
+        if re.match(boss_name_reg, this_echo_name_temp):
+            logger(f"输入: {this_echo_name_temp} 匹配: {boss_name_reg} 成功: {real_boss_name}", "DEBUG")
+            this_echo_name = real_boss_name
+            break
     # if this_echo_cost == "4" and this_echo_name not in cost4_name_array:
     #     logger(f"识别到的声骸名称有错字: {this_echo_name}", "ERROR")
     #     return False
@@ -1319,6 +1339,8 @@ def echo_bag_lock():
     text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     this_echo_set = remove_non_chinese(this_echo_set)
+    if this_echo_set == "幽夜隐匿之幢":
+        this_echo_set = "幽夜隐匿之帷"
     if this_echo_set:
         if config.EchoDebugMode:
             logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
@@ -1588,6 +1610,8 @@ def echo_synthesis():
         text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
         this_synthesis_echo_set = wait_text_result_search(text_result)
         this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
+        if this_synthesis_echo_set == "幽夜隐匿之幢":
+            this_synthesis_echo_set = "幽夜隐匿之帷"
         if this_synthesis_echo_set:
             if config.EchoSynthesisDebugMode:
                 logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
@@ -1999,3 +2023,36 @@ def echo_bag_lock_open_bag_action():
 
 def need_retry():
     return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒"]
+
+
+def lorelei_clock_adjust():
+    control.activate()
+    find_sit_and_wait_text = find_text("坐上椅子等待")
+    if not find_sit_and_wait_text:
+        return
+    logger("罗蕾莱不在家，等她", "info")
+    control.esc()
+    time.sleep(2)
+    if not wait_text("^终端$", timeout=5):
+        control.esc()
+        return
+    random_click(1374, 1038)
+    time.sleep(2)
+    tomorrow = wait_text("^次日$", timeout=5)
+    if not tomorrow:
+        logger("未找到次日", "WARN")
+        control.esc()
+        return
+    click_position(tomorrow.position)
+    time.sleep(1)
+    confirm_text = find_text("确定")
+    click_position(confirm_text.position)
+    time.sleep(2)
+    wait_text("时间", timeout=10)
+    time.sleep(1)
+    control.esc()
+    wait_text("^终端$", timeout=5)
+    time.sleep(1)
+    control.esc()
+    time.sleep(0.5)
+

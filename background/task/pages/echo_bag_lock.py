@@ -18,6 +18,7 @@ def echo_bag(positions: dict[str, Position]) -> bool:
     :return:
     """
     info.bagIsOpen = True
+    control.activate()
     if echo_bag_lock() is False:
         logger("背包声骸锁定功能结束")
         time.sleep(1)
