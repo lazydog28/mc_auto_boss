@@ -7,6 +7,7 @@
 """
 import re
 import time
+import traceback
 
 import cv2
 import win32gui
@@ -292,7 +293,7 @@ def transfer_to_boss(bossName):
     # 不需要或没法插借位信标的boss
     boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
     # 传送后前行次数
-    forward_mapping = {"角": 5, "异构武装": 36, "赫卡忒": 4, "罗蕾莱": 36, "叹息古龙": 45, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 45, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
+    forward_mapping = {"角": 5, "异构武装": 36, "赫卡忒": 4, "罗蕾莱": 41, "叹息古龙": 45, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 45, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -836,37 +837,50 @@ def transfer_to_heal():
         control.esc()
         logger("未找到切换地图")
         return False
-    tmp_x = int((toggle_map.position.x1 + toggle_map.position.x2) // 2)
-    tmp_y = int((toggle_map.position.y1 + toggle_map.position.y2) // 2)
-    random_click(tmp_x, tmp_y, ratio=False)
-    huanglong_text = wait_text("瑝?珑")
-    click_position(huanglong_text.position)
-    time.sleep(0.5)
-    click_position(huanglong_text.position)
-    time.sleep(1.5)
-    if jzc_text := wait_text("今州城"):
-        click_position(jzc_text.position)
-        time.sleep(0.5)
-        click_position(jzc_text.position)
-        time.sleep(1.5)
-        jzcj_text = wait_text("今州城界")
-        tmp_x = jzcj_text.position.x1 - 5
-        tmp_y = jzcj_text.position.y1 - 40
+    try:
+        tmp_x = int((toggle_map.position.x1 + toggle_map.position.x2) // 2)
+        tmp_y = int((toggle_map.position.y1 + toggle_map.position.y2) // 2)
         random_click(tmp_x, tmp_y, ratio=False)
-        time.sleep(2)
-        if transfer := wait_text("快速旅行"):
-            click_position(transfer.position)
-            logger("治疗_等待传送完成")
-            time.sleep(3)
-            wait_home()  # 等待回到主界面
-            logger("治疗_传送完成")
-            now = datetime.now()
-            info.idleTime = now  # 重置空闲时间
-            info.lastFightTime = now  # 重置最近检测到战斗时间
-            info.fightTime = now  # 重置战斗时间
-            info.needHeal = False
-            info.healCount += 1
-            return True
+        huanglong_text = wait_text("瑝?珑")
+        click_position(huanglong_text.position)
+        time.sleep(0.5)
+        click_position(huanglong_text.position)
+        time.sleep(1.5)
+        if jzc_text := wait_text("今州城"):
+            click_position(jzc_text.position)
+            time.sleep(0.5)
+            click_position(jzc_text.position)
+            time.sleep(1.5)
+            jzcj_text = wait_text("今州城界")
+            tmp_x = jzcj_text.position.x1 - 5
+            tmp_y = jzcj_text.position.y1 - 40
+            random_click(tmp_x, tmp_y, ratio=False)
+            time.sleep(2)
+            if transfer := wait_text("快速旅行"):
+                click_position(transfer.position)
+                logger("治疗_等待传送完成")
+                time.sleep(3)
+                wait_home()  # 等待回到主界面
+                logger("治疗_传送完成")
+                now = datetime.now()
+                info.idleTime = now  # 重置空闲时间
+                info.lastFightTime = now  # 重置最近检测到战斗时间
+                info.fightTime = now  # 重置战斗时间
+                info.needHeal = False
+                info.healCount += 1
+                return True
+    except Exception as e:
+        error_message = traceback.format_exc()
+        logger(f"前往复活点过程中出现异常: {error_message}", "ERROR")
+        control.activate()
+        for i in range(3):
+            time.sleep(2.5)
+            toggle_map = find_text("切换地图")
+            if toggle_map:
+                control.esc()
+                continue
+            else:
+                break
     return False
 
 def check_heal():
@@ -2029,8 +2043,9 @@ def need_retry():
 
 
 def lorelei_clock_adjust():
+    time.sleep(2)
     control.activate()
-    find_sit_and_wait_text = find_text("坐上椅子等待")
+    find_sit_and_wait_text = find_text(["坐上椅子等待", "坐上椅子", "的到来"])
     if not find_sit_and_wait_text:
         return
     logger("罗蕾莱不在家，等她", "info")
