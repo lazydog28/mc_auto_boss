@@ -8,9 +8,8 @@ GameMonitorTime: 5 # 游戏窗口检测间隔时间
 LogFilePath: # 日志保存路径，留空即为项目根目录，如需设置，则需为"c:\\mc_log.txt"格式，使用"\\"而不是"\"
 
 # 游戏崩溃捕获及处理
-RestartWutheringWaves: false # 定时重启游戏以避免游戏卡10%、75%等特殊进度及UE4崩溃，与DetectionUE4开启任一
-RestartWutheringWavesTime: 7200 # 单位为秒，如7200秒且RestartWutheringWaves为True即两小时重启一次
-DetectionUE4: true # 是否检测UE4崩溃窗口，推荐开启True
+RestartWutheringWaves: false # 定时重启游戏，默认关闭
+RestartWutheringWavesTime: 7200 # 时间单位为秒，仅当RestartWutheringWaves为true时生效
 
 # 控制台信息
 EchoDebugMode: true #声骸锁定功能DEBUG显示输出的开关
@@ -37,11 +36,6 @@ FightTactics: # 三个角色的释放技能顺序, 逗号分隔, e,q,r为技能,
     #- "r,e,q~0.1,s,a(0.1),a" # 维里奈
     - "r,q~0.1,e,a,a,a,a~,e" # 长离
     - "q~0.1,e,r,e,a,a,a,a,a,e,a,a,a,a,a,e" # 今汐
-FightTacticsUlt: # 大招释放成功时的技能释放顺序，此处只允许有二段r的角色放r，否则可能会有少许延迟
-    - "a(1.6),e,a(1.6),a(1.6),a(1.6),l"   # 卡卡罗
-    - "a(2),e,a(2),e,a(2),e,0.05,a~0.7"   #安可
-    - "a(0.3),s,0.2,a(1)"   #维里奈
-    # - "e,a(0.8),a,a~0.7"   # 吟霖
 FightOrder: [1, 2, 3] # 战斗顺序，123为角色在编队中的位置，改成321可使3号位维里奈先连招，上方战斗策略也需要对应将维里奈连招放到第一行
 # 云闪之鳞, 辉萤军势, 无常凶鹭, 燎照之骑, 聚械机偶, 哀声鸷, 朔雷之鳞, 鸣钟之龟, 飞廉之猩, 无冠者, 无妄者, 角，无归的谬误, 异构武装, 赫卡忒, 罗蕾莱, 叹息古龙
 # 梦魇飞廉之猩, 梦魇无常凶鹭, 梦魇云闪之鳞, 梦魇朔雷之鳞, 梦魇朔雷之鳞, 梦魇无冠者, 梦魇燎照之骑, 梦魇哀声鸷

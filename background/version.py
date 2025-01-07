@@ -1,5 +1,12 @@
-__version__ = "2.0.3"
+__version__ = "2.0.4"
 description = "更新"
+
+# ver2.0.4
+# update:2025-01-07
+# updated by wakening
+# 1.部分boss增加行走距离，防止锁定不上
+# 2.修复因游戏太卡，脚本误判传送已完成过早行走，导致真正传送完成后角色不动的bug
+# 3.删除config.example.yaml内过时参数FightTacticsUlt，删除必需参数DetectionUE4，必需打开所以开放给用户修改无意义
 
 # ver2.0.3
 # update:2025-01-05

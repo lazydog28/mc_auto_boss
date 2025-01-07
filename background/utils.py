@@ -293,7 +293,7 @@ def transfer_to_boss(bossName):
     # 不需要或没法插借位信标的boss
     boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
     # 传送后前行次数
-    forward_mapping = {"角": 5, "异构武装": 36, "赫卡忒": 4, "罗蕾莱": 41, "叹息古龙": 45, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 45, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
+    forward_mapping = {"角": 5, "异构武装": 36, "赫卡忒": 4, "罗蕾莱": 41, "叹息古龙": 48, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 48, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -693,6 +693,9 @@ def wait_home(timeout=120) -> bool:
             time.sleep(0.3)
             continue
         results = ocr(img)
+        if search_text(results, "快速旅行"):
+            time.sleep(0.3)
+            continue
         if search_text(results, "特征码"):  # 特征码
             return True
         template = Image.open(os.path.join(root_path, r"template/背包.png"))  # 背包
