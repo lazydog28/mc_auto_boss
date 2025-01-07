@@ -6,7 +6,7 @@ description = "更新"
 # updated by wakening
 # 1.部分boss增加行走距离，防止锁定不上
 # 2.修复因游戏太卡，脚本误判传送已完成过早行走，导致真正传送完成后角色不动的bug
-# 3.删除config.example.yaml内过时参数FightTacticsUlt，删除必需参数DetectionUE4，必需打开所以开放给用户修改无意义
+# 3.删除config.example.yaml内参数FightTacticsUlt、DetectionUE4、BossWaitTime_Dreamless、BossWaitTime_Jue、WaitUltAnimation，程序内部这些都还在，只是开放出来修改无意义，都隐藏掉
 
 # ver2.0.3
 # update:2025-01-05
