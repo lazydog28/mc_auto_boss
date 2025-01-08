@@ -1,5 +1,10 @@
-__version__ = "2.0.4"
+__version__ = "2.0.5"
 description = "更新"
+
+# ver2.0.5
+# update:2025-01-08
+# updated by wakening
+# 1.修复echo_config.example.yaml内 彻空冥雷 梦魇朔雷之鳞 旁缺失的字符，若声骸合成锁定无法运行，请按此修改你的echo_config.yaml
 
 # ver2.0.4
 # update:2025-01-07
