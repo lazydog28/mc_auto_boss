@@ -293,7 +293,7 @@ def transfer_to_boss(bossName):
     # 不需要或没法插借位信标的boss
     boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
     # 传送后前行次数
-    forward_mapping = {"角": 5, "异构武装": 36, "赫卡忒": 4, "罗蕾莱": 41, "叹息古龙": 48, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 48, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
+    forward_mapping = {"角": 4, "异构武装": 44, "赫卡忒": 4, "罗蕾莱": 41, "叹息古龙": 48, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 48, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -367,11 +367,10 @@ def transfer_to_boss(bossName):
             forward_times = forward_mapping.get(bossName, 0)
             for i in range(forward_times):
                 # logger(f"调式 i: {i}", "WARN")
+                if i == 0 and bossName in [ "角", "赫卡忒", "异构武装" ]: # 这几个对距离精度要求较高，等站稳了再动
+                    time.sleep(1.2)
                 forward()
-                if bossName == "赫卡忒":
-                    time.sleep(1.2 if i == 0 else 0.1)
-                else:
-                    time.sleep(0.05)
+                time.sleep(0.05)
 
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
@@ -682,6 +681,7 @@ def wait_home(timeout=120) -> bool:
     :return:
     """
     start = datetime.now()
+    time.sleep(0.1)
     control.activate()
     while True:
         # 修复部分情况下导致无法退出该循环的问题。
@@ -694,20 +694,26 @@ def wait_home(timeout=120) -> bool:
             continue
         results = ocr(img)
         if search_text(results, "快速旅行"):
+            # logger("识别到快速旅行", "DEBUG")
             time.sleep(0.3)
             continue
-        if search_text(results, "特征码"):  # 特征码
+        if search_text(results, "特征码|^特征.+\d{5,}"):  # 特征码
+            logger("识别到特征码", "DEBUG")
             return True
-        template = Image.open(os.path.join(root_path, r"template/背包.png"))  # 背包
-        template = np.array(template)
-        if match_template(img, template, threshold=0.85):
-            return True
-        template = Image.open(
-            os.path.join(root_path, r"template/终端按钮.png")
-        )  # 终端按钮
-        template = np.array(template)
-        if match_template(img, template, threshold=0.85):
-            return True
+        # 图片检测
+        pic_array = [
+            (f"template/TASK.png", 0.8, True),
+            (r"template/背包.png", 0.8, True),
+            (r"template/终端按钮.png", 0.8, True),
+        ]
+        for pic_path, threshold, need_resize in pic_array:
+            template = Image.open(os.path.join(root_path, pic_path))
+            template = np.array(template)
+            if match_template(img, template, threshold=threshold, need_resize=need_resize):
+                # logger(f"识别到: {pic_path}", "DEBUG")
+                return True
+            # else:
+            #     logger(f"没有识别到: {pic_path}", "WARN")
         time.sleep(0.3)
 
 
@@ -1098,8 +1104,9 @@ def boss_wait(bossName):
         time.sleep(config.BossWaitTime_fallacy)
     elif contains_any_combinations(bossName, keywords_sentry_construct, min_chars=3):
         logger(f"异构武装需要等待{config.BossWaitTime_sentry_construct}秒开始战斗！", "DEBUG")
+        control.dodge()
+        control.dodge()
         time.sleep(config.BossWaitTime_sentry_construct)
-        control.dodge()  # 闪避
     else:
         logger("当前BOSS可直接开始战斗！", "DEBUG")
 
@@ -1265,7 +1272,7 @@ def echo_bag_lock():
         return False
     this_echo_name = this_echo_name_temp
     boss_name_reg_mapping = [
-        ("^哀声鸷?$", "哀声鸷"),
+        ("^哀声鸷?", "哀声鸷"),
         ("^赫卡忒?", "赫卡忒"),
         ("^梦.*飞廉之猩", "梦魇飞廉之猩"),
         ("^梦.*无常凶鹭", "梦魇无常凶鹭"),
@@ -1359,7 +1366,7 @@ def echo_bag_lock():
     text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     this_echo_set = remove_non_chinese(this_echo_set)
-    if this_echo_set == "幽夜隐匿之幢":
+    if re.match("^幽夜隐匿之.+", this_echo_set):
         this_echo_set = "幽夜隐匿之帷"
     if this_echo_set:
         if config.EchoDebugMode:
@@ -1630,7 +1637,7 @@ def echo_synthesis():
         text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
         this_synthesis_echo_set = wait_text_result_search(text_result)
         this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
-        if this_synthesis_echo_set == "幽夜隐匿之幢":
+        if re.match("^幽夜隐匿之.+", this_synthesis_echo_set):
             this_synthesis_echo_set = "幽夜隐匿之帷"
         if this_synthesis_echo_set:
             if config.EchoSynthesisDebugMode:
