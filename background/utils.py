@@ -1285,7 +1285,7 @@ def echo_bag_lock():
     # 生僻字识别不准，用正则定位真正的名称
     for boss_name_reg, real_boss_name in boss_name_reg_mapping:
         if re.match(boss_name_reg, this_echo_name_temp):
-            logger(f"输入: {this_echo_name_temp} 匹配: {boss_name_reg} 成功: {real_boss_name}", "DEBUG")
+            #logger(f"输入: {this_echo_name_temp} 匹配: {boss_name_reg} 成功: {real_boss_name}", "DEBUG")
             this_echo_name = real_boss_name
             break
     # if this_echo_cost == "4" and this_echo_name not in cost4_name_array:
@@ -1366,8 +1366,7 @@ def echo_bag_lock():
     text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     this_echo_set = remove_non_chinese(this_echo_set)
-    if re.match("^幽夜隐匿之.+", this_echo_set):
-        this_echo_set = "幽夜隐匿之帷"
+    this_echo_set = echo_set_typos_match(this_echo_set)
     if this_echo_set:
         if config.EchoDebugMode:
             logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
@@ -1383,6 +1382,7 @@ def echo_bag_lock():
         text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
         this_echo_set = wait_text_result_search(text_result)
         this_echo_set = remove_non_chinese(this_echo_set)
+        this_echo_set = echo_set_typos_match(this_echo_set)
         if this_echo_set:
             if config.EchoDebugMode:
                 logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
@@ -1637,8 +1637,7 @@ def echo_synthesis():
         text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
         this_synthesis_echo_set = wait_text_result_search(text_result)
         this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
-        if re.match("^幽夜隐匿之.+", this_synthesis_echo_set):
-            this_synthesis_echo_set = "幽夜隐匿之帷"
+        this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set)
         if this_synthesis_echo_set:
             if config.EchoSynthesisDebugMode:
                 logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
@@ -1654,6 +1653,7 @@ def echo_synthesis():
             text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
             this_synthesis_echo_set = wait_text_result_search(text_result)
             this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
+            this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set)
             if this_synthesis_echo_set:
                 if config.EchoSynthesisDebugMode:
                     logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
@@ -2042,11 +2042,17 @@ def echo_bag_lock_open_bag_action():
         0.5,
         need_resize=False,
     )
-    if not coordinate:
-        logger("识别背包声骸图标失败", "WARN")
+    if coordinate:
+        click_position(coordinate)
+        return True
+    random_click(83, 332)
+    time.sleep(1.5)
+    if find_text("声骸?") and find_text(["获得时间顺序", "等级顺序", "品质顺序", "调谐?状态顺序", "已弃置优先"]):
+        return True
+    else:
+        logger("识别背包声骸菜单失败", "WARN")
         return False
-    click_position(coordinate)
-    return True
+
 
 def need_retry():
     return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒"]
@@ -2083,4 +2089,10 @@ def lorelei_clock_adjust():
     time.sleep(1)
     control.esc()
     time.sleep(0.5)
+
+def echo_set_typos_match(this_echo_set):
+    if isinstance(this_echo_set, str) and re.match("^幽夜隐匿之.+", this_echo_set):
+        return "幽夜隐匿之帷"
+    else:
+        return this_echo_set
 
