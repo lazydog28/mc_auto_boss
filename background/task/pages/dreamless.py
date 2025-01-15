@@ -229,6 +229,9 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     if need_retry() and not info.needHeal:
         click_position(positions["重新挑战"])
         logger(f"重新挑战{info.lastBossName}副本")
+        if not info.lastBossName:
+            info.lastBossName = config.TargetBoss[0]
+            model_boss_yolo(info.lastBossName)
         time.sleep(4)
         if info.lastBossName == "角":
             info.inJue = True
@@ -240,6 +243,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
         now = datetime.now()
         info.lastFightTime = now
         info.fightTime = now
+        info.waitBoss = True
     else:
         pos = positions.get("确认", positions.get("退出副本"))
         click_position(pos)

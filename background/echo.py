@@ -25,6 +25,12 @@ class EchoModel(BaseModel):
         ],
         title="声骸套装名称"
     )
+    echoSetNameReg: list[str] = create_field(
+        [
+            "凝夜白霜", "熔山裂谷", "彻空冥雷", "啸谷长风", "浮星祛暗", "沉日劫明", "隐世回光", "轻云出月", "不绝余音", "凌冽决断之心", "此间永驻之光", "幽夜隐匿之帷?", "高天共奏之曲", "无惧浪涛之勇",
+        ],
+        title="声骸套装名称，正则，防止有些生僻字识别不准"
+    )
     echoCost: list[str] = create_field(
         [
             "1", "3", "4",

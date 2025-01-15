@@ -20,6 +20,7 @@ import hwnd_util
 from PIL import Image, ImageGrab
 from ctypes import windll
 from typing import List, Tuple, Union
+from auto_yolo_switch import model_boss_yolo
 from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
 from ocr import ocr
 from schema import match_template, OcrResult
@@ -290,10 +291,15 @@ def forward():
 
 
 def transfer_to_boss(bossName):
-    # 不需要或没法插借位信标的boss
-    boss_no_waypoint = bossName in [ "角", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
-    # 传送后前行次数
-    forward_mapping = {"角": 4, "异构武装": 44, "赫卡忒": 4, "罗蕾莱": 41, "叹息古龙": 48, "梦魇飞廉之猩": 8, "梦魇无常凶鹭": 48, "梦魇云闪之鳞": 38, "梦魇朔雷之鳞": 36, "梦魇无冠者": 32, "梦魇燎照之骑": 38, "梦魇哀声鸷": 38}
+    # 传送后向前行走次数，适合短距离
+    forward_walk_times_mapping = {"角": 4, "赫卡忒": 4, "梦魇飞廉之猩": 5}
+    # 传送后向前奔跑时间，秒，适合长距离
+    forward_run_seconds_mapping = {
+        "无归的谬误": 5.5, "辉萤军势": 3.6, "鸣钟之龟": 3.6, "燎照之骑": 4.2, "无常凶鹭": 4, "聚械机偶": 6.8,
+        "哀声鸷": 4.8, "朔雷之鳞": 3.2, "云闪之鳞": 3, "飞廉之猩": 6,
+        "异构武装": 4, "罗蕾莱": 4.5, "叹息古龙": 5.6, "梦魇无常凶鹭": 5.3, "梦魇云闪之鳞": 4.8, "梦魇朔雷之鳞": 3.2,
+        "梦魇无冠者": 2.4, "梦魇燎照之骑": 4.5, "梦魇哀声鸷": 3.6,
+    }
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -305,7 +311,9 @@ def transfer_to_boss(bossName):
         control.esc()
         return False
     logger(f"当前目标boss：{bossName}")
+    model_boss_yolo(bossName)
     boss_name_reg_mapping = {
+        "哀声鸷": "哀声鸷?",
         "赫卡忒": "赫卡忒?",
         "梦魇飞廉之猩": "梦.*飞廉之猩",
         "梦魇无常凶鹭": "梦.*无常凶鹭",
@@ -313,7 +321,7 @@ def transfer_to_boss(bossName):
         "梦魇朔雷之鳞": "梦.*朔雷之鳞",
         "梦魇无冠者": "梦.*无冠者",
         "梦魇燎照之骑": "梦.*燎照之骑",
-        "梦魇哀声鸷": "梦.*哀声",
+        "梦魇哀声鸷": "梦.*哀声鸷?",
     }
     find_boss_name_reg = boss_name_reg_mapping.get(bossName, bossName)
     findBoss = None
@@ -342,16 +350,6 @@ def transfer_to_boss(bossName):
     time.sleep(1)
     click_position(detection_text.position)
     time.sleep(2.5)
-    if not boss_no_waypoint:
-        random_click(960, 540)
-        time.sleep(1.5)
-        beacon = wait_text("借位信标", timeout=5)
-        if not beacon:
-            logger("未找到借位信标", "WARN")
-            control.esc()
-            return False
-        click_position(beacon.position)
-    time.sleep(1)
     if transfer := wait_text("^快速旅行$", timeout=5):
         time.sleep(0.5)
         click_position(transfer.position)
@@ -359,18 +357,20 @@ def transfer_to_boss(bossName):
         time.sleep(1.5)
         wait_home()  # 等待回到主界面
         logger("传送完成")
-        if bossName == "罗蕾莱":
-            lorelei_clock_adjust()
-        # 没有插信标的boss需要走到boss前
-        if boss_no_waypoint:
-            control.activate()
-            forward_times = forward_mapping.get(bossName, 0)
-            for i in range(forward_times):
-                # logger(f"调式 i: {i}", "WARN")
-                if i == 0 and bossName in [ "角", "赫卡忒", "异构武装" ]: # 这几个对距离精度要求较高，等站稳了再动
-                    time.sleep(1.2)
+        control.activate()
+
+        lorelei_clock_adjust(bossName)
+
+        # 走/跑向boss
+        forward_walk_times = forward_walk_times_mapping.get(bossName, 0)
+        forward_run_seconds = forward_run_seconds_mapping.get(bossName, 0)
+        time.sleep(1.2)  # 等站稳了再动
+        if forward_walk_times > 0:
+            for i in range(forward_walk_times):
                 forward()
                 time.sleep(0.05)
+        elif forward_run_seconds > 0:
+            forward_run(forward_run_seconds)
 
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
@@ -597,14 +597,7 @@ def screenshot_in_specified_hwnd(specified_hwnd) -> np.ndarray | None:
     return im  # 返回截取到的图像waA
 
 
-rare_chars = "鸷|帷"
-
-
 def search_text(results: List[OcrResult], target: str) -> OcrResult | None:
-    target = re.sub(
-        rf"[{rare_chars}]", ".", target
-    )  # 判断 target 是否包含生僻字，如果包含则使用正则将生僻字替换为任意字符
-    # print("\n search的target为(-2)" + str(target)) # 主词条识别失败Debug使用
     for result in results:
         if re.search(target, result.text):  # 使用正则匹配
             return result
@@ -682,8 +675,11 @@ def wait_home(timeout=120) -> bool:
     """
     start = datetime.now()
     time.sleep(0.1)
-    control.activate()
+    # i = 0
     while True:
+        # i += 1
+        # logger(f"i={i}", "DEBUG")
+        control.activate()
         # 修复部分情况下导致无法退出该循环的问题。
         if (datetime.now() - start).seconds > timeout:
             close_window()
@@ -698,7 +694,7 @@ def wait_home(timeout=120) -> bool:
             time.sleep(0.3)
             continue
         if search_text(results, "特征码|^特征.+\d{5,}"):  # 特征码
-            logger("识别到特征码", "DEBUG")
+            # logger("识别到特征码", "DEBUG")
             return True
         # 图片检测
         pic_array = [
@@ -726,6 +722,9 @@ def turn_to_search() -> int | None:
             time.sleep(1)
         img = screenshot()
         x = search_echoes(img)
+
+        dump_img(img)
+
         if x is not None:
             break
         if i == 4:  # 如果尝试了4次都未发现声骸
@@ -781,6 +780,9 @@ def absorption_action():
         last_x = x
         center_x = real_w // 2
         floating = real_w // 20
+
+        dump_img(img)
+
         if x < center_x - floating:
             logger("发现声骸 向左移动")
             control.tap("a")
@@ -795,6 +797,21 @@ def absorption_action():
         time.sleep(0.5)
         if absorption_and_receive_rewards({}):
             break
+
+
+def dump_img(img=None):
+    pass
+    # if img is None:
+    #     img = screenshot()
+    # tst = int(time.time())
+    # # 保存图片到目录内，方便开发者调试
+    # bossName = info.lastBossName
+    # dir_test = r"train_img_" + bossName
+    # if not os.path.exists(dir_test):
+    #     os.mkdir(dir_test)
+    # Image.fromarray(img).save(rf"{dir_test}\{bossName}_{tst}.png")
+    # time.sleep(1)
+    # logger("\n保存图片 " + str(tst))
 
 
 def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
@@ -1068,47 +1085,34 @@ def boss_wait(bossName):
 
     :param bossName: boss名称
     """
-    bossName = bossName.lower()  # 将bossName转换为小写
     info.resetRole = True
 
-    keywords_turtle = ["鸣", "钟", "之", "龟"]
-    keywords_robot = ["聚", "械", "机", "偶"]
-    keywords_dreamless = ["无", "妄", "者"]
-    keywords_jue = ["角"]
-    keywords_fallacy = ["无", "归", "的", "谬", "误"]
-    keywords_sentry_construct = ["异", "构", "武", "装"]
-
-    def contains_any_combinations(
-        name, keywords, min_chars
-    ):  # 为了防止BOSS名重复，添加了最小匹配关键字数
-        for r in range(min_chars, len(keywords) + 1):
-            for comb in itertools.combinations(keywords, r):
-                if all(word in name for word in comb):
-                    return True
-        return False
-
-    if contains_any_combinations(bossName, keywords_turtle, min_chars=2):
-        logger("龟龟需要等待16秒开始战斗！", "DEBUG")
-        time.sleep(16)
-    elif contains_any_combinations(bossName, keywords_robot, min_chars=2):
-        logger("聚械机偶需要等待7秒开始战斗！", "DEBUG")
-        time.sleep(7)
-    elif contains_any_combinations(bossName, keywords_dreamless, min_chars=3):
-        logger(f"无妄者需要等待{config.BossWaitTime_Dreamless}秒开始战斗！", "DEBUG")
-        time.sleep(config.BossWaitTime_Dreamless)
-    elif contains_any_combinations(bossName, keywords_jue, min_chars=1):
-        logger(f"角需要等待{config.BossWaitTime_Jue}秒开始战斗！", "DEBUG")
-        time.sleep(config.BossWaitTime_Jue)
-    elif contains_any_combinations(bossName, keywords_fallacy, min_chars=3):
-        logger(f"无归的谬误需要等待{config.BossWaitTime_fallacy}秒开始战斗！", "DEBUG")
-        time.sleep(config.BossWaitTime_fallacy)
-    elif contains_any_combinations(bossName, keywords_sentry_construct, min_chars=3):
-        logger(f"异构武装需要等待{config.BossWaitTime_sentry_construct}秒开始战斗！", "DEBUG")
-        control.dodge()
-        control.dodge()
-        time.sleep(config.BossWaitTime_sentry_construct)
-    else:
-        logger("当前BOSS可直接开始战斗！", "DEBUG")
+    match bossName:
+        case "鸣钟之龟":
+            logger("龟龟需要等待16秒开始战斗！", "DEBUG")
+            time.sleep(16)
+        case "聚械机偶":
+            logger("聚械机偶需要等待7秒开始战斗！", "DEBUG")
+            time.sleep(7)
+        case "无妄者":
+            logger(f"无妄者需要等待{config.BossWaitTime_Dreamless}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_Dreamless)
+        case "角":
+            logger(f"角需要等待{config.BossWaitTime_Jue}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_Jue)
+        case "无归的谬误":
+            logger(f"无归的谬误需要等待{config.BossWaitTime_fallacy}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_fallacy)
+        case "异构武装":
+            logger(f"异构武装需要等待{config.BossWaitTime_sentry_construct}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_sentry_construct)
+        case "梦魇朔雷之鳞":
+            control.dodge()
+        case "赫卡忒":
+            time.sleep(0.3)
+            forward_run(2.1)
+        case _:
+            pass
 
     info.waitBoss = False
 
@@ -1280,7 +1284,7 @@ def echo_bag_lock():
         ("^梦.*朔雷之鳞", "梦魇朔雷之鳞"),
         ("^梦.*无冠者", "梦魇无冠者"),
         ("^梦.*燎照之骑", "梦魇燎照之骑"),
-        ("^梦.*哀声", "梦魇哀声鸷"),
+        ("^梦.*哀声鸷?", "梦魇哀声鸷"),
     ]
     # 生僻字识别不准，用正则定位真正的名称
     for boss_name_reg, real_boss_name in boss_name_reg_mapping:
@@ -1363,7 +1367,7 @@ def echo_bag_lock():
 
     # 识别声骸套装属性
     region = set_region(1295, 430, 1850, 930)
-    text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+    text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     this_echo_set = remove_non_chinese(this_echo_set)
     this_echo_set = echo_set_typos_match(this_echo_set)
@@ -1379,7 +1383,7 @@ def echo_bag_lock():
             time.sleep(0.02)
         time.sleep(0.8)
         random_click(1510, 690)
-        text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+        text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
         this_echo_set = wait_text_result_search(text_result)
         this_echo_set = remove_non_chinese(this_echo_set)
         this_echo_set = echo_set_typos_match(this_echo_set)
@@ -1634,7 +1638,7 @@ def echo_synthesis():
     def check_echo_set():
         # 识别声骸套装属性
         region = set_region(690, 685, 1250, 945)
-        text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+        text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
         this_synthesis_echo_set = wait_text_result_search(text_result)
         this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
         this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set)
@@ -1650,7 +1654,7 @@ def echo_synthesis():
                 time.sleep(0.02)
             time.sleep(0.8)
             random_click(1000, 685)
-            text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+            text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
             this_synthesis_echo_set = wait_text_result_search(text_result)
             this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
             this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set)
@@ -2058,7 +2062,9 @@ def need_retry():
     return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒"]
 
 
-def lorelei_clock_adjust():
+def lorelei_clock_adjust(boss_name):
+    if boss_name != "罗蕾莱":
+        return
     time.sleep(2)
     control.activate()
     find_sit_and_wait_text = find_text(["坐上椅子等待", "坐上椅子", "的到来"])
@@ -2096,3 +2102,18 @@ def echo_set_typos_match(this_echo_set):
     else:
         return this_echo_set
 
+def forward_run(forward_run_seconds: float):
+    control.key_press("w")
+    time.sleep(0.1)
+    control.key_press(win32con.VK_LSHIFT)
+    if forward_run_seconds > 1:
+        time.sleep(1)
+        control.key_release(win32con.VK_LSHIFT)
+        time.sleep(forward_run_seconds - 1)
+    else:
+        time.sleep(forward_run_seconds)
+    control.key_release(win32con.VK_LSHIFT)
+    control.key_release("w")
+    time.sleep(0.2)
+    control.key_release(win32con.VK_LSHIFT)
+    control.key_release("w")

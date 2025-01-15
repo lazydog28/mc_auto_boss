@@ -80,6 +80,7 @@ def absorption_action(positions: dict[str, Position]) -> bool:
     time.sleep(2)
     if not find_text("吸收"):
         return False
+    dump_img()
     info.absorptionCount += 1
     interactive()
     time.sleep(2)

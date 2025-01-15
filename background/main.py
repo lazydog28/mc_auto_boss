@@ -26,11 +26,17 @@ app_path = config.AppPath
 
 def restart_app(e: Event):
     if app_path:
+        last_check_ue4_timestamp = int(time.time())
         while True:
             # 定时重启功能设置已加入config.yaml(ArcS17)
             if config.RestartWutheringWaves:
                 time.sleep(config.RestartWutheringWavesTime)
                 manage_application(e)
+            # 监测UE4-Client Game已崩溃弹窗，发现就关闭弹窗，干掉游戏进程
+            if config.DetectionUE4:
+                check_timestamp = ue4_client_crash_monitor(last_check_ue4_timestamp)
+                if check_timestamp is not None:
+                    last_check_ue4_timestamp = check_timestamp
             # 每秒检测一次，游戏窗口   改为用户自己设置监控间隔时间，默认为5秒，减少占用(RoseRin)
             time.sleep(config.GameMonitorTime)
             find_game_windows(e)
@@ -224,6 +230,8 @@ def on_press(key):
         cache_process_dict("mouse_reset_process", mouse_reset_process)
     if key == Key.f12:
         logger("请等待程序退出后再关闭窗口...")
+        control.key_release("w")
+        control.key_release(win32con.VK_LSHIFT)
         taskEvent.clear()
         mouseResetEvent.clear()
         cmd_event.set()
