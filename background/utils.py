@@ -1327,9 +1327,9 @@ def echo_bag_lock():
             )
             is None
         ):
-            for i in range(18):
+            for i in range(16):
                 control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
-                time.sleep(0.02)
+                time.sleep(0.05)
             time.sleep(0.8)
             random_click(1510, 690)
     region = set_region(1366, 425, 1620, 470)
@@ -1380,7 +1380,7 @@ def echo_bag_lock():
     text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     this_echo_set = remove_non_chinese(this_echo_set)
-    this_echo_set = echo_set_typos_match(this_echo_set)
+    this_echo_set = echo_set_typos_match(this_echo_set, echo)
     if this_echo_set:
         if config.EchoDebugMode:
             logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
@@ -1388,15 +1388,15 @@ def echo_bag_lock():
     else:
         random_click(1510, 690)
         time.sleep(0.02)
-        for i in range(18):
+        for i in range(16):
             control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.02)
+            time.sleep(0.05)
         time.sleep(0.8)
         random_click(1510, 690)
         text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
         this_echo_set = wait_text_result_search(text_result)
         this_echo_set = remove_non_chinese(this_echo_set)
-        this_echo_set = echo_set_typos_match(this_echo_set)
+        this_echo_set = echo_set_typos_match(this_echo_set, echo)
         if this_echo_set:
             if config.EchoDebugMode:
                 logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
@@ -1404,9 +1404,9 @@ def echo_bag_lock():
         # 上滚恢复到主词条页面
         random_click(1510, 690)
         time.sleep(0.02)
-        for i in range(18):
+        for i in range(16):
             control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.02)
+            time.sleep(0.05)
         time.sleep(0.8)
         random_click(1510, 690)
 
@@ -1565,9 +1565,9 @@ def echo_synthesis():
                 )
                 is None
             ):
-                for i in range(18):
+                for i in range(16):
                     control.scroll(1, 1000 * width_ratio, 685 * height_ratio)
-                    time.sleep(0.02)
+                    time.sleep(0.05)
                 time.sleep(0.8)
                 random_click(1000, 685)
         region = set_region(768, 440, 1050, 485)
@@ -1616,9 +1616,9 @@ def echo_synthesis():
         else:
             random_click(1000, 685)
             time.sleep(0.02)
-            for i in range(18):
+            for i in range(16):
                 control.scroll(1, 1000 * width_ratio, 685 * height_ratio)
-                time.sleep(0.02)
+                time.sleep(0.05)
             time.sleep(0.8)
             random_click(1000, 685)
             if this_synthesis_echo_cost in cost_mapping:
@@ -1651,7 +1651,7 @@ def echo_synthesis():
         text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
         this_synthesis_echo_set = wait_text_result_search(text_result)
         this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
-        this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set)
+        this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set, echo)
         if this_synthesis_echo_set:
             if config.EchoSynthesisDebugMode:
                 logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
@@ -1659,15 +1659,15 @@ def echo_synthesis():
         else:
             random_click(1000, 685)
             time.sleep(0.02)
-            for i in range(18):
+            for i in range(16):
                 control.scroll(-1, 1000 * width_ratio, 685 * height_ratio)
-                time.sleep(0.02)
+                time.sleep(0.05)
             time.sleep(0.8)
             random_click(1000, 685)
             text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
             this_synthesis_echo_set = wait_text_result_search(text_result)
             this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
-            this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set)
+            this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set, echo)
             if this_synthesis_echo_set:
                 if config.EchoSynthesisDebugMode:
                     logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
@@ -2045,6 +2045,7 @@ def synthesis_data_bank_action():
 def echo_bag_lock_open_bag_action():
     adapts()
     control.activate()
+    time.sleep(0.3)
     control.tap("b")
     time.sleep(3)
     coordinate = find_pic(
@@ -2064,7 +2065,7 @@ def echo_bag_lock_open_bag_action():
     if find_text("声骸?") and find_text(["获得时间顺序", "等级顺序", "品质顺序", "调谐?状态顺序", "已弃置优先"]):
         return True
     else:
-        logger("识别背包声骸菜单失败", "WARN")
+        logger("请在背包声骸页或大世界执行", "WARN")
         return False
 
 
@@ -2106,11 +2107,14 @@ def lorelei_clock_adjust(boss_name):
     control.esc()
     time.sleep(0.5)
 
-def echo_set_typos_match(this_echo_set):
-    if isinstance(this_echo_set, str) and re.match("^幽夜隐匿之.+", this_echo_set):
-        return "幽夜隐匿之帷"
-    else:
+def echo_set_typos_match(this_echo_set, echo_set_meta):
+    if not isinstance(this_echo_set, str):
         return this_echo_set
+    if re.match("^幽夜隐匿之.+", this_echo_set):
+        this_echo_set = "幽夜隐匿之帷"
+    if this_echo_set not in echo_set_meta.echoSetName:
+        raise Exception(f"程序识别到未知声骸套装\"{this_echo_set}\", 请及时告知开发者")
+    return this_echo_set
 
 def forward_run(forward_run_seconds: float):
     control.key_press("w")
