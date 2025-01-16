@@ -721,9 +721,10 @@ def turn_to_search() -> int | None:
             control.mouse_middle()  # 重置视角
             time.sleep(1)
         img = screenshot()
-        x = search_echoes(img)
 
-        dump_img(img)
+        x = search_echoes(img, conf_thres=get_confidence_by_boss_name())
+
+        dump_img(img, "_四方")
 
         if x is not None:
             break
@@ -736,7 +737,7 @@ def turn_to_search() -> int | None:
             control.tap("a")
             time.sleep(0.3)
             img = screenshot()
-            x = search_echoes(img)
+            x = search_echoes(img, conf_thres=get_confidence_by_boss_name())
             if x is not None:
                 break
             return
@@ -771,7 +772,7 @@ def absorption_action():
             datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
         img = screenshot()
-        x = search_echoes(img)
+        x = search_echoes(img, conf_thres=get_confidence_by_boss_name())
         if x is None and last_x is None:
             continue
         if x is None:
@@ -799,14 +800,14 @@ def absorption_action():
             break
 
 
-def dump_img(img=None):
+def dump_img(img=None, end=""):
     pass
     # if img is None:
     #     img = screenshot()
     # tst = int(time.time())
     # # 保存图片到目录内，方便开发者调试
     # bossName = info.lastBossName
-    # dir_test = r"train_img_" + bossName
+    # dir_test = r"train_img_" + bossName + end
     # if not os.path.exists(dir_test):
     #     os.mkdir(dir_test)
     # Image.fromarray(img).save(rf"{dir_test}\{bossName}_{tst}.png")
@@ -822,7 +823,16 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
     """
     control.activate()
     count = 0
-    while find_text("吸收"):
+    absorb_try_more = 0
+    while True:
+        if not find_text("吸收"):
+            if absorb_try_more > 0:
+                break
+            else:
+                # 多搜一次，有时吸收前突然蹦出个蓝雨蝶，导致误判误吸
+                absorb_try_more += 1
+                time.sleep(0.1)
+                continue
         if count % 2:
             logger("向下滚动后尝试吸收")
             control.scroll(-1)
@@ -2117,3 +2127,13 @@ def forward_run(forward_run_seconds: float):
     time.sleep(0.2)
     control.key_release(win32con.VK_LSHIFT)
     control.key_release("w")
+
+def get_confidence_by_boss_name():
+    confidence_v10 = 0.5
+    confidence_v20 = 0.75
+    boss_name = info.lastBossName
+    if not boss_name:
+        return confidence_v10
+    if boss_name in ["异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]:
+        return confidence_v20
+    return confidence_v10

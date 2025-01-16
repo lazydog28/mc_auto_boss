@@ -169,8 +169,16 @@ def run(task: Task, e: Event):
 
         img = screenshot()
         result = ocr(img)
-        task(img, result)
-
+        try:
+            task(img, result)
+        except Exception as e:
+            try:
+                # 跑向boss会按压按键，出异常及时释放
+                control.key_release("w")
+                control.key_release(win32con.VK_LSHIFT)
+            except Exception:
+                pass
+            raise
         # 监测游戏是否卡加载，长时间卡在加载界面就干掉游戏进程
         check_timestamp = anti_stuck_monitor(img, anti_stuck_list, last_anti_stuck_timestamp)
         if check_timestamp is not None:
@@ -230,8 +238,12 @@ def on_press(key):
         cache_process_dict("mouse_reset_process", mouse_reset_process)
     if key == Key.f12:
         logger("请等待程序退出后再关闭窗口...")
-        control.key_release("w")
-        control.key_release(win32con.VK_LSHIFT)
+        try:
+            mc_hwnd = hwnd_util.get_mc_hwnd() # 游戏有崩溃重启过时，主程的hwnd未及时更新不能用，重新获取
+            win32gui.PostMessage(mc_hwnd, win32con.WM_KEYUP, ord("w".upper()), 0)
+            win32gui.PostMessage(mc_hwnd, win32con.WM_KEYUP, win32con.VK_LSHIFT, 0)
+        except Exception:
+            pass
         taskEvent.clear()
         mouseResetEvent.clear()
         cmd_event.set()

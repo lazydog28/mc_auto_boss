@@ -30,7 +30,7 @@
     ```shell
     nvidia-smi
     ```
-    查看CUDA Version的值，此为你电脑的cuda版本    
+    查看CUDA Version的值，此为你电脑当前显卡驱动支持的最高cuda版本    
     下载 CUDA 12.x，选择小于上方版本的下载    
     [https://developer.nvidia.com/cuda-toolkit-archive](https://developer.nvidia.com/cuda-toolkit-archive)    
     安装，选自定义，只勾选安装CUDA，取消勾选其他组件
