@@ -787,8 +787,10 @@ def absorption_action():
         if x < center_x - floating:
             logger("发现声骸 向左移动")
             control.tap("a")
+            control.tap("a")
         elif x > center_x + floating:
             logger("发现声骸 向右移动")
+            control.tap("d")
             control.tap("d")
         else:
             logger("发现声骸 向前移动")
