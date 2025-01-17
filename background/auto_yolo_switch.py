@@ -24,17 +24,17 @@ def model_boss_yolo(page_or_boss_name: str):
             user_default_model()  # 角模型不存在，使用默认的yolo模型
     elif page_or_boss_name == "无冠者之像·心脏" and config.ModelName != heart_ModelName:
         if is_in_models_folder(heart_ModelName + ModelName_ext):
-            logger("使用[无冠者]YOLO模型:heart.onnx")
+            logger("使用[无妄者]YOLO模型:heart.onnx")
             config.ModelName = heart_ModelName
             switch_model(heart_ModelName)
         else:
             user_default_model()  # 无冠者之像·心脏模型不存在，使用默认的yolo模型
     elif (page_or_boss_name in ["鸣钟之龟", "无冠者", "朔雷之鳞", "云闪之鳞", "燎照之骑", "飞廉之猩", "哀声鸷", "无常凶鹭", "辉萤军势", "聚械机偶", "无归的谬误"]
           and config.ModelName != defaultModelName):
-        user_default_model()  # 其他Boss，使用默认的yolo模型
-    elif (page_or_boss_name in ["异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
+        user_default_model()  # 1.0Boss，使用默认的yolo模型
+    elif (page_or_boss_name in [ "声之领域", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
           and config.ModelName != boss_v20):
-        logger("使用[v2.0 boss模型]YOLO模型:boss_v20.onnx")
+        logger("使用[boss模型v2.0]YOLO模型:boss_v20.onnx")
         config.ModelName = boss_v20
         switch_model(boss_v20)
 

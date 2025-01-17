@@ -327,7 +327,7 @@ def transfer_to_boss(bossName):
     findBoss = None
     y = 133
     while y < 907:
-        y = y + 30
+        y = y + 34
         if y > 907:
             y = 907
         findBoss = find_text(find_boss_name_reg)
