@@ -2011,11 +2011,21 @@ def ue4_client_crash_monitor(last_timestamp: int) -> int | None:
     logger("监测到UE4-Client Game已崩溃，关闭游戏", "WARN")
     try:
         win32gui.SendMessage(ue4_client_crash_hwnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(1)
-        hwnd_util.force_close_process(hwnd)
-        time.sleep(1)
     except Exception as e:
-        logger(f"关闭窗口时发生异常: {e}", "ERROR")
+        logger(f"关闭ue4崩溃窗口时发生异常: {e}", "ERROR")
+        time.sleep(1)
+        try:
+            ue4_client_crash_hwnd = hwnd_util.get_ue4_client_crash_hwnd()
+            if ue4_client_crash_hwnd:
+                hwnd_util.force_close_process(ue4_client_crash_hwnd)
+        except Exception as e:
+            logger(f"强制关闭ue4崩溃窗口时发生异常: {e}", "ERROR")
+    time.sleep(1)
+    try:
+        hwnd_util.force_close_process(hwnd_util.get_mc_hwnd())
+    except Exception as e:
+        logger(f"关闭游戏窗口时发生异常: {e}", "ERROR")
+    time.sleep(1)
     return now_timestamp
 
 
