@@ -173,6 +173,7 @@ def run(task: Task, e: Event):
             task(img, result)
         except Exception as e:
             try:
+                control.activate()
                 # 跑向boss会按压按键，出异常及时释放
                 control.key_release("w")
                 control.key_release(win32con.VK_LSHIFT)
