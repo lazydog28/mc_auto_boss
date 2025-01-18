@@ -226,6 +226,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
+    control.activate()
     if need_retry() and not info.needHeal:
         click_position(positions["重新挑战"])
         logger(f"重新挑战{info.lastBossName}副本")
