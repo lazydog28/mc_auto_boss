@@ -1,6 +1,13 @@
 __version__ = "2.0.10"
 description = "更新"
 
+# ver2.0.11
+# update:2025-01-19
+# updated by wakening
+# 1.还原209第四条，当声骸较小时无法步幅过大无法走到声骸中心
+# 2.异构武装传送后重置视角，防止有时人物视角不对
+# 3.修复在战斗超时离开时，不触发复活
+
 # ver2.0.10
 # update:2025-01-18
 # updated by wakening

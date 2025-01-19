@@ -51,7 +51,6 @@ class StatusInfo(BaseModel):
     lastBossName: str = Field("", title="最近BOSS名称")
     healCount: int = Field(heal_count, title="治疗次数")
     needHeal: bool = Field(False, title="需要治疗")
-    checkHeal: bool = Field(True, title="检查角色存活情况")
     waitBoss: bool = Field(True, title="等待Boss时间")
     DungeonWeeklyBossLevel: int = Field(0, title="储存自动判断出的最低可获奖励副本BOSS的等级")
     resetRole: bool = Field(False, title="重置选择角色")

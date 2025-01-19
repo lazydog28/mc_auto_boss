@@ -98,6 +98,8 @@ def judgment_leave_action() -> bool:
         absorption_action()
     else:
         absorption_and_receive_rewards({})
+    if config.CharacterHeal:
+        check_heal()
     control.esc()
     time.sleep(1)
     info.lastFightTime = datetime.now()

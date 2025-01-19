@@ -349,7 +349,9 @@ def transfer_to_boss(bossName):
         return False
     time.sleep(1)
     click_position(detection_text.position)
-    time.sleep(2.5)
+    time.sleep(0.2)
+    click_position(detection_text.position)
+    time.sleep(2.3)
     if transfer := wait_text("^快速旅行$", timeout=5):
         time.sleep(0.5)
         click_position(transfer.position)
@@ -359,7 +361,10 @@ def transfer_to_boss(bossName):
         logger("传送完成")
         control.activate()
 
-        lorelei_clock_adjust(bossName)
+        if bossName == "异构武装":
+            control.mouse_middle()
+        elif bossName == "罗蕾莱":
+            lorelei_clock_adjust()
 
         # 走/跑向boss
         forward_walk_times = forward_walk_times_mapping.get(bossName, 0)
@@ -751,8 +756,6 @@ def turn_to_search() -> int | None:
 
 def absorption_action():
     info.needAbsorption = False
-    if config.CharacterHeal:
-        info.checkHeal = True
     time.sleep(2)
     if absorption_and_receive_rewards({}):
         return
@@ -787,10 +790,8 @@ def absorption_action():
         if x < center_x - floating:
             logger("发现声骸 向左移动")
             control.tap("a")
-            control.tap("a")
         elif x > center_x + floating:
             logger("发现声骸 向右移动")
-            control.tap("d")
             control.tap("d")
         else:
             logger("发现声骸 向前移动")
@@ -896,6 +897,8 @@ def transfer_to_heal():
             time.sleep(2)
             if transfer := wait_text("快速旅行"):
                 click_position(transfer.position)
+                time.sleep(0.1)
+                click_position(transfer.position)
                 logger("治疗_等待传送完成")
                 time.sleep(3)
                 wait_home()  # 等待回到主界面
@@ -933,6 +936,7 @@ def check_heal():
         # logger(f"检测到角色需要复苏")
         info.needHeal = True
         control.esc()
+        time.sleep(1.2)
 
 def wait_text_designated_area(
     targets: str | list[str],
@@ -2085,9 +2089,7 @@ def need_retry():
     return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒"]
 
 
-def lorelei_clock_adjust(boss_name):
-    if boss_name != "罗蕾莱":
-        return
+def lorelei_clock_adjust():
     time.sleep(2)
     control.activate()
     find_sit_and_wait_text = find_text(["坐上椅子等待", "坐上椅子", "的到来"])
@@ -2132,8 +2134,8 @@ def forward_run(forward_run_seconds: float):
     control.key_press("w")
     time.sleep(0.1)
     control.key_press(win32con.VK_LSHIFT)
-    if forward_run_seconds > 1:
-        time.sleep(1)
+    if forward_run_seconds > 1.3:
+        time.sleep(1.3)
         control.key_release(win32con.VK_LSHIFT)
         time.sleep(forward_run_seconds - 1)
     else:
