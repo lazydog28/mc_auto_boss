@@ -138,21 +138,14 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     """
     interactive()
     if info.DungeonWeeklyBossLevel != 0:
-        dungeon_weekly_boss_level = (
-            info.DungeonWeeklyBossLevel
-        )  # 如果已有自动搜索结果，那么直接使用自动搜索的结果值
+        dungeon_weekly_boss_level = info.DungeonWeeklyBossLevel  # 如果已有自动搜索结果，那么直接使用自动搜索的结果值
     elif (
         config.DungeonWeeklyBossLevel is None
         or config.DungeonWeeklyBossLevel < 40
-        or config.DungeonWeeklyBossLevel % 10 != 0
-    ):
-        dungeon_weekly_boss_level = (
-            40  # 如果没有自动搜索的结果，且没有Config值或为值异常，则从40开始判断
-        )
+        or config.DungeonWeeklyBossLevel % 10 != 0):
+        dungeon_weekly_boss_level = 40  # 如果没有自动搜索的结果，且没有Config值或为值异常，则从40开始判断
     else:
-        dungeon_weekly_boss_level = (
-            config.DungeonWeeklyBossLevel
-        )  # 如果没有自动搜索的结果，但有Config值且不为默认值，则使用Config值
+        dungeon_weekly_boss_level = config.DungeonWeeklyBossLevel  # 如果没有自动搜索的结果，但有Config值且不为默认值，则使用Config值
     result = wait_text("推荐等级" + str(dungeon_weekly_boss_level))
     if not result:
         for i in range(1, 5):
@@ -164,7 +157,7 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     if not result:
         control.esc()
         return False
-    for i in range(5):
+    for i in range(2):
         click_position(result.position)
         time.sleep(0.5)
     result = find_text("单人挑战")
@@ -227,6 +220,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     control.activate()
+    time.sleep(0.2)
     if need_retry() and not info.needHeal:
         click_position(positions["重新挑战"])
         logger(f"重新挑战{info.lastBossName}副本")
@@ -261,6 +255,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
         info.status = Status.idle
         now = datetime.now()
         info.lastFightTime = now + timedelta(seconds=config.MaxFightTime / 2)
+    info.isCheckedHeal = False
     return True
 
 

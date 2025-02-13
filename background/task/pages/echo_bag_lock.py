@@ -19,6 +19,7 @@ def echo_bag(positions: dict[str, Position]) -> bool:
     """
     info.bagIsOpen = True
     control.activate()
+    time.sleep(0.2)
     if echo_bag_lock() is False:
         logger("背包声骸锁定功能结束")
         time.sleep(1)

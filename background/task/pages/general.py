@@ -85,7 +85,7 @@ def absorption_action(positions: dict[str, Position]) -> bool:
     interactive()
     time.sleep(2)
     info.needAbsorption = False
-    if config.CharacterHeal:
+    if config.CharacterHeal and not info.isCheckedHeal:
         check_heal()
     return True
 
@@ -224,7 +224,8 @@ fight_page = Page(
     targetTexts=[
         TextMatch(
             name="战斗",
-            text = re.compile(r"(击败|对战|泰缇斯系统|凶戾之齿|倦怠之翼|妒恨之眼|(无餍?之舌)|(僭?越之矛)|(谵?妄之爪)|爱欲之容|盖希诺姆)"),  # 使用正则表达式匹配 支持击败和对战
+            # "击败无妄者"会在boss似后再出现一次，导致匹配上战斗画面，人物继续打一套连招，修复此处无妄者匹配boss上方的名称
+            text = re.compile(r"((击败(?!无妄者))|(Lv.*无妄者)|对战|泰缇斯系统|凶戾之齿|倦怠之翼|妒恨之眼|(无餍?之舌)|(僭?越之矛)|(谵?妄之爪)|爱欲之容|盖希诺姆)"),
         ),
     ],
     action=fight_action,

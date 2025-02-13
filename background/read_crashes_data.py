@@ -12,22 +12,21 @@ def get_crashes_value():
     try:
         if os.path.exists(config.LogFilePath):
             with open(config.LogFilePath, "r", encoding="utf-8", errors="ignore") as f:
-                lines = deque(f, maxlen=300)
+                lines = deque(f, maxlen=100)
             max_battle_count = -1
             selected_line = None
             for line in reversed(lines):
-                if line.startswith("使用说明"):
-                    break
                 match = re.search(r"战斗次数：(\d+) 吸收次数：(\d+)(?: 治疗次数：(\d+))?", line)
                 if match:
                     battle_count = int(match.group(1))
                     absorb_count = int(match.group(2))
                     heal_count = int(match.group(3)) if match.group(3) else 0
                     if battle_count >= 1 and absorb_count >= 0 and heal_count >= 0:
-                        # 如果当前行的 battle_count 更大，或者是相同的 battle_count 但更靠后
                         if battle_count > max_battle_count:
                             max_battle_count = battle_count
                             selected_line = (battle_count, absorb_count, heal_count)
+                        elif battle_count < max_battle_count:
+                            break
             if selected_line:
                 return selected_line
     except Exception as e:

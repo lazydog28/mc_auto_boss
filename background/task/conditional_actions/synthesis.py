@@ -18,6 +18,8 @@ def open_data_merge_condition() -> bool:
 
 
 def open_data_merge_action() -> bool:
+    control.activate()
+    time.sleep(0.2)
     control.esc()
     time.sleep(2)
     return True

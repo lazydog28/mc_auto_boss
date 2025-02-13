@@ -19,7 +19,7 @@ def judgment_absorption_action():
         absorption_action()
     else:
         forward()
-    if config.CharacterHeal:
+    if config.CharacterHeal and not info.isCheckedHeal:
         check_heal()
     return True
 
@@ -98,7 +98,7 @@ def judgment_leave_action() -> bool:
         absorption_action()
     else:
         absorption_and_receive_rewards({})
-    if config.CharacterHeal:
+    if config.CharacterHeal and not info.isCheckedHeal:
         check_heal()
     control.esc()
     time.sleep(1)

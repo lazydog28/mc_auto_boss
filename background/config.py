@@ -45,7 +45,7 @@ class Config(BaseModel):
     MaxSearchEchoesTime: int = Field(18, title="最大搜索声骸时间")
     SelectRoleInterval: int = Field(2, title="选择角色间隔时间", ge=2)
     DungeonWeeklyBossLevel: int = Field(40, title="周本(副本)boss等级")
-    BossWaitTime_Dreamless: float = Field(3, title="进入-无妄者-周本等待时间")
+    BossWaitTime_Dreamless: float = Field(2.7, title="进入-无妄者-周本等待时间")
     BossWaitTime_Jue: float = Field(2, title="进入-角-周本等待时间")
     BossWaitTime_fallacy: float = Field(5, title="进入-无归的谬误-等待时间")
     BossWaitTime_sentry_construct: float = Field(2.5, title="进入-异构武装-等待时间")

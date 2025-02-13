@@ -15,7 +15,6 @@ import win32ui
 import os
 import win32con
 import numpy as np
-import itertools
 import hwnd_util
 from PIL import Image, ImageGrab
 from ctypes import windll
@@ -292,11 +291,11 @@ def forward():
 
 def transfer_to_boss(bossName):
     # 传送后向前行走次数，适合短距离
-    forward_walk_times_mapping = {"角": 4, "赫卡忒": 4}
+    forward_walk_times_mapping = {"无妄者": 5, "角": 4, "赫卡忒": 4}
     # 传送后向前奔跑时间，秒，适合长距离
     forward_run_seconds_mapping = {
         "无归的谬误": 5.5, "辉萤军势": 3.6, "鸣钟之龟": 3.6, "燎照之骑": 4.2, "无常凶鹭": 4, "聚械机偶": 6.8,
-        "哀声鸷": 4.8, "朔雷之鳞": 3.2, "云闪之鳞": 3, "飞廉之猩": 6,
+        "哀声鸷": 4.8, "朔雷之鳞": 3.2, "云闪之鳞": 3, "飞廉之猩": 6, "无冠者": 3,
         "异构武装": 4, "罗蕾莱": 4.5, "叹息古龙": 5.6, "梦魇无常凶鹭": 5.3, "梦魇云闪之鳞": 4.8, "梦魇朔雷之鳞": 3.2,
         "梦魇无冠者": 2.4, "梦魇燎照之骑": 4.5, "梦魇哀声鸷": 3.6, "梦魇飞廉之猩": 1,
     }
@@ -349,9 +348,7 @@ def transfer_to_boss(bossName):
         return False
     time.sleep(1)
     click_position(detection_text.position)
-    time.sleep(0.2)
-    click_position(detection_text.position)
-    time.sleep(2.3)
+    time.sleep(2.5)
     if transfer := wait_text("^快速旅行$", timeout=5):
         time.sleep(0.5)
         click_position(transfer.position)
@@ -361,9 +358,7 @@ def transfer_to_boss(bossName):
         logger("传送完成")
         control.activate()
 
-        if bossName == "异构武装":
-            control.mouse_middle()
-        elif bossName == "罗蕾莱":
+        if bossName == "罗蕾莱":
             lorelei_clock_adjust()
 
         # 走/跑向boss
@@ -371,11 +366,18 @@ def transfer_to_boss(bossName):
         forward_run_seconds = forward_run_seconds_mapping.get(bossName, 0)
         time.sleep(1.2)  # 等站稳了再动
         if forward_walk_times > 0:
-            for i in range(forward_walk_times):
-                forward()
-                time.sleep(0.05)
+            if bossName == "赫卡忒" and find_text("进入声之领域"):
+                pass
+            else:
+                forward_walk(forward_walk_times)
         elif forward_run_seconds > 0:
             forward_run(forward_run_seconds)
+
+        if bossName == "无冠者":
+            i = 0
+            while i < 8 and not find_text("^声弦$"):
+                forward_walk(3)
+                i += 1
 
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
@@ -384,55 +386,13 @@ def transfer_to_boss(bossName):
         info.lastBossName = bossName
         info.waitBoss = True
         return True
+    else:
+        logger("未找到快速旅行, 需手打一遍boss解锁传送", "WARN")
     control.esc()
     return False
-
-
-def transfer_to_dreamless():
-    coordinate = find_pic(template_name="周期挑战.png", threshold=0.5)
-    if not coordinate:
-        logger("识别周期挑战失败", "WARN")
-        control.esc()
-        return False
-    click_position(coordinate)  # 进入周期挑战
-    if not wait_text("前往"):
-        logger("未进入周期挑战", "WARN")
-        control.esc()
-        return False
-    logger(f"当前目标boss：无妄者")
-    time.sleep(2)
-    findBoss = find_text("战歌")
-    if not findBoss:
-        control.esc()
-        logger("未找到战歌重奏")
-        return False
-    click_position(findBoss.position)
-    click_position(findBoss.position)
-    time.sleep(1)
-    random_click(1720, 625)
-    time.sleep(2)
-    if transfer := wait_text("快速旅行"):
-        click_position(transfer.position)
-        logger("等待传送完成")
-        time.sleep(2)
-        wait_home()  # 等待回到主界面
-        logger("传送完成")
-        time.sleep(2)
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        time.sleep(1)
-        for i in range(5):
-            forward()
-            time.sleep(0.1)
-        return True
-    logger("未找到快速旅行", "WARN")
-    control.esc()
-    return False
-
 
 def transfer() -> bool:
+    info.isCheckedHeal = False
     if config.CharacterHeal and info.needHeal:  # 检查是否需要治疗
         logger("有角色阵亡，开始治疗")
         time.sleep(1)
@@ -441,35 +401,8 @@ def transfer() -> bool:
 
     bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
 
-    if info.lastBossName == "无妄者" and bossName == "无妄者":
-        logger("前往无妄者 且 刚才已经前往过")
-        for i in range(15):
-            forward()
-            time.sleep(0.1)
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        info.lastBossName = ""
-        return True
-    elif info.lastBossName == "角" and bossName == "角":
-        logger("前往角 且 刚才已经前往过")
-        time.sleep(0.5)
-        control.dodge() # 闪避功能已重写为函数
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        info.lastBossName = ""
-        return True
-    elif info.lastBossName == "赫卡忒" and bossName == "赫卡忒":
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        info.lastBossName = ""
-        return True
     control.activate()
+    time.sleep(0.2)
     control.tap(win32con.VK_F2)
     time.sleep(1)
     if not wait_text(
@@ -480,12 +413,8 @@ def transfer() -> bool:
         info.lastFightTime = datetime.now()
         return False
     time.sleep(1)
-    if bossName == "无妄者":
-        info.bossIndex += 1
-        return transfer_to_dreamless()
-    else:
-        info.bossIndex += 1
-        return transfer_to_boss(bossName)
+    info.bossIndex += 1
+    return transfer_to_boss(bossName)
 
 
 def screenshot() -> np.ndarray | None:
@@ -782,22 +711,31 @@ def absorption_action():
             temp_x = turn_to_search()
             x = temp_x if temp_x else last_x  # 如果未发现声骸，使用上一次的x坐标
         last_x = x
-        center_x = real_w // 2
-        floating = real_w // 20
 
         dump_img(img)
 
+        default_echo_search_config = (20, 1, 1, 5)
+        echo_search_config_mapping = {"角": (8, 4, 4, 7)}
+        search_conf = echo_search_config_mapping.get(info.lastBossName, default_echo_search_config)
+
+        center_x = real_w // 2
+        floating = real_w // search_conf[0]
         if x < center_x - floating:
             logger("发现声骸 向左移动")
-            control.tap("a")
+            for i in range(search_conf[1]):
+                control.tap("a")
+                time.sleep(0.05)
         elif x > center_x + floating:
             logger("发现声骸 向右移动")
-            control.tap("d")
+            for i in range(search_conf[2]):
+                control.tap("d")
+                time.sleep(0.05)
         else:
             logger("发现声骸 向前移动")
-            for i in range(4):
+            for i in range(search_conf[3]):
                 forward()
-                time.sleep(0.1)
+                time.sleep(0.05)
+
         time.sleep(0.5)
         if absorption_and_receive_rewards({}):
             break
@@ -925,6 +863,7 @@ def transfer_to_heal():
     return False
 
 def check_heal():
+    info.isCheckedHeal = True
     # logger(f"info.roleIndex: {info.roleIndex}")
     for i in range(3):
         role_index = (info.roleIndex + i) % 3
@@ -2124,7 +2063,7 @@ def lorelei_clock_adjust():
 def echo_set_typos_match(this_echo_set, echo_set_meta):
     if not isinstance(this_echo_set, str):
         return this_echo_set
-    if re.match("^幽夜隐匿之.+", this_echo_set):
+    if re.match("^幽夜隐匿?之.+", this_echo_set):
         this_echo_set = "幽夜隐匿之帷"
     if this_echo_set not in echo_set_meta.echoSetName:
         raise Exception(f"程序识别到未知声骸套装\"{this_echo_set}\", 请及时告知开发者")
@@ -2146,12 +2085,20 @@ def forward_run(forward_run_seconds: float):
     control.key_release(win32con.VK_LSHIFT)
     control.key_release("w")
 
+def forward_walk(forward_walk_times: int, sleep_seconds: float=None):
+    for _ in range(forward_walk_times):
+        forward()
+        time.sleep(0.05 if sleep_seconds is None else sleep_seconds)
+
 def get_confidence_by_boss_name():
     confidence_v10 = 0.5
     confidence_v20 = 0.75
     boss_name = info.lastBossName
     if not boss_name:
         return confidence_v10
-    if boss_name in ["异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]:
+    if boss_name in [
+        "无妄者", "角",
+        "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞",
+        "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]:
         return confidence_v20
     return confidence_v10
