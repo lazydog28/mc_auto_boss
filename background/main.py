@@ -354,3 +354,4 @@ if __name__ == "__main__":
     with Listener(on_press=on_press) as listener:
         listener.join()
     logger("结束运行")
+    logger("全新GUI预览版，欢迎体验：https://github.com/wakening/WutheringWavesAssistant")
