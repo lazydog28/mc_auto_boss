@@ -92,11 +92,11 @@ class Control:
         wParam = win32api.MAKELONG(0, win32con.WHEEL_DELTA * count)
         win32gui.SendMessage(self.hwnd, win32con.WM_MOUSEWHEEL, wParam, lParam)
 
-    def tap(self, key: str | int):
+    def tap(self, key: str | int, seconds: float = 0.1):
         if isinstance(key, str):
             key = ord(key.upper())
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYDOWN, key, 0)
-        time.sleep(0.1)  # 按键时间 不确定是否需要
+        time.sleep(seconds)  # 按键时间 不确定是否需要
         win32gui.PostMessage(self.hwnd, win32con.WM_KEYUP, key, 0)
 
     def fight_tap(self, key: str | int):

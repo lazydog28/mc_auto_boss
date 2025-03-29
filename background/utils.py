@@ -297,7 +297,7 @@ def transfer_to_boss(bossName):
         "无归的谬误": 5.5, "辉萤军势": 3.6, "鸣钟之龟": 3.6, "燎照之骑": 4.2, "无常凶鹭": 4, "聚械机偶": 6.8,
         "哀声鸷": 4.8, "朔雷之鳞": 3.2, "云闪之鳞": 3, "飞廉之猩": 6, "无冠者": 3,
         "异构武装": 4, "罗蕾莱": 4.5, "叹息古龙": 5.6, "梦魇无常凶鹭": 5.3, "梦魇云闪之鳞": 4.8, "梦魇朔雷之鳞": 3.2,
-        "梦魇无冠者": 2.4, "梦魇燎照之骑": 4.5, "梦魇哀声鸷": 3.6, "梦魇飞廉之猩": 1,
+        "梦魇无冠者": 2.4, "梦魇燎照之骑": 4.5, "梦魇哀声鸷": 3.6, "梦魇飞廉之猩": 1, "梦魇辉萤军势": 2.6,
     }
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
@@ -321,6 +321,7 @@ def transfer_to_boss(bossName):
         "梦魇无冠者": "梦.*无冠者",
         "梦魇燎照之骑": "梦.*燎照之骑",
         "梦魇哀声鸷": "梦.*哀声鸷?",
+        "梦魇辉萤军势": "梦.*辉萤军势",
     }
     find_boss_name_reg = boss_name_reg_mapping.get(bossName, bossName)
     findBoss = None
@@ -360,6 +361,9 @@ def transfer_to_boss(bossName):
 
         if bossName == "罗蕾莱":
             lorelei_clock_adjust()
+        elif bossName == "梦魇辉萤军势":
+            time.sleep(0.5)
+            control.mouse_middle()
 
         # 走/跑向boss
         forward_walk_times = forward_walk_times_mapping.get(bossName, 0)
@@ -688,6 +692,11 @@ def absorption_action():
     time.sleep(2)
     if absorption_and_receive_rewards({}):
         return
+
+    if info.lastBossName == "芙露德莉斯":
+        absorption_action_fleurdelys()
+        return
+
     x = turn_to_search()
     if x is None:
         return
@@ -715,7 +724,10 @@ def absorption_action():
         dump_img(img)
 
         default_echo_search_config = (20, 1, 1, 5)
-        echo_search_config_mapping = {"角": (8, 4, 4, 7)}
+        echo_search_config_mapping = {
+            "角": (8, 4, 4, 7),
+            "梦魇辉萤军势": (10, 3, 3, 7),
+        }
         search_conf = echo_search_config_mapping.get(info.lastBossName, default_echo_search_config)
 
         center_x = real_w // 2
@@ -739,6 +751,18 @@ def absorption_action():
         time.sleep(0.5)
         if absorption_and_receive_rewards({}):
             break
+
+def absorption_action_fleurdelys():
+    run_param = [("w", 0.5), ("a", 0.4), ("s", 1.0), ("d", 0.8), ("w", 0.6)]
+    for i in range(len(run_param)):
+        key, sleep_time = run_param[i]
+        if i > 0:
+            control.tap(key, 0.05)
+            control.tap(key, 0.05)
+        forward_run(sleep_time, key)
+        if find_text("吸收"):
+            absorption_and_receive_rewards({})
+            return
 
 
 def dump_img(img=None, end=""):
@@ -1066,6 +1090,9 @@ def boss_wait(bossName):
         case "赫卡忒":
             time.sleep(0.3)
             forward_run(2.1)
+        case "芙露德莉斯":
+            time.sleep(0.3)
+            forward_run(2.1)
         case _:
             pass
 
@@ -1240,6 +1267,8 @@ def echo_bag_lock():
         ("^梦.*无冠者", "梦魇无冠者"),
         ("^梦.*燎照之骑", "梦魇燎照之骑"),
         ("^梦.*哀声鸷?", "梦魇哀声鸷"),
+        ("^梦.*辉萤军势?", "梦魇辉萤军势"),
+        ("^共鸣回响.*芙露德莉?斯", "芙露德莉斯"),
     ]
     # 生僻字识别不准，用正则定位真正的名称
     for boss_name_reg, real_boss_name in boss_name_reg_mapping:
@@ -2025,7 +2054,7 @@ def echo_bag_lock_open_bag_action():
 
 
 def need_retry():
-    return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒"]
+    return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒", "芙露德莉斯"]
 
 
 def lorelei_clock_adjust():
@@ -2069,8 +2098,8 @@ def echo_set_typos_match(this_echo_set, echo_set_meta):
         raise Exception(f"程序识别到未知声骸套装\"{this_echo_set}\", 请及时告知开发者")
     return this_echo_set
 
-def forward_run(forward_run_seconds: float):
-    control.key_press("w")
+def forward_run(forward_run_seconds: float, key: str = "w"):
+    control.key_press(key)
     time.sleep(0.1)
     control.key_press(win32con.VK_LSHIFT)
     if forward_run_seconds > 1.3:
@@ -2080,10 +2109,10 @@ def forward_run(forward_run_seconds: float):
     else:
         time.sleep(forward_run_seconds)
     control.key_release(win32con.VK_LSHIFT)
-    control.key_release("w")
-    time.sleep(0.2)
+    control.key_release(key)
+    time.sleep(0.1)
     control.key_release(win32con.VK_LSHIFT)
-    control.key_release("w")
+    control.key_release(key)
 
 def forward_walk(forward_walk_times: int, sleep_seconds: float=None):
     for _ in range(forward_walk_times):
@@ -2096,9 +2125,13 @@ def get_confidence_by_boss_name():
     boss_name = info.lastBossName
     if not boss_name:
         return confidence_v10
+    if boss_name == "梦魇辉萤军势":
+        return 0.7 # TODO 未训练新模型，调低一点点
     if boss_name in [
         "无妄者", "角",
         "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞",
-        "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]:
+        "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷",
+        "梦魇辉萤军势", "芙露德莉斯",
+        ]:
         return confidence_v20
     return confidence_v10

@@ -5,6 +5,8 @@
 @time: 2024/6/5 上午9:34
 @author SuperLazyDog
 """
+import re
+
 import hwnd_util
 from . import *
 
@@ -185,11 +187,11 @@ terminal_page = Page(
     targetTexts=[
         TextMatch(
             name="终端",
-            text=template("^终端$"),
+            text=re.compile("^终端$"),
         ),
         TextMatch(
             name="生日",
-            text="生日",
+            text=re.compile("^生日$"),
         ),
     ],
     action=terminal_action,
@@ -222,10 +224,11 @@ def fight_action(positions: dict[str, Position]) -> bool:
 fight_page = Page(
     name="战斗画面",
     targetTexts=[
+        # "击败无妄者"会在boss似后再出现一次，导致匹配上战斗画面，人物继续打一套连招，修复此处无妄者匹配boss上方的名称，效果一般
+        # text = re.compile(r"((击败(?!无妄者))|(Lv.*无妄者)|对战|泰缇斯系统|凶戾之齿|倦怠之翼|妒恨之眼|(无餍?之舌)|(僭?越之矛)|(谵?妄之爪)|爱欲之容|盖希诺姆)"),
         TextMatch(
             name="战斗",
-            # "击败无妄者"会在boss似后再出现一次，导致匹配上战斗画面，人物继续打一套连招，修复此处无妄者匹配boss上方的名称
-            text = re.compile(r"((击败(?!无妄者))|(Lv.*无妄者)|对战|泰缇斯系统|凶戾之齿|倦怠之翼|妒恨之眼|(无餍?之舌)|(僭?越之矛)|(谵?妄之爪)|爱欲之容|盖希诺姆)"),
+            text = re.compile(r"(击败|对战|泰缇斯系统|凶戾之齿|倦怠之翼|妒恨之眼|(无餍?之舌)|(僭?越之矛)|(谵?妄之爪)|爱欲之容|盖希诺姆|(愚执之瞳?))"),
         ),
     ],
     action=fight_action,
@@ -308,11 +311,15 @@ receive_rewards_page = Page(
     targetTexts=[
         TextMatch(
             name="领取奖励",
-            text="领取奖励",
+            text=template("^领取奖励$"),
         ),
         TextMatch(
             name="确认",
-            text="确认",
+            text=template("^确认$"),
+        ),
+        TextMatch(
+            name="取消",
+            text=template("^取消$"),
         ),
     ],
     action=receive_rewards,

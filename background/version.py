@@ -1,5 +1,11 @@
-__version__ = "2.1.0"
+__version__ = "2.2.0"
 description = "更新"
+
+# ver2.2.0
+# update:2025-03-29
+# updated by wakening
+# 1.支持新boss：梦魇辉萤军势、芙露德莉斯，详见：config.example.yaml
+# 2.声骸合成、锁定支持新套装：流云逝尽之空，详见：echo_config.example.yaml
 
 # ver2.1.0
 # update:2025-02-13

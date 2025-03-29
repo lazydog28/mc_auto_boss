@@ -38,10 +38,12 @@ enter_page_dreamless = Page(
             text="无冠者之像",
         ),
         TextMatch(
-            name="进入|离开",
-            # 进入是在外面F进入副本页面；
-            # 离开是在无妄者副本内战斗结束时，用于游戏闪退重启后直接在副本内触发切换模型
-            text=template(r"(进入|离开)"),
+            name="心脏",
+            text="心脏",
+        ),
+        TextMatch(
+            name="进入",
+            text="进入",
         ),
     ],
     excludeTexts=[
@@ -52,10 +54,6 @@ enter_page_dreamless = Page(
         TextMatch(
             name="快速旅行",
             text="快速旅行",
-        ),
-        TextMatch(
-            name="领取奖励",
-            text="领取奖励",
         ),
     ],
     action=enter_action_dreamless,
@@ -105,7 +103,14 @@ def enter_action_hecate(positions: dict[str, Position]) -> bool:
     """
     interactive()
     info.inHecate = True
-    info.lastBossName = "赫卡忒"
+    # TODO 启动时就站在声之领域门口，无法区分是打哪个boss
+    if not info.lastBossName:
+        if "芙露德莉斯" in config.TargetBoss:
+            info.lastBossName = "芙露德莉斯"
+        elif "赫卡忒" in config.TargetBoss:
+            info.lastBossName = "赫卡忒"
+        else:
+            info.lastBossName = "赫卡忒"
     return True
 
 
@@ -232,7 +237,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
             info.inJue = True
         elif info.lastBossName == "无妄者":
             info.inDreamless = True
-        elif info.lastBossName == "赫卡忒":
+        elif info.lastBossName == "赫卡忒" or info.lastBossName == "芙露德莉斯":
             info.inHecate = True
         info.status = Status.idle
         now = datetime.now()
@@ -250,7 +255,7 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
             info.inJue = False
         elif info.lastBossName == "无妄者":
             info.inDreamless = False
-        elif info.lastBossName == "赫卡忒":
+        elif info.lastBossName == "赫卡忒" or info.lastBossName == "芙露德莉斯":
             info.inHecate = False
         info.status = Status.idle
         now = datetime.now()

@@ -18,7 +18,8 @@ def model_boss_yolo(page_or_boss_name: str):
         user_default_model()  # 1.0Boss，使用默认的yolo模型
     elif (page_or_boss_name in [ "无妄者", "无冠者之像·心脏", "角", "时序之寰",
                                  "声之领域", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭",
-                                 "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷"]
+                                 "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷",
+                                 "梦魇辉萤军势", "芙露德莉斯"]
           and config.ModelName != boss_v20):
         logger("使用[boss模型v2.0]模型")
         config.ModelName = boss_v20
