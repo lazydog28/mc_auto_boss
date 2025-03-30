@@ -1,5 +1,10 @@
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 description = "更新"
+
+# ver2.2.1
+# update:2025-03-30
+# updated by wakening
+# 1.修复等待罗蕾莱异常
 
 # ver2.2.0
 # update:2025-03-29

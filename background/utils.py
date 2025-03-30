@@ -2078,6 +2078,15 @@ def lorelei_clock_adjust():
         return
     click_position(tomorrow.position)
     time.sleep(1)
+
+    random_click(1770, 550)
+    time.sleep(0.3)
+    random_click(1770, 550)
+    time.sleep(0.3)
+    random_click(1770, 550)
+    time.sleep(0.3)
+
+
     confirm_text = find_text("确定")
     click_position(confirm_text.position)
     time.sleep(2)
