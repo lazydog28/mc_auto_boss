@@ -31,11 +31,11 @@ update_game_exit_page = Page(
     targetTexts=[
         TextMatch(
             name="更新完成，请重新启动游戏。",
-            text="更新完成，请重新启动游戏。",
+            text=re.compile(r"更新完成.*请重新启动游戏"),
         ),
         TextMatch(
             name="退出",
-            text=template("^退出$"),
+            text=re.compile("^退出$"),
         ),
     ],
     action=update_game_exit,

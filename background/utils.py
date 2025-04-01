@@ -359,11 +359,21 @@ def transfer_to_boss(bossName):
         logger("传送完成")
         control.activate()
 
+        key = "w"
         if bossName == "罗蕾莱":
             lorelei_clock_adjust()
-        elif bossName == "梦魇辉萤军势":
-            time.sleep(0.5)
-            control.mouse_middle()
+        # elif bossName == "梦魇辉萤军势":
+        #     time.sleep(0.5)
+        #     img = screenshot()
+        #     template = Image.open(os.path.join(root_path, f"template/NightmareLampylumenMyriad.png"))
+        #     template = np.array(template)
+        #     h, w = img.shape[:2]
+        #     img = img[:int(0.3 * h), :int(0.2 * w)]
+        #     if match_template(img, template, threshold=0.75, need_resize=True):
+        #         # logger(f"识别到: NightmareLampylumenMyriad.png", "DEBUG")
+        #         pass
+        #     else:
+        #         key = "s"
 
         # 走/跑向boss
         forward_walk_times = forward_walk_times_mapping.get(bossName, 0)
@@ -375,7 +385,7 @@ def transfer_to_boss(bossName):
             else:
                 forward_walk(forward_walk_times)
         elif forward_run_seconds > 0:
-            forward_run(forward_run_seconds)
+            forward_run(forward_run_seconds, key)
 
         if bossName == "无冠者":
             i = 0

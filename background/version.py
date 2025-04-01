@@ -1,5 +1,10 @@
-__version__ = "2.2.1"
+__version__ = "2.2.2"
 description = "更新"
+
+# ver2.2.2
+# update:2025-04-01
+# updated by wakening
+# 1.修复传送梦魇辉萤军势后锁定小怪
 
 # ver2.2.1
 # update:2025-03-30
