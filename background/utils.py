@@ -770,6 +770,7 @@ def absorption_action_fleurdelys():
             control.tap(key, 0.05)
             control.tap(key, 0.05)
         forward_run(sleep_time, key)
+        time.sleep(0.2)
         if find_text("吸收"):
             absorption_and_receive_rewards({})
             return

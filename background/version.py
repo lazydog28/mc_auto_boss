@@ -1,5 +1,10 @@
-__version__ = "2.2.2"
+__version__ = "2.2.3"
 description = "更新"
+
+# ver2.2.3
+# update:2025-04-01
+# updated by wakening
+# 1.芙露德莉斯声骸搜索增加停顿，防止跑太快吸收来不及显示
 
 # ver2.2.2
 # update:2025-04-01
