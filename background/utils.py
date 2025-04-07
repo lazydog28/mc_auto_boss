@@ -770,7 +770,7 @@ def absorption_action_fleurdelys():
             control.tap(key, 0.05)
             control.tap(key, 0.05)
         forward_run(sleep_time, key)
-        time.sleep(0.2)
+        time.sleep(0.7)
         if find_text("吸收"):
             absorption_and_receive_rewards({})
             return
@@ -1716,7 +1716,7 @@ def echo_synthesis():
                 control.click(click_x * width_ratio, click_y * height_ratio)
                 time.sleep(0.2)
                 control.click(click_x * width_ratio, click_y * height_ratio)
-                time.sleep(1.5)
+                time.sleep(2)
                 this_echo_cost = check_echo_cost()
                 this_echo_main_status = check_echo_main_status(this_echo_cost)
                 this_echo_set = check_echo_set()
