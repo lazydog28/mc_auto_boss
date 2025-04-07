@@ -1,5 +1,10 @@
-__version__ = "2.2.3"
+__version__ = "2.2.4"
 description = "更新"
+
+# ver2.2.4
+# update:2025-04-07
+# updated by wakening
+# 1.声骸合成和芙露德莉斯增加一点等待时间
 
 # ver2.2.3
 # update:2025-04-01
