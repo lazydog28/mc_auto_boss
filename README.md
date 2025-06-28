@@ -1,5 +1,9 @@
 # 鸣潮后台自动刷BOSS声骸 GPU
 
+ [最佳亚洲 CDN、边缘和安全解决方案 - Tencent EdgeOne](https://edgeone.ai/?from=github)
+![901abd9c42c751a8d711bb5fb19ddc2d.png](https://imagesbed28.caiyun.fun/901abd9c42c751a8d711bb5fb19ddc2d.png)
+
+
 > 如果觉得项目不错，可以点个star支持一下，谢谢！
 > 
 >  点击链接加入QQ频道：[mc_auto_boss](https://pd.qq.com/s/ayygl9edg)
