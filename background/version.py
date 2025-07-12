@@ -1,5 +1,10 @@
-__version__ = "2.2.4"
+__version__ = "2.4.0"
 description = "更新"
+
+# ver2.4.0
+# update:2025-07-12
+# updated by wakening
+# 1.声骸合成、锁定支持新套装：流云逝尽之空，详见：echo_config.example.yaml
 
 # ver2.2.4
 # update:2025-04-07

@@ -298,6 +298,7 @@ def transfer_to_boss(bossName):
         "哀声鸷": 4.8, "朔雷之鳞": 3.2, "云闪之鳞": 3, "飞廉之猩": 6, "无冠者": 3,
         "异构武装": 4, "罗蕾莱": 4.5, "叹息古龙": 5.6, "梦魇无常凶鹭": 5.3, "梦魇云闪之鳞": 4.8, "梦魇朔雷之鳞": 3.2,
         "梦魇无冠者": 2.4, "梦魇燎照之骑": 4.5, "梦魇哀声鸷": 3.6, "梦魇飞廉之猩": 1, "梦魇辉萤军势": 2.6,
+        "梦魇凯尔匹": 5.2, "荣耀狮像": 2.6,
     }
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
@@ -1280,6 +1281,7 @@ def echo_bag_lock():
         ("^梦.*哀声鸷?", "梦魇哀声鸷"),
         ("^梦.*辉萤军势?", "梦魇辉萤军势"),
         ("^共鸣回响.*芙露德莉?斯", "芙露德莉斯"),
+        ("^梦.*凯尔匹", "梦魇凯尔匹"),
     ]
     # 生僻字识别不准，用正则定位真正的名称
     for boss_name_reg, real_boss_name in boss_name_reg_mapping:
@@ -2145,7 +2147,7 @@ def get_confidence_by_boss_name():
     boss_name = info.lastBossName
     if not boss_name:
         return confidence_v10
-    if boss_name == "梦魇辉萤军势":
+    if boss_name in ["梦魇辉萤军势", "梦魇凯尔匹", "荣耀狮像"]:
         return 0.7 # TODO 未训练新模型，调低一点点
     if boss_name in [
         "无妄者", "角",

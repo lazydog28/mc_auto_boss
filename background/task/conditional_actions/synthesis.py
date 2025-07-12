@@ -41,10 +41,10 @@ def go_back_home_page_action() -> bool:
     if find_text(["数据坞信息", "数据融合"]):
         control.esc()
         time.sleep(2)
-    if find_text("终端"):
+    if find_text(r"(唤取|共鸣者|教程百科)"):
         control.esc()
         time.sleep(2)
-        if not find_text("终端"):
+        if not find_text(r"(唤取|共鸣者|教程百科)"):
             logger("已返回大世界")
             sys.exit(0)
     return True

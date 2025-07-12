@@ -177,8 +177,8 @@ terminal_page = Page(
     name="终端",
     targetTexts=[
         TextMatch(
-            name="终端",
-            text="终端",
+            name="唤取|共鸣者|教程百科",
+            text=re.compile(r"(唤取|共鸣者|教程百科)"),
         ),
         TextMatch(
             name="数据坞",
