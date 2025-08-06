@@ -44,7 +44,17 @@ if current_process().name == "task":
 last_time = time.time()
 
 
-def ocr(img: np.ndarray) -> list[OcrResult]:
+def ocr(img: np.ndarray, position: Position = None) -> list[OcrResult]:
+    # if position is not None:
+    #     from PIL import Image
+    #     tst = int(time.time())
+    #     # 保存图片到目录内，方便开发者调试
+    #     dir_test = r"img_test2"
+    #     if not os.path.exists(dir_test):
+    #         os.mkdir(dir_test)
+    #     Image.fromarray(img).save(rf"{dir_test}\{tst}-pos-ocr.png")
+    #     time.sleep(1)
+    #     logger("\n保存ocr " + str(tst))
     global last_time
     if (
         config.OcrInterval > 0 and time.time() - last_time < config.OcrInterval

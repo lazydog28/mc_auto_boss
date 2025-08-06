@@ -6,8 +6,6 @@ numpy==1.26.4
 setuptools
 pyyaml
 pydantic
-onnxruntime
-paddlepaddle
 paddleocr<2.8.0
 colorama
 requests

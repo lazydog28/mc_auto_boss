@@ -13,6 +13,11 @@ import cv2
 from config import config
 from multiprocessing import current_process
 
+def create_session_options():
+    sess_options = rt.SessionOptions()
+    # sess_options.log_severity_level = 1 # 打开日志，排查为何有警告日志时使用，打印详细ort日志
+    sess_options.log_severity_level = 3 # 日志级别3，只显示异常日志
+    return sess_options
 
 model_path = os.path.join(root_path, "models/" + config.ModelName + ".onnx")
 # 判断能否使用GPU或Dml
@@ -25,7 +30,7 @@ else:
 
 model = None
 if current_process().name == "task":
-    model = rt.InferenceSession(model_path, providers=provider)
+    model = rt.InferenceSession(model_path, providers=provider, sess_options=create_session_options())
     input_name = model.get_inputs()[0].name
     label_name = model.get_outputs()[0].name
 
@@ -39,7 +44,7 @@ def switch_model(ModelName):
 
     model = None
     if current_process().name == "task":
-        model = rt.InferenceSession(model_path, providers=provider)
+        model = rt.InferenceSession(model_path, providers=provider, sess_options=create_session_options())
         input_name = model.get_inputs()[0].name
         label_name = model.get_outputs()[0].name
 

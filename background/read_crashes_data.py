@@ -1,5 +1,7 @@
 import re
 import os
+from collections import deque
+
 from config import config
 
 
@@ -10,19 +12,23 @@ def get_crashes_value():
     try:
         if os.path.exists(config.LogFilePath):
             with open(config.LogFilePath, "r", encoding="utf-8", errors="ignore") as f:
-                lines = f.readlines()
-
+                lines = deque(f, maxlen=100)
+            max_battle_count = -1
+            selected_line = None
             for line in reversed(lines):
-                match = re.search(
-                    r"战斗次数：(\d+) 吸收次数：(\d+)(?: 治疗次数：(\d+))?", line
-                )
-
+                match = re.search(r"战斗次数：(\d+) 吸收次数：(\d+)(?: 治疗次数：(\d+))?", line)
                 if match:
                     battle_count = int(match.group(1))
                     absorb_count = int(match.group(2))
                     heal_count = int(match.group(3)) if match.group(3) else 0
                     if battle_count >= 1 and absorb_count >= 0 and heal_count >= 0:
-                        return battle_count, absorb_count, heal_count
+                        if battle_count > max_battle_count:
+                            max_battle_count = battle_count
+                            selected_line = (battle_count, absorb_count, heal_count)
+                        elif battle_count < max_battle_count:
+                            break
+            if selected_line:
+                return selected_line
     except Exception as e:
         pass
     return 0, 0, 0

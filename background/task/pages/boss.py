@@ -55,7 +55,7 @@ voice_string_interaction_page = Page(
     targetTexts=[
         TextMatch(
             name="声弦",
-            text="声弦",
+            text=template("^声弦$"),
         ),
     ],
     action=voice_string_interaction_action,

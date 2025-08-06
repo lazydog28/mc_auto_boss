@@ -7,16 +7,19 @@
 """
 import re
 import time
+import traceback
+
+import cv2
 import win32gui
 import win32ui
 import os
 import win32con
 import numpy as np
-import itertools
 import hwnd_util
 from PIL import Image, ImageGrab
 from ctypes import windll
 from typing import List, Tuple, Union
+from auto_yolo_switch import model_boss_yolo
 from constant import root_path, hwnd, real_w, real_h, width_ratio, height_ratio
 from ocr import ocr
 from schema import match_template, OcrResult
@@ -27,7 +30,6 @@ from schema import Position
 from datetime import datetime
 from yolo import search_echoes
 from echo import echo
-from caculate import calculate_total_weight
 
 
 def interactive():
@@ -93,13 +95,19 @@ def select_role(reset_role: bool = False):
         info.roleIndex += 1
         if info.roleIndex > 3:
             info.roleIndex = 1
-    control.tap(str(info.roleIndex))
+    if len(config.FightOrder) == 1:
+        config.FightOrder.append(2)
+    if len(config.FightOrder) == 2:
+        config.FightOrder.append(3)
+    select_role_index = config.FightOrder[info.roleIndex - 1]
+    control.tap(str(select_role_index))
 
 
 def release_skills():
     adapts()
     if info.waitBoss:
         boss_wait(info.lastBossName)
+    control.activate()
     select_role(info.resetRole)
     control.mouse_middle()
     if len(config.FightTactics) < info.roleIndex:
@@ -282,6 +290,16 @@ def forward():
 
 
 def transfer_to_boss(bossName):
+    # 传送后向前行走次数，适合短距离
+    forward_walk_times_mapping = {"无妄者": 5, "角": 4, "赫卡忒": 4}
+    # 传送后向前奔跑时间，秒，适合长距离
+    forward_run_seconds_mapping = {
+        "无归的谬误": 5.5, "辉萤军势": 3.6, "鸣钟之龟": 3.6, "燎照之骑": 4.2, "无常凶鹭": 4, "聚械机偶": 6.8,
+        "哀声鸷": 4.8, "朔雷之鳞": 3.2, "云闪之鳞": 3, "飞廉之猩": 6, "无冠者": 3,
+        "异构武装": 4, "罗蕾莱": 4.5, "叹息古龙": 5.6, "梦魇无常凶鹭": 5.3, "梦魇云闪之鳞": 4.8, "梦魇朔雷之鳞": 3.2,
+        "梦魇无冠者": 2.4, "梦魇燎照之骑": 4.5, "梦魇哀声鸷": 3.6, "梦魇飞廉之猩": 1, "梦魇辉萤军势": 2.6,
+        "梦魇凯尔匹": 5.2, "荣耀狮像": 2.6,
+    }
     coordinate = find_pic(template_name=f"残象探寻.png", threshold=0.5)
     if not coordinate:
         logger("识别残像探寻失败", "WARN")
@@ -293,13 +311,27 @@ def transfer_to_boss(bossName):
         control.esc()
         return False
     logger(f"当前目标boss：{bossName}")
+    model_boss_yolo(bossName)
+    boss_name_reg_mapping = {
+        "哀声鸷": "哀声鸷?",
+        "赫卡忒": "赫卡忒?",
+        "梦魇飞廉之猩": "梦.*飞廉之猩",
+        "梦魇无常凶鹭": "梦.*无常凶鹭",
+        "梦魇云闪之鳞": "梦.*云闪之鳞",
+        "梦魇朔雷之鳞": "梦.*朔雷之鳞",
+        "梦魇无冠者": "梦.*无冠者",
+        "梦魇燎照之骑": "梦.*燎照之骑",
+        "梦魇哀声鸷": "梦.*哀声鸷?",
+        "梦魇辉萤军势": "梦.*辉萤军势",
+    }
+    find_boss_name_reg = boss_name_reg_mapping.get(bossName, bossName)
     findBoss = None
     y = 133
     while y < 907:
-        y = y + 30
+        y = y + 34
         if y > 907:
             y = 907
-        findBoss = find_text(bossName)
+        findBoss = find_text(find_boss_name_reg)
         if findBoss:
             break
         # control.click(855 * width_ratio, y * height_ratio)
@@ -312,26 +344,56 @@ def transfer_to_boss(bossName):
     click_position(findBoss.position)
     click_position(findBoss.position)
     time.sleep(1)
-    # control.click(1700 * width_ratio, 980 * height_ratio)
-    random_click(1700, 980)
-    if not wait_text("追踪", timeout=5):
-        logger("未找到追踪", "WARN")
+    detection_text = wait_text("^探测$", timeout=5)
+    if not detection_text:
         control.esc()
         return False
-    # control.click(960 * width_ratio, 540 * height_ratio)
-    random_click(960, 540)
-    beacon = wait_text("借位信标", timeout=5)
-    if not beacon:
-        logger("未找到借位信标", "WARN")
-        control.esc()
-        return False
-    click_position(beacon.position)
-    if transfer := wait_text("快速旅行", timeout=5):
-        click_position(transfer.position)
+    time.sleep(1)
+    click_position(detection_text.position)
+    time.sleep(2.5)
+    if transfer := wait_text("^快速旅行$", timeout=5):
         time.sleep(0.5)
+        click_position(transfer.position)
         logger("等待传送完成")
+        time.sleep(1.5)
         wait_home()  # 等待回到主界面
         logger("传送完成")
+        control.activate()
+
+        key = "w"
+        if bossName == "罗蕾莱":
+            lorelei_clock_adjust()
+        # elif bossName == "梦魇辉萤军势":
+        #     time.sleep(0.5)
+        #     img = screenshot()
+        #     template = Image.open(os.path.join(root_path, f"template/NightmareLampylumenMyriad.png"))
+        #     template = np.array(template)
+        #     h, w = img.shape[:2]
+        #     img = img[:int(0.3 * h), :int(0.2 * w)]
+        #     if match_template(img, template, threshold=0.75, need_resize=True):
+        #         # logger(f"识别到: NightmareLampylumenMyriad.png", "DEBUG")
+        #         pass
+        #     else:
+        #         key = "s"
+
+        # 走/跑向boss
+        forward_walk_times = forward_walk_times_mapping.get(bossName, 0)
+        forward_run_seconds = forward_run_seconds_mapping.get(bossName, 0)
+        time.sleep(1.2)  # 等站稳了再动
+        if forward_walk_times > 0:
+            if bossName == "赫卡忒" and find_text("进入声之领域"):
+                pass
+            else:
+                forward_walk(forward_walk_times)
+        elif forward_run_seconds > 0:
+            forward_run(forward_run_seconds, key)
+
+        if bossName == "无冠者":
+            i = 0
+            while i < 8 and not find_text("^声弦$"):
+                forward_walk(3)
+                i += 1
+
         now = datetime.now()
         info.idleTime = now  # 重置空闲时间
         info.lastFightTime = now  # 重置最近检测到战斗时间
@@ -339,110 +401,35 @@ def transfer_to_boss(bossName):
         info.lastBossName = bossName
         info.waitBoss = True
         return True
+    else:
+        logger("未找到快速旅行, 需手打一遍boss解锁传送", "WARN")
     control.esc()
     return False
-
-
-def transfer_to_dreamless():
-    coordinate = find_pic(template_name="周期挑战.png", threshold=0.5)
-    if not coordinate:
-        logger("识别周期挑战失败", "WARN")
-        control.esc()
-        return False
-    click_position(coordinate)  # 进入周期挑战
-    if not wait_text("前往"):
-        logger("未进入周期挑战", "WARN")
-        control.esc()
-        return False
-    logger(f"当前目标boss：无妄者")
-    time.sleep(2)
-    findBoss = find_text("战歌")
-    if not findBoss:
-        control.esc()
-        logger("未找到战歌重奏")
-        return False
-    click_position(findBoss.position)
-    click_position(findBoss.position)
-    time.sleep(1)
-    random_click(1720, 460)
-    # control.click(1720 * width_ratio, 420 * height_ratio)
-    if transfer := wait_text("快速旅行"):
-        click_position(transfer.position)
-        logger("等待传送完成")
-        time.sleep(0.5)
-        wait_home()  # 等待回到主界面
-        logger("传送完成")
-        time.sleep(2)
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        time.sleep(1)
-        for i in range(5):
-            forward()
-            time.sleep(0.1)
-        return True
-    logger("未找到快速旅行", "WARN")
-    control.esc()
-    return False
-
 
 def transfer() -> bool:
-    if config.CharacterHeal:
-        check_heal()
-        if not info.needHeal:  # 检查是否需要治疗
-            logger("无需治疗")
-        else:
-            # healBossName = "朔雷之鳞"  # 固定目标boss名称
-            logger("开始治疗")
-            time.sleep(1)
-            info.lastBossName = "治疗"
-            control.activate()
-            control.tap(win32con.VK_F2)
-            time.sleep(1)
-            transfer_to_heal()
+    info.isCheckedHeal = False
+    if config.CharacterHeal and info.needHeal:  # 检查是否需要治疗
+        logger("有角色阵亡，开始治疗")
+        time.sleep(1)
+        info.lastBossName = "治疗"
+        transfer_to_heal()
+
     bossName = config.TargetBoss[info.bossIndex % len(config.TargetBoss)]
 
-    if info.lastBossName == "无妄者" and bossName == "无妄者":
-        logger("前往无妄者 且 刚才已经前往过")
-        for i in range(15):
-            forward()
-            time.sleep(0.1)
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        info.lastBossName = ""
-        return True
-    if info.lastBossName == "角" and bossName == "角":
-        logger("前往角 且 刚才已经前往过")
-        time.sleep(0.5)
-        control.dodge() # 闪避功能已重写为函数
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        info.lastBossName = ""
-        return True
     control.activate()
+    time.sleep(0.2)
     control.tap(win32con.VK_F2)
     time.sleep(1)
     if not wait_text(
         ["日志", "活跃", "挑战", "强者", "残象", "周期", "探寻", "漂泊"], timeout=7
-    ):  
+    ):
         logger("未进入索拉指南", "WARN")
         control.esc()
         info.lastFightTime = datetime.now()
         return False
     time.sleep(1)
-    if info.needHeal:
-        transfer_to_heal()
-    elif bossName == "无妄者":
-        info.bossIndex += 1
-        return transfer_to_dreamless()
-    else:
-        info.bossIndex += 1
-        return transfer_to_boss(bossName)
+    info.bossIndex += 1
+    return transfer_to_boss(bossName)
 
 
 def screenshot() -> np.ndarray | None:
@@ -559,27 +546,30 @@ def screenshot_in_specified_hwnd(specified_hwnd) -> np.ndarray | None:
     return im  # 返回截取到的图像waA
 
 
-rare_chars = "鸷"
-
-
 def search_text(results: List[OcrResult], target: str) -> OcrResult | None:
-    target = re.sub(
-        rf"[{rare_chars}]", ".", target
-    )  # 判断 target 是否包含生僻字，如果包含则使用正则将生僻字替换为任意字符
-    # print("\n search的target为(-2)" + str(target)) # 主词条识别失败Debug使用
     for result in results:
         if re.search(target, result.text):  # 使用正则匹配
             return result
     return None
 
 
-def find_text(targets: str | list[str]) -> OcrResult | None:
+def find_text(targets: str | list[str], position: Position = None, need_scale_factor: bool = False) -> OcrResult | None:
     if isinstance(targets, str):
         targets = [targets]
     img = screenshot()
     if img is None:
         return None
-    result = ocr(img)
+    if position is not None:
+        image = img[position.y1:position.y2, position.x1:position.x2]
+        if need_scale_factor:
+            y_offset = abs(position.y1 - position.y2)
+            max_y_offset = 150
+            pic_scale_factor = int(max_y_offset / y_offset) + 1 if y_offset <= max_y_offset else 1
+            if pic_scale_factor > 1:
+                new_size = (image.shape[1] * pic_scale_factor, image.shape[0] * pic_scale_factor)
+                # 双线性插值
+                img = cv2.resize(image, new_size, interpolation=cv2.INTER_LINEAR)
+    result = ocr(img, position)
     for target in targets:
         if text_info := search_text(result, target):
             return text_info
@@ -633,7 +623,12 @@ def wait_home(timeout=120) -> bool:
     :return:
     """
     start = datetime.now()
+    time.sleep(0.1)
+    # i = 0
     while True:
+        # i += 1
+        # logger(f"i={i}", "DEBUG")
+        control.activate()
         # 修复部分情况下导致无法退出该循环的问题。
         if (datetime.now() - start).seconds > timeout:
             close_window()
@@ -643,36 +638,57 @@ def wait_home(timeout=120) -> bool:
             time.sleep(0.3)
             continue
         results = ocr(img)
-        if search_text(results, "特征码"):  # 特征码
+        if search_text(results, "快速旅行"):
+            # logger("识别到快速旅行", "DEBUG")
+            time.sleep(0.3)
+            continue
+        if search_text(results, "特征码|^特征.+\d{5,}"):  # 特征码
+            # logger("识别到特征码", "DEBUG")
             return True
-        template = Image.open(os.path.join(root_path, r"template/背包.png"))  # 背包
-        template = np.array(template)
-        if match_template(img, template, threshold=0.9):
-            return True
-        template = Image.open(
-            os.path.join(root_path, r"template/终端按钮.png")
-        )  # 终端按钮
-        template = np.array(template)
-        if match_template(img, template, threshold=0.9):
-            return True
+        # 图片检测
+        pic_array = [
+            (f"template/TASK.png", 0.8, True),
+            (r"template/背包.png", 0.8, True),
+            (r"template/终端按钮.png", 0.8, True),
+        ]
+        for pic_path, threshold, need_resize in pic_array:
+            template = Image.open(os.path.join(root_path, pic_path))
+            template = np.array(template)
+            if match_template(img, template, threshold=threshold, need_resize=need_resize):
+                # logger(f"识别到: {pic_path}", "DEBUG")
+                return True
+            # else:
+            #     logger(f"没有识别到: {pic_path}", "WARN")
         time.sleep(0.3)
 
 
 def turn_to_search() -> int | None:
     x = None
-    time.sleep(
-        3
-    )  # 增加延时以及搜索次数以避免boss死亡连招未结束导致前几轮次搜索不生效(ArcS17)
     for i in range(5):
         if i == 0:
             control.activate()
             control.mouse_middle()  # 重置视角
             time.sleep(1)
         img = screenshot()
-        x = search_echoes(img)
+
+        x = search_echoes(img, conf_thres=get_confidence_by_boss_name())
+
+        dump_img(img, "_四方")
+
         if x is not None:
             break
-        if i == 4:  # 如果尝试了4次都未发现声骸，直接返回
+        if i == 4:  # 如果尝试了4次都未发现声骸
+            # 可能掉在正前方被人物挡住，前进一下再最后看一次
+            for i in range(4):
+                forward()
+                time.sleep(0.1)
+            control.tap("a")
+            control.tap("a")
+            time.sleep(0.3)
+            img = screenshot()
+            x = search_echoes(img, conf_thres=get_confidence_by_boss_name())
+            if x is not None:
+                break
             return
         logger("未发现声骸,转动视角")
         control.tap("a")
@@ -684,8 +700,14 @@ def turn_to_search() -> int | None:
 
 def absorption_action():
     info.needAbsorption = False
-    if config.CharacterHeal:
-        info.checkHeal = True
+    time.sleep(2)
+    if absorption_and_receive_rewards({}):
+        return
+
+    if info.lastBossName == "芙露德莉斯":
+        absorption_action_fleurdelys()
+        return
+
     x = turn_to_search()
     if x is None:
         return
@@ -699,31 +721,75 @@ def absorption_action():
         absorption_max_time = 20
     last_x = None
     while (
-        datetime.now() - start_time
+            datetime.now() - start_time
     ).seconds < absorption_max_time:  # 未超过最大吸收时间
         img = screenshot()
-        x = search_echoes(img)
+        x = search_echoes(img, conf_thres=get_confidence_by_boss_name())
         if x is None and last_x is None:
             continue
         if x is None:
             temp_x = turn_to_search()
             x = temp_x if temp_x else last_x  # 如果未发现声骸，使用上一次的x坐标
         last_x = x
+
+        dump_img(img)
+
+        default_echo_search_config = (20, 1, 1, 5)
+        echo_search_config_mapping = {
+            "角": (8, 4, 4, 7),
+            "梦魇辉萤军势": (10, 3, 3, 7),
+        }
+        search_conf = echo_search_config_mapping.get(info.lastBossName, default_echo_search_config)
+
         center_x = real_w // 2
-        floating = real_w // 20
+        floating = real_w // search_conf[0]
         if x < center_x - floating:
             logger("发现声骸 向左移动")
-            control.tap("a")
+            for i in range(search_conf[1]):
+                control.tap("a")
+                time.sleep(0.05)
         elif x > center_x + floating:
             logger("发现声骸 向右移动")
-            control.tap("d")
+            for i in range(search_conf[2]):
+                control.tap("d")
+                time.sleep(0.05)
         else:
             logger("发现声骸 向前移动")
-            for i in range(4):
+            for i in range(search_conf[3]):
                 forward()
-                time.sleep(0.1)
+                time.sleep(0.05)
+
+        time.sleep(0.5)
         if absorption_and_receive_rewards({}):
             break
+
+def absorption_action_fleurdelys():
+    run_param = [("w", 0.5), ("a", 0.4), ("s", 1.0), ("d", 0.8), ("w", 0.6)]
+    for i in range(len(run_param)):
+        key, sleep_time = run_param[i]
+        if i > 0:
+            control.tap(key, 0.05)
+            control.tap(key, 0.05)
+        forward_run(sleep_time, key)
+        time.sleep(0.7)
+        if find_text("吸收"):
+            absorption_and_receive_rewards({})
+            return
+
+
+def dump_img(img=None, end=""):
+    pass
+    # if img is None:
+    #     img = screenshot()
+    # tst = int(time.time())
+    # # 保存图片到目录内，方便开发者调试
+    # bossName = info.lastBossName
+    # dir_test = r"train_img_" + bossName + end
+    # if not os.path.exists(dir_test):
+    #     os.mkdir(dir_test)
+    # Image.fromarray(img).save(rf"{dir_test}\{bossName}_{tst}.png")
+    # time.sleep(1)
+    # logger("\n保存图片 " + str(tst))
 
 
 def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
@@ -734,7 +800,16 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
     """
     control.activate()
     count = 0
-    while find_text("吸收"):
+    absorb_try_more = 0
+    while True:
+        if not find_text("吸收"):
+            if absorb_try_more > 0:
+                break
+            else:
+                # 多搜一次，有时吸收前突然蹦出个蓝雨蝶，导致误判误吸
+                absorb_try_more += 1
+                time.sleep(0.1)
+                continue
         if count % 2:
             logger("向下滚动后尝试吸收")
             control.scroll(-1)
@@ -742,19 +817,21 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
         count += 1
         interactive()
         time.sleep(2)
-        if find_text("确认"):
+        if find_text(["确认", "收取物资"]):
             logger("点击到领取奖励，关闭页面")
             control.esc()
             time.sleep(2)
     if count == 0:
         return False
     logger("吸收声骸")
-    info.absorptionCount += 1
-    absorption_rate = (
-        info.absorptionCount/info.fightCount 
-        if info.absorptionCount/info.fightCount <= 1 
-        else 1
-    )
+    if info.fightCount is None or info.fightCount == 0:
+        info.fightCount = 1
+        info.absorptionCount = 1
+    elif info.fightCount < info.absorptionCount:
+        info.fightCount = info.absorptionCount
+    else:
+        info.absorptionCount += 1
+    absorption_rate = info.absorptionCount/info.fightCount
     logger(
         f"目前声骸吸收率为："
         + str(format(absorption_rate * 100, ".2f"))
@@ -764,106 +841,77 @@ def absorption_and_receive_rewards(positions: dict[str, Position]) -> bool:
     return True
 
 
-def transfer_to_heal(healBossName: str = "朔雷之鳞"):
-    """
-    如果需要治疗，传送到固定位置进行治疗。
-    """
-    coordinate = find_pic(template_name="残象探寻.png", threshold=0.5)
-    if not coordinate:
-        logger("识别残像探寻失败", "WARN")
+def transfer_to_heal():
+    control.activate()
+    control.tap("m")
+    time.sleep(2)
+    toggle_map = find_text("切换地图")
+    if not toggle_map:
         control.esc()
+        logger("未找到切换地图")
         return False
-    click_position(coordinate)  # 进入残像探寻
-    if not wait_text("探测"):
-        logger("未进入残象探寻", "WARN")
-        control.esc()
-        return False
-    findBoss = None
-    y = 133
-    while y < 907:
-        y = y + 30
-        if y > 907:
-            y = 907
-        findBoss = find_text(healBossName)
-        if findBoss:
-            break
-        # control.click(855 * width_ratio, y * height_ratio)
-        random_click(855, y)
-        time.sleep(0.3)
-    if not findBoss:
-        control.esc()
-        logger("治疗_未找到神像附近点位BOSS(朔雷之鳞)", "WARN")
-        return False
-    click_position(findBoss.position)
-    click_position(findBoss.position)
-    time.sleep(1)
-    # control.click(1700 * width_ratio, 980 * height_ratio)
-    random_click(1700, 980)
-    if not wait_text("追踪"):
-        logger("治疗_未找到追踪", "WARN")
-        control.esc()
-        return False
-    # 首次进行治疗时先进行地图缩放 From Rin
-    region = set_region(1625, 895, 1885, 1050)
-    if info.healCount == 0: 
-        i = 0
-        while not wait_text_designated_area("自定义标记", region=region):
-            random_click(960, 300)
+    try:
+        tmp_x = int((toggle_map.position.x1 + toggle_map.position.x2) // 2)
+        tmp_y = int((toggle_map.position.y1 + toggle_map.position.y2) // 2)
+        random_click(tmp_x, tmp_y, ratio=False)
+        huanglong_text = wait_text("瑝?珑")
+        click_position(huanglong_text.position)
+        time.sleep(0.5)
+        click_position(huanglong_text.position)
+        time.sleep(1.5)
+        if jzc_text := wait_text("今州城"):
+            click_position(jzc_text.position)
             time.sleep(0.5)
-            i += 1
-            if i > 3:
-                for _ in range(2):
-                    control.esc()
-                    time.sleep(0.5)
-                logger("地图缩放时出现问题，退出地图界面", "DEBUG")
-                return
-        for _ in range(5):
-            control.scroll(3, 960 * width_ratio, 540 * height_ratio)
-            time.sleep(0.2)
-            logger("正在对地图进行缩放","DEBUG")
-        time.sleep(0.5)  
-    # control.click(1210 * width_ratio, 525 * height_ratio)
-    random_click(1210, 525)
-    if transfer := wait_text("快速旅行"):
-        click_position(transfer.position)
-        logger("治疗_等待传送完成")
-        time.sleep(3)
-        wait_home()  # 等待回到主界面
-        logger("治疗_传送完成")
-        now = datetime.now()
-        info.idleTime = now  # 重置空闲时间
-        info.lastFightTime = now  # 重置最近检测到战斗时间
-        info.fightTime = now  # 重置战斗时间
-        info.needHeal = False
-        info.healCount += 1
-        return True
-    control.esc()
+            click_position(jzc_text.position)
+            time.sleep(1.5)
+            jzcj_text = wait_text("今州城界")
+            tmp_x = jzcj_text.position.x1 - 5
+            tmp_y = jzcj_text.position.y1 - 40
+            random_click(tmp_x, tmp_y, ratio=False)
+            time.sleep(2)
+            if transfer := wait_text("快速旅行"):
+                click_position(transfer.position)
+                time.sleep(0.1)
+                click_position(transfer.position)
+                logger("治疗_等待传送完成")
+                time.sleep(3)
+                wait_home()  # 等待回到主界面
+                logger("治疗_传送完成")
+                now = datetime.now()
+                info.idleTime = now  # 重置空闲时间
+                info.lastFightTime = now  # 重置最近检测到战斗时间
+                info.fightTime = now  # 重置战斗时间
+                info.needHeal = False
+                info.healCount += 1
+                return True
+    except Exception as e:
+        error_message = traceback.format_exc()
+        logger(f"前往复活点过程中出现异常: {error_message}", "ERROR")
+        control.activate()
+        for i in range(3):
+            time.sleep(2.5)
+            toggle_map = find_text("切换地图")
+            if toggle_map:
+                control.esc()
+                continue
+            else:
+                break
     return False
 
-
 def check_heal():
-    if info.checkHeal:
-        logger(f"正在检查角色是否需要复苏。")
-        for i in range(3):
-            if info.needHeal:
-                break
-            now = datetime.now()
-            info.lastSelectRoleTime = now
-            info.roleIndex += 1
-            if info.roleIndex > 3:
-                info.roleIndex = 1
-            control.tap(str(info.roleIndex))
-            region = set_region(325, 190, 690, 330)
-            if not wait_text_designated_area("复苏", timeout=3, region=region):
-                logger(f"{info.roleIndex}号角色无需复苏")
-                info.needHeal = False
-                time.sleep(1)
-            else:
-                logger(f"{info.roleIndex}号角色需要复苏")
-                info.needHeal = True
-                control.esc()
-        info.checkHeal = False
-
+    info.isCheckedHeal = True
+    # logger(f"info.roleIndex: {info.roleIndex}")
+    for i in range(3):
+        role_index = (info.roleIndex + i) % 3
+        # logger(f"role_index: {role_index}")
+        control.tap(str(role_index + 1))
+        time.sleep(0.5)
+    region = set_region(325, 190, 690, 330)
+    if wait_text_designated_area("复苏", timeout=2, region=region):
+        # logger(f"检测到角色需要复苏")
+        info.needHeal = True
+        control.esc()
+        time.sleep(1.2)
 
 def wait_text_designated_area(
     targets: str | list[str],
@@ -1006,8 +1054,8 @@ def random_click(
         # 将浮点数坐标转换为整数像素坐标
         if ratio:
             # 需要缩放
-            random_x = int(random_x) * width_ratio
-            random_y = int(random_y) * height_ratio
+            random_x = int(random_x * width_ratio)
+            random_y = int(random_y * height_ratio)
         else:
             # 不需要缩放
             random_x = int(random_x)
@@ -1028,37 +1076,37 @@ def boss_wait(bossName):
 
     :param bossName: boss名称
     """
-    bossName = bossName.lower()  # 将bossName转换为小写
     info.resetRole = True
 
-    keywords_turtle = ["鸣", "钟", "之", "龟"]
-    keywords_robot = ["聚", "械", "机", "偶"]
-    keywords_dreamless = ["无", "妄", "者"]
-    keywords_jue = ["角"]
-
-    def contains_any_combinations(
-        name, keywords, min_chars
-    ):  # 为了防止BOSS名重复，添加了最小匹配关键字数
-        for r in range(min_chars, len(keywords) + 1):
-            for comb in itertools.combinations(keywords, r):
-                if all(word in name for word in comb):
-                    return True
-        return False
-
-    if contains_any_combinations(bossName, keywords_turtle, min_chars=2):
-        logger("龟龟需要等待16秒开始战斗！", "DEBUG")
-        time.sleep(16)
-    elif contains_any_combinations(bossName, keywords_robot, min_chars=2):
-        logger("机器人需要等待7秒开始战斗！", "DEBUG")
-        time.sleep(7)
-    elif contains_any_combinations(bossName, keywords_dreamless, min_chars=3):
-        logger(f"无妄者需要等待{config.BossWaitTime_Dreamless}秒开始战斗！", "DEBUG")
-        time.sleep(config.BossWaitTime_Dreamless)
-    elif contains_any_combinations(bossName, keywords_jue, min_chars=1):
-        logger(f"角需要等待{config.BossWaitTime_Jue}秒开始战斗！", "DEBUG")
-        time.sleep(config.BossWaitTime_Jue)
-    else:
-        logger("当前BOSS可直接开始战斗！", "DEBUG")
+    match bossName:
+        case "鸣钟之龟":
+            logger("龟龟需要等待16秒开始战斗！", "DEBUG")
+            time.sleep(16)
+        case "聚械机偶":
+            logger("聚械机偶需要等待7秒开始战斗！", "DEBUG")
+            time.sleep(7)
+        case "无妄者":
+            logger(f"无妄者需要等待{config.BossWaitTime_Dreamless}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_Dreamless)
+        case "角":
+            logger(f"角需要等待{config.BossWaitTime_Jue}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_Jue)
+        case "无归的谬误":
+            logger(f"无归的谬误需要等待{config.BossWaitTime_fallacy}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_fallacy)
+        case "异构武装":
+            logger(f"异构武装需要等待{config.BossWaitTime_sentry_construct}秒开始战斗！", "DEBUG")
+            time.sleep(config.BossWaitTime_sentry_construct)
+        case "梦魇朔雷之鳞":
+            control.dodge()
+        case "赫卡忒":
+            time.sleep(0.3)
+            forward_run(2.1)
+        case "芙露德莉斯":
+            time.sleep(0.3)
+            forward_run(2.1)
+        case _:
+            pass
 
     info.waitBoss = False
 
@@ -1131,11 +1179,12 @@ def echo_bag_lock():
             "WARN",
         )
         time.sleep(3)
-        # 切换到时间顺序(倒序)
+        control.activate()
         logger("切换为时间倒序")
-        random_click(400, 990)  # 调整点击位置以适配窗口模式下的1920*1080分辨率(ArcS17)
-        time.sleep(1)
-        random_click(400, 860)
+        random_click(430, 984)
+        time.sleep(2)
+        text_sort_time = find_text("获得时间顺序")
+        click_position(text_sort_time.position)
         time.sleep(0.5)
         random_click(718, 23)
         time.sleep(0.5)
@@ -1193,42 +1242,61 @@ def echo_bag_lock():
         return False
 
     # 识别声骸Cost
-    this_echo_cost = None
-    # 先检测cost 4
-    if find_pic(
-        1690, 200, 1830, 240, f"COST4{info.adaptsResolution}.png", 0.98, img, False
-    ):
-        this_echo_cost = "4"
-    elif find_pic(
-        1690, 200, 1830, 240, f"COST1{info.adaptsResolution}.png", 0.98, img, False
-    ):
-        this_echo_cost = "1"
-    elif find_pic(
-        1690, 200, 1830, 240, f"COST3{info.adaptsResolution}.png", 0.98, img, False
-    ):
-        this_echo_cost = "3"
-
+    cost_position = Position(
+        x1=int(real_w * 0.93229),
+        y1=int(real_h * 0.193518),
+        x2=int(real_w * 0.948958),
+        y2=int(real_h * 0.218518)
+    )
+    ocr_result = find_text(["1", "2", "3", "4"], cost_position, True)
+    this_echo_cost = None if ocr_result is None else ocr_result.text
     if this_echo_cost is None:
         logger("未能识别到Cost", "ERROR")
         return False
     if config.EchoDebugMode:
         logger(f"当前声骸Cost为{this_echo_cost}", "DEBUG")
 
-    this_echo_cost_key = this_echo_cost + "COST"
+    # 识别声骸名称 850  65      1120   127
+    echo_name_position = Position(
+        x1=int(real_w * 0.664),
+        y1=int(real_h * 0.09),
+        x2=int(real_w * 0.875),
+        y2=int(real_h * 0.1763889)
+    )
+    echo_name_ocr_result = find_text([".*"], echo_name_position, True)
+    this_echo_name_temp = None if echo_name_ocr_result is None else echo_name_ocr_result.text
+    if this_echo_name_temp is None:
+        logger("未能识别到声骸名称", "ERROR")
+        return False
+    this_echo_name = this_echo_name_temp
+    boss_name_reg_mapping = [
+        ("^哀声鸷?", "哀声鸷"),
+        ("^赫卡忒?", "赫卡忒"),
+        ("^梦.*飞廉之猩", "梦魇飞廉之猩"),
+        ("^梦.*无常凶鹭", "梦魇无常凶鹭"),
+        ("^梦.*云闪之鳞", "梦魇云闪之鳞"),
+        ("^梦.*朔雷之鳞", "梦魇朔雷之鳞"),
+        ("^梦.*无冠者", "梦魇无冠者"),
+        ("^梦.*燎照之骑", "梦魇燎照之骑"),
+        ("^梦.*哀声鸷?", "梦魇哀声鸷"),
+        ("^梦.*辉萤军势?", "梦魇辉萤军势"),
+        ("^共鸣回响.*芙露德莉?斯", "芙露德莉斯"),
+        ("^梦.*凯尔匹", "梦魇凯尔匹"),
+    ]
+    # 生僻字识别不准，用正则定位真正的名称
+    for boss_name_reg, real_boss_name in boss_name_reg_mapping:
+        if re.match(boss_name_reg, this_echo_name_temp):
+            #logger(f"输入: {this_echo_name_temp} 匹配: {boss_name_reg} 成功: {real_boss_name}", "DEBUG")
+            this_echo_name = real_boss_name
+            break
+    # if this_echo_cost == "4" and this_echo_name not in cost4_name_array:
+    #     logger(f"识别到的声骸名称有错字: {this_echo_name}", "ERROR")
+    #     return False
+    if config.EchoDebugMode:
+        logger(f"当前声骸名称为: {this_echo_name}", "DEBUG")
 
-    # 当配置文件每个套装的这个cost值需要的词条一条也没写，即都不需要，直接跳过，不检测主词条
-    this_echo_cost_not_in_echo_config = True
-    for cost_config_dict in config.EchoLockConfig.values():
-        this_echo_cost_not_in_echo_config &= (
-            len(cost_config_dict.get(this_echo_cost_key)) == 0
-        )
-    if this_echo_cost_not_in_echo_config:
-        if config.EchoDebugMode:
-            logger(f"[Cost {this_echo_cost}]声骸都不需要，下一个", "DEBUG")
-        echo_next_row(info.echoNumber)
-        # 等一会，防止太快来不及挪到下一个
-        time.sleep(0.3)
-        return True
+    this_echo_cost_key = this_echo_cost + "COST"
+    this_echo_name_key = this_echo_cost + "COST_ECHO"
 
     # 识别声骸主词条属性
     if this_echo_cost == "4":  # 4COST描述太长，可能将副词条识别为主词条
@@ -1246,12 +1314,12 @@ def echo_bag_lock():
             )
             is None
         ):
-            for i in range(18):
+            for i in range(16):
                 control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
-                time.sleep(0.02)
+                time.sleep(0.05)
             time.sleep(0.8)
             random_click(1510, 690)
-    region = set_region(1425, 425, 1620, 470)
+    region = set_region(1366, 425, 1620, 470)
     cost_mapping = {
         "1": (echo.echoCost1MainStatus, 1),
         "3": (echo.echoCost3MainStatus, 1),
@@ -1294,36 +1362,12 @@ def echo_bag_lock():
         logger(f"声骸主词条识别错误", "ERROR")
         return False
 
-    # 每个套装都不需要这个cost对应的主属性，直接跳过，不检测套装属性
-    echo_main_is_not_exist_in_all_set = True
-    # 每个套装都需要这个cost对应的主属性，直接锁定，不检测套装属性
-    echo_main_is_exist_in_all_set = True
-    for cost_config_dict in config.EchoLockConfig.values():
-        echo_main_is_not_exist_in_all_set &= (
-            this_echo_main_status not in cost_config_dict.get(this_echo_cost_key)
-        )
-        echo_main_is_exist_in_all_set &= this_echo_main_status in cost_config_dict.get(
-            this_echo_cost_key
-        )
-    if echo_main_is_not_exist_in_all_set:
-        if config.EchoDebugMode:
-            logger(f"主属性[{str(this_echo_main_status)}]都不需要，下一个", "DEBUG")
-        echo_next_row(info.echoNumber)
-        return True
-    if echo_main_is_exist_in_all_set:
-        if config.EchoDebugMode:
-            logger(f"主属性[{str(this_echo_main_status)}]都需要，直接锁定", "DEBUG")
-        info.inSpecEchoQuantity += 1
-        click_position(coordinate_unlock)
-        time.sleep(0.5)
-        echo_next_row(info.echoNumber)
-        return True
-
     # 识别声骸套装属性
     region = set_region(1295, 430, 1850, 930)
-    text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+    text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
     this_echo_set = wait_text_result_search(text_result)
     this_echo_set = remove_non_chinese(this_echo_set)
+    this_echo_set = echo_set_typos_match(this_echo_set, echo)
     if this_echo_set:
         if config.EchoDebugMode:
             logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
@@ -1331,14 +1375,15 @@ def echo_bag_lock():
     else:
         random_click(1510, 690)
         time.sleep(0.02)
-        for i in range(18):
+        for i in range(16):
             control.scroll(-1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.02)
+            time.sleep(0.05)
         time.sleep(0.8)
         random_click(1510, 690)
-        text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+        text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
         this_echo_set = wait_text_result_search(text_result)
         this_echo_set = remove_non_chinese(this_echo_set)
+        this_echo_set = echo_set_typos_match(this_echo_set, echo)
         if this_echo_set:
             if config.EchoDebugMode:
                 logger(f"当前声骸为套装为：{this_echo_set}", "DEBUG")
@@ -1346,9 +1391,9 @@ def echo_bag_lock():
         # 上滚恢复到主词条页面
         random_click(1510, 690)
         time.sleep(0.02)
-        for i in range(18):
+        for i in range(16):
             control.scroll(1, 1510 * width_ratio, 690 * height_ratio)
-            time.sleep(0.02)
+            time.sleep(0.05)
         time.sleep(0.8)
         random_click(1510, 690)
 
@@ -1366,7 +1411,7 @@ def echo_bag_lock():
     )
     # 锁定声骸，输出声骸信息
     if is_echo_main_status_valid(
-        this_echo_set, this_echo_cost_key, this_echo_main_status, config.EchoLockConfig
+        this_echo_set, this_echo_cost_key, this_echo_main_status, config.EchoLockConfig, this_echo_name, this_echo_name_key
     ):
         if this_echo_lock is True:
             if config.EchoDebugMode:
@@ -1473,41 +1518,14 @@ def echo_synthesis():
     is_synthesis_debug = False  # Debug打印开关
 
     def check_echo_cost():
-        this_synthesis_echo_cost = None
-        cost_img = screenshot()
-        if find_pic(
-            1090,
-            210,
-            1240,
-            295,
-            f"合成_COST1{info.adaptsResolution}.png",
-            0.98,
-            cost_img,
-            False,
-        ):
-            this_synthesis_echo_cost = "1"
-        if find_pic(
-            1075,
-            195,
-            1240,
-            295,
-            f"合成_COST3{info.adaptsResolution}.png",
-            0.98,
-            cost_img,
-            False,
-        ):
-            this_synthesis_echo_cost = "3"
-        if find_pic(
-            1075,
-            195,
-            1240,
-            295,
-            f"合成_COST4{info.adaptsResolution}.png",
-            0.98,
-            cost_img,
-            False,
-        ):
-            this_synthesis_echo_cost = "4"
+        cost_position = Position(
+            x1=int(real_w * 0.6172),
+            y1=int(real_h * 0.2037),
+            x2=int(real_w * 0.6375),
+            y2=int(real_h * 0.2287)
+        )
+        ocr_result = find_text(["1", "2", "3", "4"], cost_position, True)
+        this_synthesis_echo_cost = None if ocr_result is None else ocr_result.text
         if this_synthesis_echo_cost is None:
             logger("未能识别到Cost", "ERROR")
             raise Exception(
@@ -1534,12 +1552,12 @@ def echo_synthesis():
                 )
                 is None
             ):
-                for i in range(18):
+                for i in range(16):
                     control.scroll(1, 1000 * width_ratio, 685 * height_ratio)
-                    time.sleep(0.02)
+                    time.sleep(0.05)
                 time.sleep(0.8)
                 random_click(1000, 685)
-        region = set_region(830, 440, 1250, 485)
+        region = set_region(768, 440, 1050, 485)
         cost_mapping = {
             "1": (echo.echoCost1MainStatus, 1),
             "3": (echo.echoCost3MainStatus, 1),
@@ -1585,9 +1603,9 @@ def echo_synthesis():
         else:
             random_click(1000, 685)
             time.sleep(0.02)
-            for i in range(18):
+            for i in range(16):
                 control.scroll(1, 1000 * width_ratio, 685 * height_ratio)
-                time.sleep(0.02)
+                time.sleep(0.05)
             time.sleep(0.8)
             random_click(1000, 685)
             if this_synthesis_echo_cost in cost_mapping:
@@ -1617,9 +1635,10 @@ def echo_synthesis():
     def check_echo_set():
         # 识别声骸套装属性
         region = set_region(690, 685, 1250, 945)
-        text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+        text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
         this_synthesis_echo_set = wait_text_result_search(text_result)
         this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
+        this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set, echo)
         if this_synthesis_echo_set:
             if config.EchoSynthesisDebugMode:
                 logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
@@ -1627,14 +1646,15 @@ def echo_synthesis():
         else:
             random_click(1000, 685)
             time.sleep(0.02)
-            for i in range(18):
+            for i in range(16):
                 control.scroll(-1, 1000 * width_ratio, 685 * height_ratio)
-                time.sleep(0.02)
+                time.sleep(0.05)
             time.sleep(0.8)
             random_click(1000, 685)
-            text_result = wait_text_designated_area(echo.echoSetName, 2, region, 5)
+            text_result = wait_text_designated_area(echo.echoSetNameReg, 2, region, 5)
             this_synthesis_echo_set = wait_text_result_search(text_result)
             this_synthesis_echo_set = remove_non_chinese(this_synthesis_echo_set)
+            this_synthesis_echo_set = echo_set_typos_match(this_synthesis_echo_set, echo)
             if this_synthesis_echo_set:
                 if config.EchoSynthesisDebugMode:
                     logger(f"当前声骸为套装为：{this_synthesis_echo_set}", "DEBUG")
@@ -1698,7 +1718,7 @@ def echo_synthesis():
                 control.click(click_x * width_ratio, click_y * height_ratio)
                 time.sleep(0.2)
                 control.click(click_x * width_ratio, click_y * height_ratio)
-                time.sleep(1.5)
+                time.sleep(2)
                 this_echo_cost = check_echo_cost()
                 this_echo_main_status = check_echo_main_status(this_echo_cost)
                 this_echo_set = check_echo_set()
@@ -1816,12 +1836,19 @@ def wait_text_result_search(text_result):
 
 
 def is_echo_main_status_valid(
-    this_echo_set, this_echo_cost, this_echo_main_status, echo_lock_config
+    this_echo_set, this_echo_cost, this_echo_main_status, echo_lock_config, this_echo_name=None, this_echo_name_key=None
 ):
     if this_echo_set in echo_lock_config:
-        if this_echo_cost in echo_lock_config[this_echo_set]:
+        echo_set_config = echo_lock_config[this_echo_set]
+        final_echo_config = echo_set_config[this_echo_cost]
+        if this_echo_cost in echo_set_config:
+            if this_echo_name and this_echo_name_key:
+                this_echo_config = echo_set_config.get(this_echo_name_key, {}).get(this_echo_name)
+                if this_echo_config is not None:
+                    final_echo_config = this_echo_config
+                    # logger(f"{this_echo_name}使用自定义配置", "DEBUG")
             return (
-                this_echo_main_status in echo_lock_config[this_echo_set][this_echo_cost]
+                    this_echo_main_status in final_echo_config
             )
     return False
 
@@ -1960,7 +1987,7 @@ def anti_stuck_monitor(img, anti_stuck_list: list, last_timestamp: int) -> int |
 def ue4_client_crash_monitor(last_timestamp: int) -> int | None:
     now_timestamp = int(time.time())
     # 隔一段时间(秒)收集一次
-    if now_timestamp - last_timestamp < 60:
+    if now_timestamp - last_timestamp < 20:
         return None
     ue4_client_crash_hwnd = hwnd_util.get_ue4_client_crash_hwnd()
     if ue4_client_crash_hwnd is None:
@@ -1969,11 +1996,21 @@ def ue4_client_crash_monitor(last_timestamp: int) -> int | None:
     logger("监测到UE4-Client Game已崩溃，关闭游戏", "WARN")
     try:
         win32gui.SendMessage(ue4_client_crash_hwnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(1)
-        win32gui.SendMessage(hwnd, win32con.WM_CLOSE, 0, 0)
-        time.sleep(1)
     except Exception as e:
-        logger(f"关闭窗口时发生异常: {e}", "ERROR")
+        logger(f"关闭ue4崩溃窗口时发生异常: {e}", "ERROR")
+        time.sleep(1)
+        try:
+            ue4_client_crash_hwnd = hwnd_util.get_ue4_client_crash_hwnd()
+            if ue4_client_crash_hwnd:
+                hwnd_util.force_close_process(ue4_client_crash_hwnd)
+        except Exception as e:
+            logger(f"强制关闭ue4崩溃窗口时发生异常: {e}", "ERROR")
+    time.sleep(1)
+    try:
+        hwnd_util.force_close_process(hwnd_util.get_mc_hwnd())
+    except Exception as e:
+        logger(f"关闭游戏窗口时发生异常: {e}", "ERROR")
+    time.sleep(1)
     return now_timestamp
 
 
@@ -1989,111 +2026,134 @@ def close_window(class_name: str = "UnrealWindow", window_title: str = "鸣潮  
             return True
     return False
 
-# 声骇得分计算
-def role_equip_points():
 
-    if not config.EnhancedComputing:
-        logger("未启用该功能，请在config.yaml中更改EnhancedComputing配置", "WARN")
+def synthesis_data_bank_action():
+    click_position(
+        Position(
+            x1=int(real_w * 0.015625),
+            y1=int(real_h * 0.51852),
+            x2=int(real_w * 0.0625),
+            y2=int(real_h * 0.58333)
+        )
+    )
+    return True
+
+
+def echo_bag_lock_open_bag_action():
+    adapts()
+    control.activate()
+    time.sleep(0.3)
+    control.tap("b")
+    time.sleep(3)
+    coordinate = find_pic(
+        0,
+        0,
+        int(real_w * 0.11),
+        int(real_h),
+        f"BAG_ECHO{info.adaptsResolution}.png",
+        0.5,
+        need_resize=False,
+    )
+    if coordinate:
+        click_position(coordinate)
+        return True
+    random_click(83, 332)
+    time.sleep(1.5)
+    if find_text("声骸?") and find_text(["获得时间顺序", "等级顺序", "品质顺序", "调谐?状态顺序", "已弃置优先"]):
+        return True
+    else:
+        logger("请在背包声骸页或大世界执行", "WARN")
         return False
 
-    logger("默认按正常比例适配计算，如需计算特殊角色，请前往配置文件中配置", "WARN")
-    logger("计算需要在角色声骇详情页面进行，请确保前往顺序为 按下C -> 属性详情 -> 声骇 -> 点击右侧声骇 即可。请确保处于该页面，否则可能识别失败。","WARN")
+
+def need_retry():
+    return len(config.TargetBoss) == 1 and config.TargetBoss[0] in ["无妄者", "角", "赫卡忒", "芙露德莉斯"]
+
+
+def lorelei_clock_adjust():
+    time.sleep(2)
+    control.activate()
+    find_sit_and_wait_text = find_text(["坐上椅子等待", "坐上椅子", "的到来"])
+    if not find_sit_and_wait_text:
+        return
+    logger("罗蕾莱不在家，等她", "info")
+    control.esc()
+    time.sleep(2)
+    if not wait_text("^终端$", timeout=5):
+        control.esc()
+        return
+    random_click(1374, 1038)
+    time.sleep(2)
+    tomorrow = wait_text("^次日$", timeout=5)
+    if not tomorrow:
+        logger("未找到次日", "WARN")
+        control.esc()
+        return
+    click_position(tomorrow.position)
     time.sleep(1)
 
-    logger("目前支持特殊计算角色：\n - 今汐\n - 忌炎  ")
-    role_name = config.ComputeRoleName
-    max_attempts = 10
-    retry_interval = 5
+    random_click(1770, 550)
+    time.sleep(0.3)
+    random_click(1770, 550)
+    time.sleep(0.3)
+    random_click(1770, 550)
+    time.sleep(0.3)
 
-    logger("共进行{}次尝试，每隔{}秒进行一次识别，请在一次识别后手动选择另一个声骇".format(max_attempts, retry_interval), "DEBUG")
-    grade  = 0
-    compute_static = config.ComputeTactic
-    if len(compute_static) < 4:
-        logger("声骇计算配置错误，请检查配置文件", "ERROR")
 
-    for attempt in range(max_attempts):
-        img = screenshot()
-        if img is None:
-            time.sleep(0.2)
-            continue
+    confirm_text = find_text("确定")
+    click_position(confirm_text.position)
+    time.sleep(2)
+    wait_text("时间", timeout=10)
+    time.sleep(1)
+    control.esc()
+    wait_text("^终端$", timeout=5)
+    time.sleep(1)
+    control.esc()
+    time.sleep(0.5)
 
-        img_entry = img[205:320, 965:1220]
-        img_pil2 = img[100:160, 930:1000]
+def echo_set_typos_match(this_echo_set, echo_set_meta):
+    if not isinstance(this_echo_set, str):
+        return this_echo_set
+    if re.match("^幽夜隐匿?之.+", this_echo_set):
+        this_echo_set = "幽夜隐匿之帷"
+    if this_echo_set not in echo_set_meta.echoSetName:
+        raise Exception(f"程序识别到未知声骸套装\"{this_echo_set}\", 请及时告知开发者")
+    return this_echo_set
 
-        result = ocr(img_pil2)
+def forward_run(forward_run_seconds: float, key: str = "w"):
+    control.key_press(key)
+    time.sleep(0.1)
+    control.key_press(win32con.VK_LSHIFT)
+    if forward_run_seconds > 1.3:
+        time.sleep(1.3)
+        control.key_release(win32con.VK_LSHIFT)
+        time.sleep(forward_run_seconds - 1)
+    else:
+        time.sleep(forward_run_seconds)
+    control.key_release(win32con.VK_LSHIFT)
+    control.key_release(key)
+    time.sleep(0.1)
+    control.key_release(win32con.VK_LSHIFT)
+    control.key_release(key)
 
-        up = 0
-        for item in result:
-            if "+" in item.text:
-                try:
-                    up = int(item.text.split("+")[1])
-                except ValueError:
-                    up = -1
-                break
-            else:
-                up = -1
-        if up == -1:
-            logger("声骸等级识别失败，请检查识别内容", "WARN")
-            print(f"{result}")
-            return False
+def forward_walk(forward_walk_times: int, sleep_seconds: float=None):
+    for _ in range(forward_walk_times):
+        forward()
+        time.sleep(0.05 if sleep_seconds is None else sleep_seconds)
 
-        result = ocr(img_entry)
-
-        if not result and up > 5 :
-            for _ in range(3):
-                logger("声骸识别失败，尝试重新识别", "WARN")
-                result = ocr(img_entry)
-                if result:
-                    break
-
-            if not result:
-                print(f"{result}")
-                print(f"{up}")
-                logger(f"声骸识别失败，请检查识别内容{up},{result}", "WARN")
-                return False
-        if up < 10:
-            result = result[:2]
-            grade = 0
-        elif up < 15:
-            result = result[:4]
-            grade = 1
-        elif up < 20:
-            result = result[:6]
-            grade = 2
-        elif up < 25:
-            result = result[:8]
-            grade = 3
-        elif up == 25:
-            result = result[:10]
-            grade = -1
-
-        paired_results = []
-        for i in range(0, len(result), 2):
-            if i + 1 < len(result):
-                if "骸" in result[i].text:
-                    break  # 检测到“骸”字，结束循环
-                if "攻击" in result[i].text and "%" in result[i+1].text:
-                    paired_results.append(("大" + result[i].text, result[i+1].text))
-                else:
-                    paired_results.append((result[i].text, result[i+1].text))
-        if not paired_results and up < 5:
-            logger("当前声骸等级{up}，声骇等级过低，无法计算，请重新选择", "WARN")
-            time.sleep(retry_interval)
-            continue
-
-        print("\n---------------------------------------------------------- \n")
-        total_weight, adjusted_total_weight, max_total_weight, max_adjusted_total_weight  = calculate_total_weight(paired_results, role_name)
-        print(f"当前计分模型中，伤害型角色通用最高分为228.2,特殊伤害加成提升最高分为251.4,可自行参考比对")
-        if adjusted_total_weight is not None:
-            print(f"当前声骸等级{up},角色{role_name}本套声骇上限最高分为：{max_adjusted_total_weight}，角色{role_name}计算得分为：{adjusted_total_weight}")
-        else:
-            print(f"当前声骸等级{up},本套声骇上限最高分为：{max_total_weight}，计算得分为：{total_weight}")
-        if grade != -1:
-            if role_name == "默认" or adjusted_total_weight is None:
-                print(f"当前声骇等级{up}，计算得分为：{total_weight}, 期望分为：{compute_static[grade]}，请自行确认比较")
-            else :
-                print(f"当前声骇等级{up}，计算得分为：{max_adjusted_total_weight}, 期望分为：{compute_static[grade]}，请自行确认比较")
-        print("\n----------------------------------------------------------- \n")
-        time.sleep(retry_interval)
-
-    return False
+def get_confidence_by_boss_name():
+    confidence_v10 = 0.5
+    confidence_v20 = 0.75
+    boss_name = info.lastBossName
+    if not boss_name:
+        return confidence_v10
+    if boss_name in ["梦魇辉萤军势", "梦魇凯尔匹", "荣耀狮像"]:
+        return 0.7 # TODO 未训练新模型，调低一点点
+    if boss_name in [
+        "无妄者", "角",
+        "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭", "梦魇云闪之鳞",
+        "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷",
+        "梦魇辉萤军势", "芙露德莉斯",
+        ]:
+        return confidence_v20
+    return confidence_v10

@@ -5,6 +5,7 @@
 @time: 2024/6/5 下午1:46
 @author SuperLazyDog
 """
+import time
 
 from status import Status
 from schema import ConditionalAction
@@ -18,11 +19,14 @@ def judgment_absorption_action():
         absorption_action()
     else:
         forward()
+    if config.CharacterHeal and not info.isCheckedHeal:
+        check_heal()
     return True
 
 
-# 战斗完成 吸收
+# 战斗完成 等待搜索声骸 吸收
 def judgment_absorption() -> bool:
+    time.sleep(0.1)
     return (
             config.MaxIdleTime / 2
             < (datetime.now() - info.lastFightTime).seconds
@@ -39,9 +43,10 @@ conditional_actions.append(judgment_absorption_condition_action)
 
 # 超过最大空闲时间
 def judgment_idle() -> bool:
+    time.sleep(0.1)
     return (
             datetime.now() - info.lastFightTime
-    ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue
+    ).seconds > config.MaxIdleTime and not info.inDreamless and not info.inJue and not info.inHecate
 
 
 def judgment_idle_action() -> bool:
@@ -59,9 +64,10 @@ conditional_actions.append(judgment_idle_conditional_action)
 
 # 超过最大战斗时间
 def judgment_fight() -> bool:
+    time.sleep(0.1)
     return (
             datetime.now() - info.fightTime
-    ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue
+    ).seconds > config.MaxFightTime and not info.inDreamless and not info.inJue and not info.inHecate
 
 
 def judgment_fight_action() -> bool:
@@ -80,9 +86,10 @@ conditional_actions.append(judgment_fight_conditional_action)
 
 
 def judgment_leave() -> bool:
+    time.sleep(0.1)
     return (
             datetime.now() - info.lastFightTime
-    ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue)
+    ).seconds > config.MaxIdleTime and (info.inDreamless or info.inJue or info.inHecate)
 
 
 def judgment_leave_action() -> bool:
@@ -91,6 +98,8 @@ def judgment_leave_action() -> bool:
         absorption_action()
     else:
         absorption_and_receive_rewards({})
+    if config.CharacterHeal and not info.isCheckedHeal:
+        check_heal()
     control.esc()
     time.sleep(1)
     info.lastFightTime = datetime.now()

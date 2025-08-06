@@ -37,11 +37,23 @@ enter_page_dreamless = Page(
             name="无冠者之像",
             text="无冠者之像",
         ),
+        TextMatch(
+            name="心脏",
+            text="心脏",
+        ),
+        TextMatch(
+            name="进入",
+            text="进入",
+        ),
     ],
     excludeTexts=[
         TextMatch(
             name="确认",
             text="确认",
+        ),
+        TextMatch(
+            name="快速旅行",
+            text="快速旅行",
         ),
     ],
     action=enter_action_dreamless,
@@ -83,6 +95,45 @@ enter_page_jue = Page(
 pages.append(enter_page_jue)
 
 
+def enter_action_hecate(positions: dict[str, Position]) -> bool:
+    """
+    进入
+    :param positions: 位置信息
+    :return:
+    """
+    interactive()
+    info.inHecate = True
+    # TODO 启动时就站在声之领域门口，无法区分是打哪个boss
+    if not info.lastBossName:
+        if "芙露德莉斯" in config.TargetBoss:
+            info.lastBossName = "芙露德莉斯"
+        elif "赫卡忒" in config.TargetBoss:
+            info.lastBossName = "赫卡忒"
+        else:
+            info.lastBossName = "赫卡忒"
+    return True
+
+
+enter_page_hecate = Page(
+    name="声之领域",
+    targetTexts=[
+        TextMatch(
+            name="声之领域",
+            text="进入声之领域",
+        ),
+    ],
+    excludeTexts=[
+        TextMatch(
+            name="确认",
+            text="确认",
+        ),
+    ],
+    action=enter_action_hecate,
+)
+
+pages.append(enter_page_hecate)
+
+
 # 推荐等级
 def recommended_level_action(positions: dict[str, Position]) -> bool:
     """
@@ -92,21 +143,14 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     """
     interactive()
     if info.DungeonWeeklyBossLevel != 0:
-        dungeon_weekly_boss_level = (
-            info.DungeonWeeklyBossLevel
-        )  # 如果已有自动搜索结果，那么直接使用自动搜索的结果值
+        dungeon_weekly_boss_level = info.DungeonWeeklyBossLevel  # 如果已有自动搜索结果，那么直接使用自动搜索的结果值
     elif (
         config.DungeonWeeklyBossLevel is None
         or config.DungeonWeeklyBossLevel < 40
-        or config.DungeonWeeklyBossLevel % 10 != 0
-    ):
-        dungeon_weekly_boss_level = (
-            40  # 如果没有自动搜索的结果，且没有Config值或为值异常，则从40开始判断
-        )
+        or config.DungeonWeeklyBossLevel % 10 != 0):
+        dungeon_weekly_boss_level = 40  # 如果没有自动搜索的结果，且没有Config值或为值异常，则从40开始判断
     else:
-        dungeon_weekly_boss_level = (
-            config.DungeonWeeklyBossLevel
-        )  # 如果没有自动搜索的结果，但有Config值且不为默认值，则使用Config值
+        dungeon_weekly_boss_level = config.DungeonWeeklyBossLevel  # 如果没有自动搜索的结果，但有Config值且不为默认值，则使用Config值
     result = wait_text("推荐等级" + str(dungeon_weekly_boss_level))
     if not result:
         for i in range(1, 5):
@@ -118,7 +162,7 @@ def recommended_level_action(positions: dict[str, Position]) -> bool:
     if not result:
         control.esc()
         return False
-    for i in range(5):
+    for i in range(2):
         click_position(result.position)
         time.sleep(0.5)
     result = find_text("单人挑战")
@@ -173,42 +217,6 @@ start_challenge_page = Page(
 pages.append(start_challenge_page)
 
 
-# 离开
-def leave_action(positions: dict[str, Position]) -> bool:
-    """
-    离开
-    :param positions: 位置信息
-    :return:
-    """
-    if info.needAbsorption and config.SearchDreamlessEchoes:
-        absorption_action()
-    else:
-        absorption_and_receive_rewards({})
-    control.esc()
-    time.sleep(1)
-    return True
-
-
-leave_page = Page(
-    name="离开",
-    targetTexts=[
-        TextMatch(
-            name="离开",
-            text="离开",
-        ),
-    ],
-    excludeTexts=[
-        TextMatch(
-            name="确认",
-            text="确认",
-        ),
-    ],
-    action=leave_action,
-)
-
-pages.append(leave_page)
-
-
 # 确认离开
 def confirm_leave_action(positions: dict[str, Position]) -> bool:
     """
@@ -216,18 +224,43 @@ def confirm_leave_action(positions: dict[str, Position]) -> bool:
     :param positions: 位置信息
     :return:
     """
-    click_position(positions["确认"])
-    time.sleep(3)
-    wait_home()
-    logger(f"{info.lastBossName}副本结束")
-    time.sleep(2)
-    if info.lastBossName == "角":
-        info.inJue = False
+    control.activate()
+    time.sleep(0.2)
+    if need_retry() and not info.needHeal:
+        click_position(positions["重新挑战"])
+        logger(f"重新挑战{info.lastBossName}副本")
+        if not info.lastBossName:
+            info.lastBossName = config.TargetBoss[0]
+            model_boss_yolo(info.lastBossName)
+        time.sleep(4)
+        if info.lastBossName == "角":
+            info.inJue = True
+        elif info.lastBossName == "无妄者":
+            info.inDreamless = True
+        elif info.lastBossName == "赫卡忒" or info.lastBossName == "芙露德莉斯":
+            info.inHecate = True
+        info.status = Status.idle
+        now = datetime.now()
+        info.lastFightTime = now
+        info.fightTime = now
+        info.waitBoss = True
     else:
-        info.inDreamless = False
-    info.status = Status.idle
-    now = datetime.now()
-    info.lastFightTime = now + timedelta(seconds=config.MaxFightTime / 2)
+        pos = positions.get("确认", positions.get("退出副本"))
+        click_position(pos)
+        time.sleep(3)
+        wait_home()
+        logger(f"{info.lastBossName}副本结束")
+        time.sleep(2)
+        if info.lastBossName == "角":
+            info.inJue = False
+        elif info.lastBossName == "无妄者":
+            info.inDreamless = False
+        elif info.lastBossName == "赫卡忒" or info.lastBossName == "芙露德莉斯":
+            info.inHecate = False
+        info.status = Status.idle
+        now = datetime.now()
+        info.lastFightTime = now + timedelta(seconds=config.MaxFightTime / 2)
+    info.isCheckedHeal = False
     return True
 
 
@@ -241,6 +274,10 @@ confirm_leave_page = Page(
         TextMatch(
             name="确认",
             text=template("^确认$"),
+        ),
+        TextMatch(
+            name="重新挑战",
+            text=template("^重新挑战$"),
         ),
     ],
     action=confirm_leave_action,

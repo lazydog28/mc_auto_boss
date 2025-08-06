@@ -3,62 +3,27 @@ from status import logger
 from config import config
 from yolo import switch_model
 
-default_yolo_logger = "使用【默认YOLO】模型进行识别"  # 默认模型的log日志
+default_yolo_logger = "使用【默认】模型进行识别"  # 默认模型的log日志
 ModelName_ext = ".onnx"  # 模型文件的后缀名
 
 # 模型文件名称
-defaultModelName = "yolo"  # 默认
-jue_ModelName = "jue"  # 角
-heart_ModelName = "heart"  # 无冠者之像·心脏
-
-# Boss名称
-jue_bossName = "角"  # 角
-jue_bossName_as = "时序之寰"
-heart_bossName = "无冠者之像·心脏"  # 无冠者之像·心脏
-
+defaultModelName = "yolo"  # 默认1.0全boss
+boss_v20 = "boss_v20"  # 2.0全boss + 无妄者 + 角
 
 # 作用：将模型独立分开，易于定位分析问题与维护
 # 根据boss名称动态的切换模型，
-def model_boss_yolo(bossName: str):
-    # 没有指定使用该模型，但是该模型是存在的
-    if (
-            bossName == jue_bossName or bossName == jue_bossName_as
-    ) and config.ModelName != jue_ModelName:  # 角，并且没有切换模型,该方法的调用位于schema.py 282行
-        # todo...可以判断模型是否存在，如果不存在则使用默认的模型yolo
-        if is_in_models_folder(jue_ModelName + ModelName_ext):
-            logger("使用[角]YOLO模型:jue.onnx")
-            config.ModelName = jue_ModelName
-            switch_model(jue_ModelName)
-
-        else:
-            user_default_model()  # 角模型不存在，使用默认的yolo模型
-
-    elif (
-            bossName == heart_bossName and config.ModelName != heart_ModelName
-    ):  # 无冠者之像·心脏，并且没有切换模型,该方法的调用位于schema.py 282行
-        if is_in_models_folder(heart_ModelName + ModelName_ext):
-            logger("使用[无冠者]YOLO模型:heart.onnx")
-            config.ModelName = heart_ModelName
-            switch_model(heart_ModelName)
-        else:
-            user_default_model()  # 无冠者之像·心脏模型不存在，使用默认的yolo模型
-
-    #  todo...待训练其他的BOSS
-
-    # utils.py 222行调用当前方法
-    elif (
-            bossName == "鸣钟之龟"
-            or bossName == "无冠者"
-            or bossName == "朔雷之鳞"
-            or bossName == "云闪之鳞"
-            or bossName == "燎照之骑"
-            or bossName == "飞廉之猩"
-            or bossName == "袁声鸷"
-            or bossName == "无常凶鹭"
-            or bossName == "辉萤军势"
-            or bossName == "聚械机偶"
-    ) and config.ModelName != defaultModelName:
-        user_default_model()  # 其他Boss，使用默认的yolo模型
+def model_boss_yolo(page_or_boss_name: str):
+    if (page_or_boss_name in ["鸣钟之龟", "无冠者", "朔雷之鳞", "云闪之鳞", "燎照之骑", "飞廉之猩", "哀声鸷", "无常凶鹭", "辉萤军势", "聚械机偶", "无归的谬误"]
+          and config.ModelName != defaultModelName):
+        user_default_model()  # 1.0Boss，使用默认的yolo模型
+    elif (page_or_boss_name in [ "无妄者", "无冠者之像·心脏", "角", "时序之寰",
+                                 "声之领域", "异构武装", "赫卡忒", "罗蕾莱", "叹息古龙", "梦魇飞廉之猩", "梦魇无常凶鹭",
+                                 "梦魇云闪之鳞", "梦魇朔雷之鳞", "梦魇无冠者", "梦魇燎照之骑", "梦魇哀声鸷",
+                                 "梦魇辉萤军势", "芙露德莉斯", "梦魇凯尔匹", "荣耀狮像"]
+          and config.ModelName != boss_v20):
+        logger("使用[boss模型v2.0]模型")
+        config.ModelName = boss_v20
+        switch_model(boss_v20)
 
 
 def user_default_model():

@@ -5,6 +5,8 @@
 @time: 2024/6/5 上午9:34
 @author SuperLazyDog
 """
+import re
+
 import hwnd_util
 from . import *
 
@@ -29,16 +31,45 @@ update_game_exit_page = Page(
     targetTexts=[
         TextMatch(
             name="更新完成，请重新启动游戏。",
-            text="更新完成，请重新启动游戏。",
+            text=re.compile(r"更新完成.*请重新启动游戏"),
         ),
         TextMatch(
             name="退出",
-            text=template("^退出$"),
+            text=re.compile("^退出$"),
         ),
     ],
     action=update_game_exit,
 )
 pages.append(update_game_exit_page)
+
+
+def driver_version_is_too_old_action(positions: dict[str, Position]) -> bool:
+    """
+    更新完成，请重新启动游戏。
+    :param positions: 位置信息
+    :return:
+    """
+    position = positions["确认"]
+    click_position(position)
+    time.sleep(2)
+    return True
+
+
+driver_version_is_too_old_page = Page(
+    name="检测到设备显卡驱动版本过旧",
+    targetTexts=[
+        TextMatch(
+            name="显卡驱动版本过旧",
+            text="显卡驱动版本过旧",
+        ),
+        TextMatch(
+            name="确认",
+            text=template("^确认$"),
+        ),
+    ],
+    action=driver_version_is_too_old_action,
+)
+pages.append(driver_version_is_too_old_page)
 
 
 # 吸收声骸
@@ -51,10 +82,13 @@ def absorption_action(positions: dict[str, Position]) -> bool:
     time.sleep(2)
     if not find_text("吸收"):
         return False
+    dump_img()
     info.absorptionCount += 1
     interactive()
     time.sleep(2)
     info.needAbsorption = False
+    if config.CharacterHeal and not info.isCheckedHeal:
+        check_heal()
     return True
 
 
@@ -111,6 +145,10 @@ def exit_instance(positions: dict[str, Position]) -> bool:
     :param positions:
     :return:
     """
+    result = find_text("重新挑战")
+    if result is not None and need_retry():
+        click_position(result.position)
+        return True
     position = positions.get("退出副本", None)
     if position is None:
         return False
@@ -149,7 +187,11 @@ terminal_page = Page(
     targetTexts=[
         TextMatch(
             name="终端",
-            text="终端",
+            text=re.compile("^终端$"),
+        ),
+        TextMatch(
+            name="生日",
+            text=re.compile("^生日$"),
         ),
     ],
     action=terminal_action,
@@ -182,9 +224,11 @@ def fight_action(positions: dict[str, Position]) -> bool:
 fight_page = Page(
     name="战斗画面",
     targetTexts=[
+        # "击败无妄者"会在boss似后再出现一次，导致匹配上战斗画面，人物继续打一套连招，修复此处无妄者匹配boss上方的名称，效果一般
+        # text = re.compile(r"((击败(?!无妄者))|(Lv.*无妄者)|对战|泰缇斯系统|凶戾之齿|倦怠之翼|妒恨之眼|(无餍?之舌)|(僭?越之矛)|(谵?妄之爪)|爱欲之容|盖希诺姆)"),
         TextMatch(
             name="战斗",
-            text=template(r"(击败|对战)"),  # 使用正则表达式匹配 支持击败和对战
+            text = re.compile(r"(击败|对战|泰缇斯系统|凶戾之齿|倦怠之翼|妒恨之眼|(无餍?之舌)|(僭?越之矛)|(谵?妄之爪)|爱欲之容|盖希诺姆|(愚执之瞳?))"),
         ),
     ],
     action=fight_action,
@@ -267,11 +311,15 @@ receive_rewards_page = Page(
     targetTexts=[
         TextMatch(
             name="领取奖励",
-            text="领取奖励",
+            text=template("^领取奖励$"),
         ),
         TextMatch(
             name="确认",
-            text="确认",
+            text=template("^确认$"),
+        ),
+        TextMatch(
+            name="取消",
+            text=template("^取消$"),
         ),
     ],
     action=receive_rewards,

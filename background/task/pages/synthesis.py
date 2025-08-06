@@ -142,7 +142,7 @@ def echo_not_enough_action(positions: dict[str, Position]) -> bool:
     :return:
     """
     logger("合成结束")
-    sys.exit(0)
+    info.dataMergeFinish = True
     return True
 
 
@@ -158,3 +158,62 @@ echo_not_enough_page = Page(
 )
 
 pages.append(echo_not_enough_page)
+
+
+def terminal_action(positions: dict[str, Position]) -> bool:
+    """
+    获取回音
+    :param positions:
+    :return:
+    """
+    control.activate()
+    click_position(positions.get("数据坞"))
+    info.needOpenDataMerge = False
+    time.sleep(1)
+    return True
+
+
+terminal_page = Page(
+    name="终端",
+    targetTexts=[
+        TextMatch(
+            name="唤取|共鸣者|教程百科",
+            text=re.compile(r"(唤取|共鸣者|教程百科)"),
+        ),
+        TextMatch(
+            name="数据坞",
+            text="数据坞",
+        ),
+
+    ],
+    action=terminal_action,
+)
+
+pages.append(terminal_page)
+
+
+def data_bank_action(positions: dict[str, Position]) -> bool:
+    """
+    获取回音
+    :param positions:
+    :return:
+    """
+    synthesis_data_bank_action()
+    time.sleep(1)
+    return True
+
+
+data_bank_page = Page(
+    name="数据坞",
+    targetTexts=[
+        TextMatch(
+            name="数据坞信息",
+            text="数据坞信息",
+        ),
+
+    ],
+    action=data_bank_action,
+)
+
+pages.append(data_bank_page)
+

@@ -12,5 +12,4 @@ paddlepaddle
 paddleocr<2.8.0
 colorama
 requests
-pyautogui==0.9.50
 psutil

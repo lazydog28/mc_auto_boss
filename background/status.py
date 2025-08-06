@@ -47,10 +47,11 @@ class StatusInfo(BaseModel):
     currentPageName: str = Field("", title="当前页面名称")
     inDreamless: bool = Field(False, title="是否在无妄者副本内")
     inJue: bool = Field(False, title="是否在角副本内")
+    inHecate: bool = Field(False, title="是否在赫卡忒副本内")
     lastBossName: str = Field("", title="最近BOSS名称")
     healCount: int = Field(heal_count, title="治疗次数")
     needHeal: bool = Field(False, title="需要治疗")
-    checkHeal: bool = Field(True, title="检查角色存活情况")
+    isCheckedHeal: bool = Field(False, title="是否检查过需要治疗")
     waitBoss: bool = Field(True, title="等待Boss时间")
     DungeonWeeklyBossLevel: int = Field(0, title="储存自动判断出的最低可获奖励副本BOSS的等级")
     resetRole: bool = Field(False, title="重置选择角色")
@@ -63,6 +64,9 @@ class StatusInfo(BaseModel):
     synthesisGoldQuantity: int = Field(0, title="合成声骸数量")
     synthesisTimes: int = Field(0, title="声骸合成次数")
     inSpecSynthesisEchoQuantity: int = Field(0, title="合成的符合配置的声骸数量")
+    needOpenDataMerge: bool = Field(True, title="是否要打开数据融合")
+    dataMergeFinish: bool = Field(False, title="数据融合是否完成")
+    bagIsOpen: bool = Field(False, title="背包是否打开")
 
     def resetTime(self):
         self.fightTime = datetime.now()

@@ -1,3 +1,5 @@
+# 更新日志, 点这里: [跳转](background/version.py)
+
 # 鸣潮后台自动刷BOSS声骸 GPU
 
  [最佳亚洲 CDN、边缘和安全解决方案 - Tencent EdgeOne](https://edgeone.ai/?from=github)
@@ -7,8 +9,6 @@
 > 如果觉得项目不错，可以点个star支持一下，谢谢！
 > 
 >  点击链接加入QQ频道：[mc_auto_boss](https://pd.qq.com/s/ayygl9edg)
-> 
-> 水群：689545101
 > 
 > 后台运行时可以有其他窗口遮挡，但是不可以最小化
 > 
@@ -20,7 +20,7 @@
 
 ## 前置条件
 
-1. 游戏窗口仅支持16:9分辨率,推荐分辨率为1280x720,屏幕缩放为100%
+1. 游戏窗口仅支持16:9分辨率,推荐游戏设置分辨率为1280x720,最低画质,关闭DLSS
 2. 必须解锁借位信标，在击杀目标BOSS的战利品位置放置借位信标，保证传送到借位信标后能直接触发BOSS或者和声弦交互
 3. 脚本必须以管理员权限运行！
 4. 项目路径中不能包含中文或特殊字符
@@ -31,6 +31,8 @@
 
 ## 使用方法
 
+任选一个教程搭建环境
+> GPU环境搭建：[40系显卡，CUDA12环境搭建.md](CUDA12环境搭建.md)    
 > GPU环境搭建：[GPU环境搭建 · lazydog28/mc_auto_boss Wiki (github.com)](https://github.com/lazydog28/mc_auto_boss/wiki/GPU环境搭建)
 
 1. ### 下载本项目
@@ -48,11 +50,15 @@
    > 
    > 如果当前用户名为中文，请下载 `paddleocr` [模型文件](https://github.com/PaddlePaddle/PaddleOCR/blob/main/doc/doc_ch/models_list.md) 后自行修改`background/ocr.py`中实例化`PaddleOCR`的参数`det_model_dir`和`rec_model_dir`为绝对路径且不包含中文
 
+    
+
 3. ### 修改配置文件
+    程序默认使用config.yaml作为配置文件，创建你的配置文件：
     ```shell
-    cp config.example.yaml config.yaml # 复制配置文件，
+    cp config.example.yaml config.yaml
     ```
-   修改`config.yaml`中的配置项，主要是 TargetBoss 改为你要刷的BOSS名称，如`飞廉之猩`，`鸣钟之龟`等，BOSS位置必须放置好借位信标
+   修改`config.yaml`中的配置项，主要是 TargetBoss 将你要刷的BOSS名称前的 #井号 删除，
+   回到游戏，在BOSS领取奖励位置放置借位信标
 
 
 4. ### 运行项目
@@ -68,13 +74,18 @@
    | F5  | 开始刷BOSS |
    | F6  | [开始合成声骸](https://github.com/lazydog28/mc_auto_boss/wiki/%E5%A3%B0%E9%AA%B8%E8%9E%8D%E5%90%88%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B)  |
    | F7  | 暂停运行    |
+   | F8  | 锁定声骸    |
    | F12 | 停止运行    |
 
 5. ### 命令行参数
     ```shell
     # 例：使用自定义配置文件启动程序，并在启动后直接打boss
-    python background/main.py -t F5 -c config-add-f.yaml
-    python background/main.py --task=F5 --config=config-add-f.yaml
+    python background/main.py -t F5 -c config-dreamless.yaml
+    python background/main.py --task=F5 --config=config-dreamless.yaml
+    # 例启动后先合成再打无妄者：
+    python background/main.py -t F6,F5 -c config-dreamless.yaml
+    # 例启动后先打开背包锁定有用声骸，再合成掉无用声骸，再打无妄者：
+    python background/main.py -t F8,F6,F5 -c config-dreamless.yaml
     ```
    
    | 参数            | 功能              |

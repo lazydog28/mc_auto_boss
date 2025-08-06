@@ -8,6 +8,8 @@ windows窗口工具
 """
 import re
 import psutil
+import win32api
+import win32con
 import win32gui
 import win32process
 
@@ -119,3 +121,14 @@ def get_ue4_client_crash_hwnd():
             return wd_hwnd
     return None
 
+
+# 强制关闭进程
+def force_close_process(hwnd):
+    # 卡死时发送窗口消息无效
+    # win32gui.SendMessage(hwnd, win32con.WM_CLOSE, 0, 0)
+    # 根据窗口句柄获取进程ID
+    _, pid = win32process.GetWindowThreadProcessId(hwnd)
+    # 获取进程句柄
+    handle = win32api.OpenProcess(win32con.PROCESS_TERMINATE, 0, pid)
+    win32api.TerminateProcess(handle, -1)
+    win32api.CloseHandle(handle)
